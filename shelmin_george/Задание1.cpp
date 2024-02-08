@@ -1,7 +1,4 @@
 ﻿#include <iostream>
-#include <stdlib.h>
-
-using namespace std;
 
 typedef long long int money;//копейки
 
