@@ -76,7 +76,7 @@ money payment_per_month()//возвращает остаток после опл
 {
     money balance = alice_salary - alice_food_cost - alice_unexpected_waste;
     if (credit > 0) {
-        money credit_payment = credit * loan_interest / 12 / 100;
+        money credit_payment = credit * loan_interest / 100 / (credit_duration*12);  //пересчитать
         balance -= credit_payment;
         credit -= credit / credit_duration / 12;
         if (alice_deposit < credit_payment - balance) {//срабатывает только когда проценты больше чем баланс и на вкладе нет денег
