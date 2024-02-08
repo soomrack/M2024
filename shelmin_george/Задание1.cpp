@@ -82,7 +82,7 @@ money payment_per_month()//возвращает остаток после опл
         money credit_payment = credit * loan_interest / 12 / 100;
         balance -= credit_payment;
         credit -= credit / credit_duration / 12;
-        if (alice_capital < credit_payment - balance) {//срабатывает только когда проценты больше чем баланс и на вкладе нет денег
+        if (alice_deposit < credit_payment - balance) {//срабатывает только когда проценты больше чем баланс и на вкладе нет денег
             is_enough_money = false;
         }
     }
