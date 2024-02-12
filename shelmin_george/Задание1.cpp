@@ -3,7 +3,7 @@
 typedef long long int money;//копейки
 
 
-const short int credit_duration = 20;
+const short int credit_duration = 30;
 const short int inflation = 12;
 const short int duration = 30;
 const short int renovation_duration = 2;
