@@ -30,21 +30,63 @@ double getCreditMonthlyPayment(double creditAmount, double annualCreditRate, int
 
 #pragma endregion
 
+double creditAmount = 0;
+double creditRate = 0.18;
+double aliceCreditPayed = 0;
+
+double bobAccountAmount = 0;
+double accountRate = 0.12;
+
+
+void timeToAnnularPercents() {
+    // TODO negative collapse
+    creditAmount += (creditAmount - aliceCreditPayed) * creditRate;
+
+    bobAccountAmount *= 1 + accountRate;
+}
 
 int main() {
+    const double INITIAL_MONEY = 2000000.0;
 
+    // Alice & her mortgage
     double mortgageAmount = 20000000.0;
-    double startPayment = 2000000.0;
-    double creditAmount = mortgageAmount - startPayment;
+    double initialPayment = INITIAL_MONEY;
+    creditAmount = mortgageAmount - initialPayment;
+    
+    //double aliceImpact = 300000;
 
     int durationYears = 30;
     int durationMonths = durationYears * 12;
-    double creditRate = 0.18;
 
     double mothlyPayment = 0;
 
     mothlyPayment = getCreditMonthlyPayment(creditAmount, creditRate, durationMonths);
-	printf("%.2f\n", mothlyPayment);
+	printf("Alice should pay every month = %.2f\n", mothlyPayment);
+    
+
+    // Bob & his savings account 
+    bobAccountAmount = INITIAL_MONEY;
+    double bobImpact = 200000;
+
+
+    printf("Financial impact:\t\t Alice:%.2lf\t\t Bob:%.2lf\n", mothlyPayment, bobImpact);
+
+
+    // every month
+    int monthsGoing = 20 * 12 + 1; // temp for debug
+    for (int mth = 1; mth <= monthsGoing; mth++) {
+        
+        aliceCreditPayed += mothlyPayment;
+        bobAccountAmount += bobImpact;
+
+        printf("M='%d'\t alicePayed: %.2lf/%.2lf\t bobAccountAmount: %.2lf\n", mth, aliceCreditPayed, creditAmount, bobAccountAmount);
+
+
+        if (mth % 12 == 0) {
+            timeToAnnularPercents();
+            printf("--------timeToPercents--------\n");
+        }
+    }
 
 	return 0;
 }
