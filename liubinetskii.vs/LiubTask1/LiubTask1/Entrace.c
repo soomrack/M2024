@@ -30,6 +30,7 @@ double getCreditMonthlyPayment(double creditAmount, double annualCreditRate, int
 
 #pragma endregion
 
+// Temporary shared variables 
 double creditAmount = 0;
 double creditRate = 0.18;
 double aliceCreditPayed = 0;
@@ -69,20 +70,18 @@ int main() {
     double bobImpact = 200000;
 
 
-    printf("Financial impact:\t\t Alice:%.2lf\t\t Bob:%.2lf\n", mothlyPayment, bobImpact);
-
+    printf("Financial impact:\t Alice:%.2lf\t\t Bob:%.2lf\n", mothlyPayment, bobImpact);
 
     // every month
     int monthsGoing = 20 * 12 + 1; // temp for debug
-    for (int mth = 1; mth <= monthsGoing; mth++) {
+    for (int month = 1; month <= monthsGoing; month++) {
         
         aliceCreditPayed += mothlyPayment;
         bobAccountAmount += bobImpact;
 
-        printf("M='%d'\t alicePayed: %.2lf/%.2lf\t bobAccountAmount: %.2lf\n", mth, aliceCreditPayed, creditAmount, bobAccountAmount);
+        printf("Month='%d'\t alicePayed: %.2lf/%.2lf\t bobAccountAmount: %.2lf\n", month, aliceCreditPayed, creditAmount, bobAccountAmount);
 
-
-        if (mth % 12 == 0) {
+        if (month % 12 == 0) {
             timeToAnnularPercents();
             printf("--------timeToPercents--------\n");
         }
