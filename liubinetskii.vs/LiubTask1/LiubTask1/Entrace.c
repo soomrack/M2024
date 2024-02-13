@@ -36,17 +36,57 @@ double creditRate = 0.18;
 double aliceCreditPayed = 0;
 
 double bobAccountAmount = 0;
-double accountRate = 0.12;
+double accountRate = 0.16;
+
+double indexationRate = 0.12;
+
+double expensesRenovationYear = 100000;
+double expensesFoodCost = 15000;
+double aliceFlatCost = 20 * 1000 * 1000;
+double bobFlatRent = 25 * 1000;
+
+
+double aliceSalary = 300000;
+double bobSalary = 200000;
 
 
 void timeToAnnularPercents() {
-    // TODO negative collapse
-    creditAmount += (creditAmount - aliceCreditPayed) * creditRate;
+    printf("--------timeToPercents--------\n");
+
+    double creditCharges = (creditAmount - aliceCreditPayed) * creditRate;
+    if (creditCharges > 0) {
+        creditAmount += creditCharges;
+    }
 
     bobAccountAmount *= 1 + accountRate;
 }
 
+
+// Годовая индексация
+double indexation(double amount) {
+    amount += amount * indexationRate;
+    return amount;
+}
+
+void amountIndexation() {
+    expensesRenovationYear = indexation(expensesRenovationYear);
+    expensesFoodCost = indexation(expensesFoodCost);
+    aliceFlatCost = indexation(aliceFlatCost);
+    bobFlatRent = indexation(bobFlatRent);
+
+    aliceSalary = indexation(aliceSalary);
+    bobSalary = indexation(bobSalary);
+}
+
+void printResult()
+{
+    printf("Alice's capital: \n%.2lf rubs.\n", ((creditAmount - aliceCreditPayed) + aliceFlatCost));
+    printf("Bob's capital: \n%.2lf rubs.\n", bobAccountAmount);
+}
+
+
 int main() {
+    const int MONTHS_IN_YEAR = 12;
     const double INITIAL_MONEY = 2000000.0;
 
     // Alice & her mortgage
@@ -57,7 +97,7 @@ int main() {
     //double aliceImpact = 300000;
 
     int durationYears = 30;
-    int durationMonths = durationYears * 12;
+    int durationMonths = durationYears * MONTHS_IN_YEAR;
 
     double mothlyPayment = 0;
 
@@ -67,17 +107,44 @@ int main() {
 
     // Bob & his savings account 
     bobAccountAmount = INITIAL_MONEY;
-    double bobImpact = 200000;
 
 
-    printf("Financial impact:\t Alice:%.2lf\t\t Bob:%.2lf\n", mothlyPayment, bobImpact);
+    printf("Financial salary:\t Alice:%.2lf\t\t Bob:%.2lf\n", aliceSalary, bobSalary);
 
-    // every month
-    int monthsGoing = 20 * 12 + 1; // temp for debug
+
+    
+    for (int currentYear = 0; currentYear < durationYears; currentYear++) {
+        for (int monthInYear = 1; monthInYear <= MONTHS_IN_YEAR; monthInYear++)
+        {
+            int month = currentYear * MONTHS_IN_YEAR + monthInYear;
+
+            aliceCreditPayed += mothlyPayment;
+            bobAccountAmount += (bobSalary - expensesFoodCost - bobFlatRent);
+
+            printf("Month='%d'\t alicePayed: %.2lf/%.2lf\t bobAccountAmount: %.2lf\n", month, aliceCreditPayed, creditAmount, bobAccountAmount);
+
+        }
+
+        // TEMP
+        if (currentYear == 29) break;
+
+        timeToAnnularPercents();
+        amountIndexation();
+
+
+    }
+
+    printResult();
+
+    /*
+        // every month
+    //int monthsGoing = 20 * 12 + 1; // temp for debug
+
     for (int month = 1; month <= monthsGoing; month++) {
         
         aliceCreditPayed += mothlyPayment;
         bobAccountAmount += bobImpact;
+
 
         printf("Month='%d'\t alicePayed: %.2lf/%.2lf\t bobAccountAmount: %.2lf\n", month, aliceCreditPayed, creditAmount, bobAccountAmount);
 
@@ -86,6 +153,6 @@ int main() {
             printf("--------timeToPercents--------\n");
         }
     }
-
+    */
 	return 0;
 }
