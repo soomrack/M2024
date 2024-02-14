@@ -105,8 +105,14 @@ void payment_per_month(Money balance,Money payment)
 
 void alice_deposit_add_per_month(Money balance)
 {
-    alice_deposit += balance;
-    alice_deposit += alice_deposit * alice_deposit_interest / 100 / 12;
+    if (balance >= 0) {
+       alice_deposit += (alice_deposit * alice_deposit_interest) / 100 / 12;
+       alice_deposit += balance;
+    }
+    else {
+        alice_deposit += balance;
+        alice_deposit += (alice_deposit * alice_deposit_interest) / 100 / 12;
+    }
 }
 
 
