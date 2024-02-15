@@ -1,4 +1,4 @@
-extern int credit;
+extern float credit;
 extern float credit_rate;
 extern int months;
 
