@@ -22,7 +22,8 @@ int main() {
 
     printf("Alice monthly credit payment: %.0f\n", alice_monthly_payment());
     printf("Alice payment for credit for 30 years: %.0f\n", alice_monthly_payment()* months);
-    printf("Alice payment for credit and wastes for 30 years: %.0f\n", alice_monthly_payment()* months + inflation_calculation(wastes * 12, months/12)+inflation_calculation(flat_renovation * 12, 2));
+    printf("Alice payment for credit and wastes for 30 years: %.0f\n", alice_monthly_payment()* months + inflation_calculation(wastes * 12, months/12, 0) + inflation_calculation(flat_renovation * 12, 2, 0));
     printf("Alice overpayment: %.0f\n", alice_monthly_payment()* months - credit - 2*1000*1000);
+
     return 0;
 }
