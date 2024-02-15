@@ -1,7 +1,7 @@
-#include <stdlib.h>;
+#include <iostream>;
 
-int main(){
-  
-  fprint ("Hello world");
+int main()
+{  
+  printf ("Hello world!");
   return 1;
 }
