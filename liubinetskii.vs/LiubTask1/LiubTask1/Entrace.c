@@ -1,9 +1,10 @@
 // Liubinetskii V. (@liubvlad)
+// 
 // code style for C
 // https://www.cs.umd.edu/~nelson/classes/resources/cstyleguide/
 // https://github.com/MaJerle/c-code-style
 //
-// variable naming rules for C
+// variable naming rules for C -- snake_case
 //
 // (!) All interest rates are expressed on an annual basis
 
@@ -12,12 +13,13 @@
 #include <stdbool.h>
 #include "logger.h"
 
+
 #define MAX_ELEMENTS_COUNT 8
 #define MSG_BUFF 512
 
-
 #define CENTS 100
-#define MILLION_IN_CENTS 1000 * 1000 * CENTS
+#define THOUSAND_C 1000 * CENTS
+#define MILLION_C 1000 * THOUSAND_C
 #define CREDIT_RATE 0.18
 #define DEPOSIT_RATE 0.16
 #define INFLATION_RATE 0.12
@@ -80,7 +82,6 @@ int create_expense(struct Person* person, char* name, Money cost, int duration_i
         person->name);
     log((struct Log_message) { Debug, message });
     free(message);
-
     
     if (person->expenses_count == MAX_ELEMENTS_COUNT)
     {
@@ -197,6 +198,13 @@ char* generate_line_with_text(char sym, int length, const char* text) {
 }
 
 
+int current_year = 2024;
+int current_month = 2;
+
+struct Person persons[MAX_ELEMENTS_COUNT];
+int persons_count = 0;
+
+
 // TEMP & OBSOLETE
 void print_person_data(struct Person* person) {
     printf(generate_line_with_text('-', 60, "Person statistic"));
@@ -249,25 +257,59 @@ void print_person_data(struct Person* person) {
     }
 
     printf(generate_line('=', 60));
+    printf("\n");
 }
 
-int main() {
 
+void print_persons_data() {
+    for (int i = 0; i < persons_count; i++) {
+        struct Person* person = &persons[i];
+        print_person_data(person);
+    }
+}
+
+
+void person_create_Alice() {
     struct Person alice = {
         .name = "Alice",
-        .balance = 2000045,
-        .salary = 10000 * CENTS,
+        .balance = 2 * MILLION_C,
+        .salary = 300 * THOUSAND_C,
     };
 
     create_expense(&alice, "Parking", 9000 * CENTS, 12);
     create_expense(&alice, "Life_trats", 20000 * CENTS, 0);
 
-    create_credit(&alice, "Micro-ZAIM", 2 * MILLION_IN_CENTS, CREDIT_RATE, 36);
-    create_credit(&alice, "Ipoteka++", 18 * MILLION_IN_CENTS, CREDIT_RATE, 30 * MONTHS_IN_YEAR);
+    create_credit(&alice, "Micro-ZAIM", 2 * MILLION_C, CREDIT_RATE, 36);
+    create_credit(&alice, "Ipoteka++", 18 * MILLION_C, CREDIT_RATE, 30 * MONTHS_IN_YEAR);
 
-    create_saving(&alice, "Deposit", 2 * MILLION_IN_CENTS, DEPOSIT_RATE);
+    persons[persons_count] = alice;
+    persons_count += 1;
+}
 
-    print_person_data(&alice);
+
+void person_create_Bob() {
+    struct Person bob = {
+        .name = "Bob",
+        .balance = 2 * MILLION_C,
+        .salary = 300 * THOUSAND_C,
+    };
+
+    create_expense(&bob, "Eat", 15 * THOUSAND_C, 0);
+    create_expense(&bob, "Flat", 25 * THOUSAND_C, 0);
+
+    create_saving(&bob, "Deposit", 2 * MILLION_C, DEPOSIT_RATE);
+
+    persons[persons_count] = bob;
+    persons_count += 1;
+}
+
+
+int main() {
+
+    person_create_Alice();
+    person_create_Bob();
+
+    print_persons_data();
 
     return 0;
 }
