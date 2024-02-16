@@ -1,0 +1,35 @@
+[DEBUG]: Creating expense 'Parking' for person 'Alice'
+[DEBUG]: Creating expense 'Life_trats' for person 'Alice'
+[DEBUG]: Creating credit 'Micro-ZAIM' for person 'Alice'
+[DEBUG]: Creating credit 'Ipoteka++' for person 'Alice'
+[DEBUG]: Creating saving account 'Deposit' with initial balance '2000000.00' for person 'Alice'
+----------------------Person statistic---------------------
+Alice: balance = 20000.45, salary = 10000.00
+
+Expenses count = 2
+        [0] Expense info: Name = Parking
+        [0] Amount = 9000.00
+        [0] Duration months = 12
+
+        [1] Expense info: Name = Life_trats
+        [1] Amount = 20000.00
+
+Credits count = 2
+        [0] Credit info: Name = Micro-ZAIM
+        [0] Amount = 2000000.00
+        [0] Monthly payment = 72304.79
+        [0] Interest rate = 18.00 %
+        [0] Duration months = 36
+
+        [1] Credit info: Name = Ipoteka++
+        [1] Amount = 18000000.00
+        [1] Monthly payment = 271275.36
+        [1] Interest rate = 18.00 %
+        [1] Duration months = 360
+
+Savings count = 1
+        [0] Expense info: Name = Deposit
+        [0] Balance = 2000000.00
+        [0] Interest rate = 16.00 %
+
+===========================================================

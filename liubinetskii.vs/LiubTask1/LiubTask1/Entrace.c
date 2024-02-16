@@ -1,12 +1,294 @@
-#include <stdio.h>
-#include <math.h>
-
 // Liubinetskii V. (@liubvlad)
 // code style for C
 // https://www.cs.umd.edu/~nelson/classes/resources/cstyleguide/
 // https://github.com/MaJerle/c-code-style
 //
 // variable naming rules for C
+//
+// (!) All interest rates are expressed on an annual basis
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include "logger.h"
+
+#define MAX_ELEMENTS_COUNT 8
+#define MSG_BUFF 512
+
+
+#define CENTS 100
+#define MILLION_IN_CENTS 1000 * 1000 * CENTS
+#define CREDIT_RATE 0.18
+#define DEPOSIT_RATE 0.16
+#define INFLATION_RATE 0.12
+#define YEARS 30
+#define MONTHS_IN_YEAR 12
+
+
+typedef long long Money;
+
+double сredit_сalculation_recursion(double base, int exponent);
+Money credit_get_monthly_payment(Money credit_amount, double annual_credit_rate, int duration_months);
+
+
+struct Expenses {
+    char* name;
+    Money amount;
+    bool has_duration;
+    int duration_months;
+};
+
+
+struct Credit {
+    char* name;
+    Money amount;
+    Money monthly_payment;
+    double interest_rate;
+    int duration_months;
+    // TODO take init&save init duration
+};
+
+
+struct Savings {
+    char* name;
+    Money balance;
+    double interest_rate;
+};
+
+
+typedef struct Person {
+    char* name;
+    Money balance;
+    Money salary;
+
+    struct Expenses expenses[MAX_ELEMENTS_COUNT];
+    int expenses_count;
+    struct Credit credits[MAX_ELEMENTS_COUNT];
+    int credits_count;
+    struct Savings savings[MAX_ELEMENTS_COUNT];
+    int savings_count;
+
+    // TODO can add some Property
+};
+
+
+int create_expense(struct Person* person, char* name, Money cost, int duration_in_months) {
+    
+    char* message = (char*)malloc(MSG_BUFF * sizeof(char));
+    snprintf(message, MSG_BUFF, "Creating expense '%s' for person '%s'",
+        name,
+        person->name);
+    log((struct Log_message) { Debug, message });
+    free(message);
+
+    
+    if (person->expenses_count == MAX_ELEMENTS_COUNT)
+    {
+        log((struct Log_message) { Warning, "Failed create expense - out of range!" });
+        return 0;
+    }
+
+    struct Expenses expense;
+    expense.name = name;
+    expense.amount = cost;
+
+    if (duration_in_months > 0) {
+        expense.has_duration = true;
+        expense.duration_months = duration_in_months;
+    }
+    else {
+        expense.has_duration = false;
+        expense.duration_months = 0;
+    }
+
+    person->expenses[person->expenses_count] = expense;
+    person->expenses_count += 1;
+
+    return 1;
+}
+
+
+int create_credit(struct Person* person, char* name, Money credit_amount, double rate, int duration_months) {
+    
+    char* message = (char*)malloc(MSG_BUFF * sizeof(char));
+    snprintf(message, MSG_BUFF, "Creating credit '%s' for person '%s'",
+        name,
+        person->name);
+    log((struct Log_message) { Debug, message });
+    free(message);
+
+    if (person->credits_count == MAX_ELEMENTS_COUNT)
+    {
+        log((struct Log_message) { Warning, "Failed create credit - out of range!" });
+        return 0;
+    }
+
+    struct Credit credit;
+    credit.name = name;
+    credit.amount = credit_amount;
+    credit.duration_months = duration_months;
+    credit.interest_rate = rate;
+
+    credit.monthly_payment = credit_get_monthly_payment(credit_amount, rate, duration_months);
+
+    person->credits[person->credits_count] = credit;
+    person->credits_count += 1;
+
+    return 1;
+}
+
+
+int create_saving(struct Person* person, char* name, Money balance, double rate) {
+    
+    char* message = (char*)malloc(MSG_BUFF * sizeof(char));
+    snprintf(message, MSG_BUFF, "Creating saving account '%s' with initial balance '%lld.%.2lld' for person '%s'",
+        name,
+        balance / 100,
+        balance % 100,
+        person->name);
+    log((struct Log_message) { Debug, message });
+    free(message);
+    
+    if (person->credits_count == MAX_ELEMENTS_COUNT)
+    {
+        log((struct Log_message) { Warning, "Failed create saving account - out of range!" });
+        return 0;
+    }
+
+    struct Savings saving;
+    saving.name = name;
+    saving.balance = balance;
+    saving.interest_rate = rate;
+
+    person->savings[person->savings_count] = saving;
+    person->savings_count += 1;
+
+    return 1;
+}
+
+
+char* generate_line(char sym, int length) {
+    char* line = (char*)malloc(length + 2 * sizeof(char));
+    
+    for (int i = 0; i < length; ++i) {
+        line[i] = sym;
+    }
+
+    line[length - 1] = '\n';
+    line[length] = '\0';
+    return line;
+}
+
+
+char* generate_line_with_text(char sym, int length, const char* text) {
+    size_t text_length = strlen(text);
+    if (text_length > length) {
+        return text;
+    }
+
+    int left_padding = (length - text_length) / 2;
+    char* line_with_text = generate_line(sym, length);
+
+    for (int i = 0; i < text_length; i++) {
+        line_with_text[i + left_padding] = text[i];
+    }
+
+    return line_with_text;
+}
+
+
+// TEMP & OBSOLETE
+void print_person_data(struct Person* person) {
+    printf(generate_line_with_text('-', 60, "Person statistic"));
+
+    printf("%s: balance = %lld.%.2lld, salary = %lld.%.2lld\n\n",
+        person->name,
+        person->balance / 100,
+        person->balance % 100,
+        person->salary / 100,
+        person->salary % 100);
+
+    printf("Expenses count = %d\n", person->expenses_count);
+    for (int i = 0; i < person->expenses_count; i++)
+    {
+        printf("\t[%d] Expense info: Name = %s\n", i, person->expenses[i].name);
+        printf("\t[%d] Amount = %lld.%.2lld\n", i,
+            person->expenses[i].amount / 100,
+            person->expenses[i].amount % 100);
+        if (person->expenses[i].has_duration) {
+            printf("\t[%d] Duration months = %d\n", i, person->expenses[i].duration_months);
+        }
+
+        printf("\n");
+    }
+
+    printf("Credits count = %d\n", person->credits_count);
+    for (int i = 0; i < person->credits_count; i++)
+    {
+        printf("\t[%d] Credit info: Name = %s\n", i, person->credits[i].name);
+        printf("\t[%d] Amount = %lld.%.2lld\n", i,
+            person->credits[i].amount / 100,
+            person->credits[i].amount % 100);
+        printf("\t[%d] Monthly payment = %lld.%.2lld\n", i,
+            person->credits[i].monthly_payment / 100,
+            person->credits[i].monthly_payment % 100);
+        printf("\t[%d] Interest rate = %.2f %%\n", i, person->credits[i].interest_rate * 100);
+        printf("\t[%d] Duration months = %d\n", i, person->credits[i].duration_months);
+        printf("\n");
+    }
+
+    printf("Savings count = %d\n", person->savings_count);
+    for (int i = 0; i < person->savings_count; i++)
+    {
+        printf("\t[%d] Expense info: Name = %s\n", i, person->savings[i].name);
+        printf("\t[%d] Balance = %lld.%.2lld\n", i,
+            person->savings[i].balance / 100,
+            person->savings[i].balance % 100);
+        printf("\t[%d] Interest rate = %.2f %%\n", i, person->savings[i].interest_rate * 100);
+        printf("\n");
+    }
+
+    printf(generate_line('=', 60));
+}
+
+int main() {
+
+    struct Person alice = {
+        .name = "Alice",
+        .balance = 2000045,
+        .salary = 10000 * CENTS,
+    };
+
+    create_expense(&alice, "Parking", 9000 * CENTS, 12);
+    create_expense(&alice, "Life_trats", 20000 * CENTS, 0);
+
+    create_credit(&alice, "Micro-ZAIM", 2 * MILLION_IN_CENTS, CREDIT_RATE, 36);
+    create_credit(&alice, "Ipoteka++", 18 * MILLION_IN_CENTS, CREDIT_RATE, 30 * MONTHS_IN_YEAR);
+
+    create_saving(&alice, "Deposit", 2 * MILLION_IN_CENTS, DEPOSIT_RATE);
+
+    print_person_data(&alice);
+
+    return 0;
+}
+
+    /*
+
+    // Использовать реальные года и месяцы...
+
+    for (int month = 1; month <= YEARS * MONTHS_IN_YEAR; month++) {
+            update_monthly_situation(&alice, &bob);
+            print_monthly_situation(month, alice, bob);
+        }
+
+    void update_monthly(Person* person) {
+        alice->loan.balance -= alice->loan.monthly_payment;
+        Money interest = bob->savings.balance * bob->savings.interest_rate / MONTHS_IN_YEAR;
+        bob->savings.balance += interest;
+        //bob->savings.balance *= (1 + GROWTH_RATE / MONTHS_IN_YEAR);
+    }
+
+    */
 
 #pragma region Black box for calculating credit monthly payment
 
@@ -17,141 +299,30 @@ double сredit_сalculation_recursion(double base, int exponent) {
         return base * сredit_сalculation_recursion(base, exponent - 1);
 }
 
-double get_credit_monthly_payment(double credit_amount, double annual_credit_rate, int duration_months) {
+Money credit_get_monthly_payment(Money credit_amount, double annual_credit_rate, int duration_months) {
     double monthly_credit_rate = annual_credit_rate / 12;
 
     double all_credit_time_inflation = сredit_сalculation_recursion((1 + monthly_credit_rate), duration_months);
 
     double coefficient = (monthly_credit_rate * all_credit_time_inflation) / (all_credit_time_inflation - 1);
 
-    double monthlyPayment = credit_amount * coefficient;
+    Money monthlyPayment = (Money)(credit_amount * coefficient);
     return monthlyPayment;
 }
 
 #pragma endregion
 
-// Temporary shared variables 
-
-const int MONTHS_IN_YEAR = 12;
-const long long int INITIAL_MONEY = 2000000;
-
-
-double credit_amount = 0;
-double credit_rate = 0.18;
-double alice_credit_payed = 0;
-
-double bob_account_amount = 0;
-double account_rate = 0.16;
-
-double indexation_rate = 0.12;
-
-double expenses_renovation_year = 100000;
-double expenses_food_cost = 15000;
-double alice_flat_cost = 20 * 1000 * 1000;
-double bob_flat_rent = 25 * 1000;
-
-
-double alice_salary = 300000;
-double bob_salary = 200000;
-
-
-void time_to_annular_percents() {
-    printf("--------timeToPercents--------\n");
-
-    double credit_charges = (credit_amount - alice_credit_payed) * credit_rate;
-    if (credit_charges > 0) {
-        credit_amount += credit_charges;
-    }
-
-    bob_account_amount *= 1 + account_rate;
-}
-
-
-// Годовая индексация
-double indexation(double amount) {
-    amount += amount * indexation_rate;
-    return amount;
-}
-
-void amount_indexation() {
-    expenses_renovation_year = indexation(expenses_renovation_year);
-    expenses_food_cost = indexation(expenses_food_cost);
-    alice_flat_cost = indexation(alice_flat_cost);
-    bob_flat_rent = indexation(bob_flat_rent);
-
-    alice_salary = indexation(alice_salary);
-    bob_salary = indexation(bob_salary);
-}
-
-void print_result()
-{
-    printf("Alice's capital: \n%.2lf rubs.\n", ((credit_amount - alice_credit_payed) + alice_flat_cost));
-    printf("Bob's capital: \n%.2lf rubs.\n", bob_account_amount);
-}
-
-
-int main() {
-
-    // Alice & her mortgage
-    double mortgage_amount = 20000000.0;
-    double initial_payment = INITIAL_MONEY;
-    credit_amount = mortgage_amount - initial_payment;
-    
-    //double aliceImpact = 300000;
-
-    int duration_years = 30;
-    int duration_months = duration_years * MONTHS_IN_YEAR;
-
-    double mothly_payment = 0;
-
-    mothly_payment = getCreditMonthlyPayment(credit_amount, credit_rate, duration_months);
-	printf("Alice should pay every month = %.2f\n", mothly_payment);
-    
-
-    // Bob & his savings account 
-    bob_account_amount = INITIAL_MONEY;
-
-
-    printf("Financial salary:\t Alice:%.2lf\t\t Bob:%.2lf\n", alice_salary, bob_salary);
-
-
-    
-    for (int current_year = 0; current_year < duration_years; current_year++) {
-        for (int month_in_year = 1; month_in_year <= MONTHS_IN_YEAR; month_in_year++)
-        {
-            int month = current_year * MONTHS_IN_YEAR + month_in_year;
-
-            alice_credit_payed += mothly_payment;
-            bob_account_amount += (bob_salary - expenses_food_cost - bob_flat_rent);
-
-            printf("Month='%d'\t alice_payed: %.2lf/%.2lf\t bob_account_amount: %.2lf\n", month, alice_credit_payed, credit_amount, bob_account_amount);
-
-        }
-
-        // TEMP
-        if (current_year == 29) break;
-
-        time_to_annular_percents();
-        amount_indexation();
-
-
-    }
-
-    print_result();
-
-	return 0;
-}
-
-
 
 /*
-Увеличить начальный капитал
-года текущие
-отсутпы 
-змея_кэйс
+  □ Вернуть отработку помесячной индексации
+ 
 
-в майн только важное
+  □ Увеличить начальный капитал
+  □ года текущие
+  ☑отсутпы
+  ☑змея_кэйс
 
-Кредит работает как обязательство на n-лет
+  □ в майн только важное
 
+  ☑Кредит работает как обязательство на n-лет ☑
 */

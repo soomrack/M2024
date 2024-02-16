@@ -135,6 +135,8 @@
   <ItemGroup>
     <ClInclude Include="logger.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="2024.02.16_output.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
