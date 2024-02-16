@@ -130,6 +130,11 @@
     <ClCompile Include="Entrace.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="logger.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="logger.h" />
+  </ItemGroup>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
