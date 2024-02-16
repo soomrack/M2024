@@ -56,6 +56,7 @@ struct Savings {
     char* name;
     Money balance;
     double interest_rate;
+    // TODO ADD replenishment percentage 
 };
 
 
@@ -64,11 +65,11 @@ typedef struct Person {
     Money balance;
     Money salary;
 
-    struct Expenses expenses[MAX_ELEMENTS_COUNT];
+    struct Expenses* expenses[MAX_ELEMENTS_COUNT];
     int expenses_count;
-    struct Credit credits[MAX_ELEMENTS_COUNT];
+    struct Credit* credits[MAX_ELEMENTS_COUNT];
     int credits_count;
-    struct Savings savings[MAX_ELEMENTS_COUNT];
+    struct Savings* savings[MAX_ELEMENTS_COUNT];
     int savings_count;
 
     // TODO can add some Property
@@ -90,17 +91,17 @@ int create_expense(struct Person* person, char* name, Money cost, int duration_i
         return 0;
     }
 
-    struct Expenses expense;
-    expense.name = name;
-    expense.amount = cost;
+    struct Expenses* expense = malloc(sizeof(struct Expenses));
+    expense->name = name;
+    expense->amount = cost;
 
     if (duration_in_months > 0) {
-        expense.has_duration = true;
-        expense.duration_months = duration_in_months;
+        expense->has_duration = true;
+        expense->duration_months = duration_in_months;
     }
     else {
-        expense.has_duration = false;
-        expense.duration_months = 0;
+        expense->has_duration = false;
+        expense->duration_months = 0;
     }
 
     person->expenses[person->expenses_count] = expense;
@@ -125,13 +126,13 @@ int create_credit(struct Person* person, char* name, Money credit_amount, double
         return 0;
     }
 
-    struct Credit credit;
-    credit.name = name;
-    credit.amount = credit_amount;
-    credit.duration_months = duration_months;
-    credit.interest_rate = rate;
+    struct Credit* credit = malloc(sizeof(struct Credit));
+    credit->name = name;
+    credit->amount = credit_amount;
+    credit->duration_months = duration_months;
+    credit->interest_rate = rate;
 
-    credit.monthly_payment = credit_get_monthly_payment(credit_amount, rate, duration_months);
+    credit->monthly_payment = credit_get_monthly_payment(credit_amount, rate, duration_months);
 
     person->credits[person->credits_count] = credit;
     person->credits_count += 1;
@@ -157,10 +158,10 @@ int create_saving(struct Person* person, char* name, Money balance, double rate)
         return 0;
     }
 
-    struct Savings saving;
-    saving.name = name;
-    saving.balance = balance;
-    saving.interest_rate = rate;
+    struct Savings* saving = malloc(sizeof(struct Savings));
+    saving->name = name;
+    saving->balance = balance;
+    saving->interest_rate = rate;
 
     person->savings[person->savings_count] = saving;
     person->savings_count += 1;
@@ -202,11 +203,25 @@ char* generate_line_with_text(char sym, int length, const char* text) {
 int current_year = 2024;
 int current_month = 2;
 
-struct Person persons[MAX_ELEMENTS_COUNT];
+struct Person* persons[MAX_ELEMENTS_COUNT];
 int persons_count = 0;
 
 
-// TEMP & OBSOLETE
+void money_under_rate(Money* money, double rate) {
+    if (money == NULL) {
+        log((struct Log_message) { Error, "Null pointer passed" });
+        return;
+    }
+
+    if (rate < -1.0 || rate > 1.0) {
+        log((struct Log_message) { Error, "Wrong interest rate" });
+        return;
+    }
+
+    *money *= (1 + rate);
+}
+
+
 void print_person_data(struct Person* person) {
     printf(generate_line_with_text('-', 60, "Person statistic"));
 
@@ -220,12 +235,12 @@ void print_person_data(struct Person* person) {
     printf("Expenses count = %d\n", person->expenses_count);
     for (int i = 0; i < person->expenses_count; i++)
     {
-        printf("\t[%d] Expense info: Name = %s\n", i, person->expenses[i].name);
+        printf("\t[%d] Expense info: Name = %s\n", i, person->expenses[i]->name);
         printf("\t[%d] Amount = %lld.%.2lld\n", i,
-            person->expenses[i].amount / 100,
-            person->expenses[i].amount % 100);
-        if (person->expenses[i].has_duration) {
-            printf("\t[%d] Duration months = %d\n", i, person->expenses[i].duration_months);
+            person->expenses[i]->amount / 100,
+            person->expenses[i]->amount % 100);
+        if (person->expenses[i]->has_duration) {
+            printf("\t[%d] Duration months = %d\n", i, person->expenses[i]->duration_months);
         }
 
         printf("\n");
@@ -234,26 +249,26 @@ void print_person_data(struct Person* person) {
     printf("Credits count = %d\n", person->credits_count);
     for (int i = 0; i < person->credits_count; i++)
     {
-        printf("\t[%d] Credit info: Name = %s\n", i, person->credits[i].name);
+        printf("\t[%d] Credit info: Name = %s\n", i, person->credits[i]->name);
         printf("\t[%d] Amount = %lld.%.2lld\n", i,
-            person->credits[i].amount / 100,
-            person->credits[i].amount % 100);
+            person->credits[i]->amount / 100,
+            person->credits[i]->amount % 100);
         printf("\t[%d] Monthly payment = %lld.%.2lld\n", i,
-            person->credits[i].monthly_payment / 100,
-            person->credits[i].monthly_payment % 100);
-        printf("\t[%d] Interest rate = %.2f %%\n", i, person->credits[i].interest_rate * 100);
-        printf("\t[%d] Duration months = %d\n", i, person->credits[i].duration_months);
+            person->credits[i]->monthly_payment / 100,
+            person->credits[i]->monthly_payment % 100);
+        printf("\t[%d] Interest rate = %.2f %%\n", i, person->credits[i]->interest_rate * 100);
+        printf("\t[%d] Duration months = %d\n", i, person->credits[i]->duration_months);
         printf("\n");
     }
 
     printf("Savings count = %d\n", person->savings_count);
     for (int i = 0; i < person->savings_count; i++)
     {
-        printf("\t[%d] Expense info: Name = %s\n", i, person->savings[i].name);
+        printf("\t[%d] Expense info: Name = %s\n", i, person->savings[i]->name);
         printf("\t[%d] Balance = %lld.%.2lld\n", i,
-            person->savings[i].balance / 100,
-            person->savings[i].balance % 100);
-        printf("\t[%d] Interest rate = %.2f %%\n", i, person->savings[i].interest_rate * 100);
+            person->savings[i]->balance / 100,
+            person->savings[i]->balance % 100);
+        printf("\t[%d] Interest rate = %.2f %%\n", i, person->savings[i]->interest_rate * 100);
         printf("\n");
     }
 
@@ -264,24 +279,28 @@ void print_person_data(struct Person* person) {
 
 void print_persons_data() {
     for (int i = 0; i < persons_count; i++) {
-        struct Person* person = &persons[i];
+        struct Person* person = persons[i];
         print_person_data(person);
     }
 }
 
 
 void person_create_Alice() {
-    struct Person alice = {
-        .name = "Alice",
-        .balance = 2 * MILLION_CU,
-        .salary = 300 * THOUSAND_CU,
-    };
+    struct Person *alice = malloc(sizeof(struct Person));
+    
+    alice->name = "Alice";
+    alice->balance = 2 * MILLION_CU;
+    alice->salary = 300 * THOUSAND_CU;
 
-    create_expense(&alice, "Parking", 9000 * CU, 12);
-    create_expense(&alice, "Life_trats", 20000 * CU, 0);
+    alice->credits_count = 0;
+    alice->expenses_count = 0;
+    alice->savings_count = 0;
 
-    create_credit(&alice, "Micro-ZAIM", 2 * MILLION_CU, CREDIT_RATE, 36);
-    create_credit(&alice, "Ipoteka++", 18 * MILLION_CU, CREDIT_RATE, 30 * MONTHS_IN_YEAR);
+    create_expense(alice, "Parking", 9000 * CU, 12);
+    create_expense(alice, "Life_trats", 20000 * CU, 0);
+
+    create_credit(alice, "Micro-ZAIM", 2 * MILLION_CU, CREDIT_RATE, 36);
+    create_credit(alice, "Ipoteka++", 18 * MILLION_CU, CREDIT_RATE, 30 * MONTHS_IN_YEAR);
 
     persons[persons_count] = alice;
     persons_count += 1;
@@ -289,16 +308,26 @@ void person_create_Alice() {
 
 
 void person_create_Bob() {
-    struct Person bob = {
+    /*struct Person bob = {
         .name = "Bob",
         .balance = 2 * MILLION_CU,
         .salary = 300 * THOUSAND_CU,
-    };
+    };*/
 
-    create_expense(&bob, "Eat", 15 * THOUSAND_CU, 0);
-    create_expense(&bob, "Flat", 25 * THOUSAND_CU, 0);
+    struct Person* bob = malloc(sizeof(struct Person));
 
-    create_saving(&bob, "Deposit", 2 * MILLION_CU, DEPOSIT_RATE);
+    bob->name = "Bob";
+    bob->balance = 2 * MILLION_CU;
+    bob->salary = 300 * THOUSAND_CU;
+
+    bob->credits_count = 0;
+    bob->expenses_count = 0;
+    bob->savings_count = 0;
+
+    create_expense(bob, "Eat", 15 * THOUSAND_CU, 0);
+    create_expense(bob, "Flat", 25 * THOUSAND_CU, 0);
+
+    create_saving(bob, "Deposit", 2 * MILLION_CU, DEPOSIT_RATE);
 
     persons[persons_count] = bob;
     persons_count += 1;
@@ -309,17 +338,17 @@ void print_persons_total_balance() {
     printf("Balance status on %d.%02d\n", current_year, current_month);
 
     for (int i = 0; i < persons_count; i++) {
-        struct Person* person = &persons[i];
+        struct Person* person = persons[i];
         Money total_balance = person->balance;
 
         for (int i = 0; i < person->credits_count; i++)
         {
-            total_balance -= person->credits[i].monthly_payment * person->credits[i].duration_months;
+            total_balance -= person->credits[i]->monthly_payment * person->credits[i]->duration_months;
         }
 
         for (int i = 0; i < person->savings_count; i++)
         {
-            total_balance += person->savings[i].balance;
+            total_balance += person->savings[i]->balance;
         }
 
         printf("[%s] Total balance = %lld.%.2d\n", 
@@ -337,17 +366,86 @@ void start_processing(int months_duration) {
 
     for (int month = 0; month < months_duration; month++)
     {
-        // двигаем на месяц
-        // двигаем если надо год
-        //      если год двинулся -- реализуем инфляцию(индексацию)
+        current_month++;
+        if (current_month > MONTHS_IN_YEAR) {
+            current_month -= MONTHS_IN_YEAR;
+            current_year++;
 
-        // приходит зарплата
+            // every year - implement inflation(indexation)
+            for (int i = 0; i < persons_count; i++) {
+                struct Person* person = persons[i];
 
-        // капают проценты на вклад
+                money_under_rate(person->&balance, INFLATION_RATE);
+                money_under_rate(person->&salary, INFLATION_RATE);
 
-        // оплата по кредитам
+                for (int i = 0; i < person->expenses_count; i++)
+                {
+                    money_under_rate(person->expenses[i]->&amount, INFLATION_RATE);
+                }
 
-        // оплачиваем расходы
+                // TODO let's go to monthly rates
+                for (int i = 0; i < person->savings_count; i++)
+                {
+                    money_under_rate(person->savings[i]->&balance, person->savings[i]->interest_rate);
+                }
+            }
+        }
+        
+        for (int i = 0; i < persons_count; i++) {
+            struct Person* person = persons[i];
+
+            // salary comes
+            person->balance += person->salary;
+
+            // TO BE DONE savings accounts (monthly rating) 
+
+            // payment on loans/credits
+            for (int i = 0; i < person->credits_count; i++)
+            {
+                // TODO check money balance should be here
+                person->balance -= person->credits[i]->monthly_payment;
+                person->credits[i]->duration_months--;
+            }
+
+            if (person->balance < 0) {
+                printf("Oups.. %s is now bankrupt before loads payment.. Balance = %lld.%.2lld\n",
+                    person->name,
+                    person->balance / 100,
+                    person->balance % 100);
+            }
+
+            // pay expenses
+            for (int i = 0; i < person->expenses_count; i++)
+            {
+                // TODO check money balance should be here
+                if (person->expenses[i]->has_duration) {
+                    if (person->expenses[i]->duration_months > 0) {
+                        person->balance -= person->expenses[i]->amount;
+                        person->expenses[i]->duration_months--;
+                    }
+                }
+                else {
+                    person->balance -= person->expenses[i]->amount;
+                }
+            }
+
+            if (person->balance < 0) {
+                printf("Oups.. %s is now bankrupt before expenses payment.. Balance = %lld.%.2lld\n",
+                    person->name,
+                    person->balance / 100,
+                    person->balance % 100);
+            }
+
+            // replenish your savings account
+            // TEMP top up only the first saving account
+            for (int i = 0; i < person->savings_count; i++)
+            {
+                if (person->balance > 0) {
+                    person->savings[0]->balance += person->balance;
+                    person->balance = 0;
+                }
+            }
+        }
 
         print_persons_total_balance();
     }
