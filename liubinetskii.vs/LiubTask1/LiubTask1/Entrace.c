@@ -17,13 +17,14 @@
 #define MAX_ELEMENTS_COUNT 8
 #define MSG_BUFF 512
 
-#define CENTS 100
-#define THOUSAND_C 1000 * CENTS
-#define MILLION_C 1000 * THOUSAND_C
+#define CU 100
+#define THOUSAND_CU 1000 * CU
+#define MILLION_CU 1000 * THOUSAND_CU
+
 #define CREDIT_RATE 0.18
 #define DEPOSIT_RATE 0.16
 #define INFLATION_RATE 0.12
-#define YEARS 30
+#define PROCESSING_YEARS 30
 #define MONTHS_IN_YEAR 12
 
 
@@ -272,15 +273,15 @@ void print_persons_data() {
 void person_create_Alice() {
     struct Person alice = {
         .name = "Alice",
-        .balance = 2 * MILLION_C,
-        .salary = 300 * THOUSAND_C,
+        .balance = 2 * MILLION_CU,
+        .salary = 300 * THOUSAND_CU,
     };
 
-    create_expense(&alice, "Parking", 9000 * CENTS, 12);
-    create_expense(&alice, "Life_trats", 20000 * CENTS, 0);
+    create_expense(&alice, "Parking", 9000 * CU, 12);
+    create_expense(&alice, "Life_trats", 20000 * CU, 0);
 
-    create_credit(&alice, "Micro-ZAIM", 2 * MILLION_C, CREDIT_RATE, 36);
-    create_credit(&alice, "Ipoteka++", 18 * MILLION_C, CREDIT_RATE, 30 * MONTHS_IN_YEAR);
+    create_credit(&alice, "Micro-ZAIM", 2 * MILLION_CU, CREDIT_RATE, 36);
+    create_credit(&alice, "Ipoteka++", 18 * MILLION_CU, CREDIT_RATE, 30 * MONTHS_IN_YEAR);
 
     persons[persons_count] = alice;
     persons_count += 1;
@@ -290,17 +291,66 @@ void person_create_Alice() {
 void person_create_Bob() {
     struct Person bob = {
         .name = "Bob",
-        .balance = 2 * MILLION_C,
-        .salary = 300 * THOUSAND_C,
+        .balance = 2 * MILLION_CU,
+        .salary = 300 * THOUSAND_CU,
     };
 
-    create_expense(&bob, "Eat", 15 * THOUSAND_C, 0);
-    create_expense(&bob, "Flat", 25 * THOUSAND_C, 0);
+    create_expense(&bob, "Eat", 15 * THOUSAND_CU, 0);
+    create_expense(&bob, "Flat", 25 * THOUSAND_CU, 0);
 
-    create_saving(&bob, "Deposit", 2 * MILLION_C, DEPOSIT_RATE);
+    create_saving(&bob, "Deposit", 2 * MILLION_CU, DEPOSIT_RATE);
 
     persons[persons_count] = bob;
     persons_count += 1;
+}
+
+
+void print_persons_total_balance() {
+    printf("Balance status on %d.%02d\n", current_year, current_month);
+
+    for (int i = 0; i < persons_count; i++) {
+        struct Person* person = &persons[i];
+        Money total_balance = person->balance;
+
+        for (int i = 0; i < person->credits_count; i++)
+        {
+            total_balance -= person->credits[i].monthly_payment * person->credits[i].duration_months;
+        }
+
+        for (int i = 0; i < person->savings_count; i++)
+        {
+            total_balance += person->savings[i].balance;
+        }
+
+        printf("[%s] Total balance = %lld.%.2d\n", 
+            person->name,
+            total_balance / 100,
+            abs(total_balance % 100));
+    }
+
+    printf("\n");
+}
+
+
+void start_processing(int months_duration) {
+    print_persons_total_balance();
+
+    for (int month = 0; month < months_duration; month++)
+    {
+        // двигаем на месяц
+        // двигаем если надо год
+        //      если год двинулся -- реализуем инфляцию(индексацию)
+
+        // приходит зарплата
+
+        // капают проценты на вклад
+
+        // оплата по кредитам
+
+        // оплачиваем расходы
+
+        print_persons_total_balance();
+    }
 }
 
 
@@ -311,7 +361,9 @@ int main() {
 
     print_persons_data();
 
-    return 0;
+    start_processing(PROCESSING_YEARS * MONTHS_IN_YEAR);
+
+    return 1;
 }
 
     /*
