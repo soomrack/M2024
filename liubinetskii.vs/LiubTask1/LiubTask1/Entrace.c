@@ -20,7 +20,8 @@
 //
 // ☑ Кредит работает как обязательство на n-лет ☑
 // ☑ Добавить собственность человека
-  
+// □ Освобождать память
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -502,6 +503,8 @@ int main() {
     print_persons_data();
 
     start_processing(PROCESSING_YEARS * MONTHS_IN_YEAR);
+
+    // TODO garbage collector :)
 
     return 1;
 }
