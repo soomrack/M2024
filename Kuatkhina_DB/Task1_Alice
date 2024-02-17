@@ -1,0 +1,56 @@
+#include <stdio.h>
+#include <math.h>
+
+
+int main() {
+    double ystvk = 18, tim = 30, apart = 20000000, zp = 320000, eda = 15000, k, mpay, n, mstv, inf = 1.08, ind = 1.08, indapart = 1.08, result;
+    mstv = ystvk/12/100; // Месячная ставка
+    n = tim*12; // Кол-во месяцев
+    k = mstv*pow(1+mstv,n)/(pow(1+mstv,n)-1); //Коэффициент
+    mpay = apart*k; //Ежесячная выплата
+    printf("Monthly Payment = %f \n\n", mpay);
+
+double allrepair = 2400000, house = 2000, travel = 60000, repair, numrepair = 0, expence, ostatok, year, month, capital = 0;
+for ( year=1; year <= 30; year++) // Рост расходов из-за инфляции и индексация зп, рост стоимости квартиры
+{
+    printf("Year: %f\n", year);
+    eda = eda*pow(inf,year-1);
+    repair = allrepair/24; // Ремонт в месяц - в течение 2х лет
+    repair = repair*pow(inf,year-1);
+    house = house*pow(inf,year-1);
+    apart = apart*pow(indapart,year-1); 
+    zp = zp*pow(ind,year-1);
+    printf("ZP: %f\n", zp);
+
+    for ( month = 1; month <=12; month++) //Траты за месяц, остаток от зп
+    {
+        printf("Month: %f_", month);
+        expence = eda + house; //Базовая трата в месяц
+        ostatok = zp - mpay - expence; //Остаток от зп после базовой траты в месяц
+        capital = capital + ostatok;  //Накопления в месяц
+
+         if ((capital >= repair)&&( numrepair <= 23)) //Если есть накопления на ремонт в течение 2х лет каждый месяц 
+        {
+            capital = capital - repair;
+            numrepair++; //Учитывается кол-во частей ремонта, чтоб в сумме траты на ремонт составляли allrepair
+            printf("_With repair! %f_", numrepair);
+        } 
+
+        if ((month == 8) && (capital >= travel)) //Если есть накопления на отпуск в год
+        {
+            capital = capital - travel;
+            printf("_With vacation!_");
+        }
+        
+       printf("Capital = %f \n", capital);
+
+    }
+
+  printf("Ostatok = %f \n\n", ostatok); //Остаток от зп в месяц в течение года
+}
+printf("30-Capital = %f \n", capital); //Капитал через 30 лет
+printf("30-Apart = %f \n\n", apart); //Стоимость квартиры через 30 лет
+result = capital + apart;
+printf("30-Result = %f \n\n", result); //Все блага Alice через 30 лет
+    return 0;
+}
