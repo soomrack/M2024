@@ -1,18 +1,10 @@
-//Expenses
-extern float wastes;
-extern float flat_renovation;
-extern int flat_rent;
-extern int months;
-extern float inflation;
-
-extern float salary;
-
+#include "../variables.h"
 
 // Функция считает повышение значения на к/л процент.
 float percentage_calculation(float value, int time_unit){
     float sum = 0;
     for (int i=0; i<time_unit; i++){
-        value = value * (1 + inflation);
+        value = value * (1 + INFLATION);
         sum = sum + value;
     }
     return sum;
@@ -21,14 +13,14 @@ float percentage_calculation(float value, int time_unit){
 float entire_period_expenses(float expenses){
     // m_* it means "monthly"
     // Считаю сколько потратит денег за n лет
-    float entire_period_expenses = percentage_calculation(expenses * 12, years);
+    float entire_period_expenses = percentage_calculation(expenses * 12, YEARS);
     return entire_period_expenses;
 }
 
 float entire_period_deposit_balance(){
-    float margin = (salary - wastes - flat_rent) * 12;
+    float margin = (SALARY - WASTES - FLAT_RENT) * 12;
     float balance = 0;
-    for (int i=0; i<years; i++){
+    for (int i=0; i<YEARS; i++){
         /* Считает годовую маржу и умножает на инфляцию.
         '1' в аргументе - значит проходит один цикл в функции entire_period_expenses(),
         т.к. 30-годовой цикл выполняется внутри текущей функции, для того чтобы текущую годовую
