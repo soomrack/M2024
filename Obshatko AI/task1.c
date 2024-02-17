@@ -309,18 +309,10 @@ void print_results_Bob()
     for (count_digits; count_digits > 0; count_digits /= 1000)
     {
         int number_to_print = Bob_savings_roubles / count_digits;
-        if (number_to_print < 100)
-        {
-            printf("0");
-        }
-        if (number_to_print < 10)
-        {
-            printf("0");
-        }
-        printf("%d ", number_to_print);
+        printf("%03d ", number_to_print);
         Bob_savings_roubles %= count_digits;
     }
-    printf("рублей %lld копеек", Bob.savings % 100);
+    printf("рублей %02lld копеек", Bob.savings % 100);
 }
 
 
@@ -344,18 +336,10 @@ void print_results_Alice()
     for (count_digits; count_digits > 0; count_digits /= 1000)
     {
         int number_to_print = Alice_savings_roubles / count_digits;
-        if (number_to_print < 100)
-        {
-            printf("0");
-        }
-        if (number_to_print < 10)
-        {
-            printf("0");
-        }
-        printf("%d ", number_to_print);
+        printf("%03d ", number_to_print);
         Alice_savings_roubles %= count_digits;
     }
-    printf("рублей %lld копеек", Alice.savings % 100);
+    printf("рублей %02lld копеек", Alice.savings % 100);
 }
 
 
