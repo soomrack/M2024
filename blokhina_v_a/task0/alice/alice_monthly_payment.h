@@ -1,1 +1,0 @@
-float alice_monthly_payment();
