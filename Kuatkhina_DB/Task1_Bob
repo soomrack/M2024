@@ -1,0 +1,40 @@
+#include <stdio.h>
+#include <math.h>
+
+int main()
+ {
+    float vklad = 2000000, stv=16, apart = 20000000, zp = 150000, arnd = 25000, iarnd = 1.05, eda = 15000, house = 2000, expence, capital=0, year=1, month, ostatok, inf = 1.12, ind = 1.12, indapart = 1.12;
+    do {
+        printf("Year: %f\n", year);
+        eda = eda*pow(inf,year-1); //Инфляция, индексация и тд и тп
+        house = house*pow(inf,year-1);
+        arnd = arnd*pow(iarnd,year-1);
+        zp = zp*pow(ind,year-1); 
+        apart = apart*pow(indapart,year-1); //Дорожание желаемой квартиры
+        printf("ZP: %f\n", zp); 
+        printf("Vklad: %f\n", vklad);
+        
+        for ( month = 1; month <=12; month++) //Траты за месяц, остаток от зп
+    {
+        printf("Month: %f_", month);
+        expence = eda + house; //Базовая трата в месяц
+        ostatok = zp - arnd - expence; //Остаток от зп после базовой траты в месяц
+        capital = capital + ostatok;  //Накопления в месяц
+        printf("Capital = %f ", capital);
+
+         if (capital >= 100000) //Если есть накопления не менее 100тыс. - положить на вклад
+        {
+            vklad = vklad + capital;
+            printf("_Vklad Growth %f_\n", vklad);
+        } 
+    }  
+    
+     vklad = vklad*(1+stv*year/100); //Рост вклада в год
+     year++;
+
+    } while(vklad < apart); 
+
+    printf("Result vklad = %f \n", vklad);// Итоговый рост вклада...
+    printf("Result years = %f \n", year-1);// ...за _ лет
+    
+}
