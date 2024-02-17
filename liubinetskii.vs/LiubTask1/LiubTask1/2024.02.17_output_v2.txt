@@ -1,0 +1,342 @@
+[DEBUG]: Creating expense 'Parking' for person 'Alice'
+[DEBUG]: Creating expense 'Life_trats' for person 'Alice'
+[DEBUG]: Creating credit 'Micro-ZAIM' for person 'Alice'
+[DEBUG]: Creating credit 'Ipoteka++' for person 'Alice'
+[DEBUG]: Creating expense 'Eat' for person 'Bob'
+[DEBUG]: Creating expense 'Flat' for person 'Bob'
+[DEBUG]: Creating saving account 'Deposit' with initial balance '2000000.00' for person 'Bob'
+----------------------Person statistic---------------------
+Alice: balance = 2000000.00, salary = 300000.00
+
+Expenses count = 2
+        [0] Expense info: Name = Parking
+        [0] Amount = 9000.00
+        [0] Duration months = 12
+
+        [1] Expense info: Name = Life_trats
+        [1] Amount = 20000.00
+
+Credits count = 2
+        [0] Credit info: Name = Micro-ZAIM
+        [0] Amount = 2000000.00
+        [0] Monthly payment = 72304.79
+        [0] Interest rate = 18.00 %
+        [0] Duration months = 36
+
+        [1] Credit info: Name = Ipoteka++
+        [1] Amount = 18000000.00
+        [1] Monthly payment = 271275.36
+        [1] Interest rate = 18.00 %
+        [1] Duration months = 360
+
+Savings count = 0
+===========================================================
+
+----------------------Person statistic---------------------
+Bob: balance = 2000000.00, salary = 300000.00
+
+Expenses count = 2
+        [0] Expense info: Name = Eat
+        [0] Amount = 15000.00
+
+        [1] Expense info: Name = Flat
+        [1] Amount = 25000.00
+
+Credits count = 0
+Savings count = 1
+        [0] Expense info: Name = Deposit
+        [0] Balance = 2000000.00
+        [0] Interest rate = 16.00 %
+
+===========================================================
+
+Balance status on 2024.02
+[Alice] Total balance = -98262102.04
+[Bob] Total balance = 4000000.00
+
+Balance status on 2024.03
+[Alice] Total balance = -97991102.04
+[Bob] Total balance = 4260000.00
+
+Balance status on 2024.04
+[Alice] Total balance = -97720102.04
+[Bob] Total balance = 4520000.00
+
+Balance status on 2024.05
+[Alice] Total balance = -97449102.04
+[Bob] Total balance = 4780000.00
+
+Balance status on 2024.06
+[Alice] Total balance = -97178102.04
+[Bob] Total balance = 5040000.00
+
+Balance status on 2024.07
+[Alice] Total balance = -96907102.04
+[Bob] Total balance = 5300000.00
+
+Balance status on 2024.08
+[Alice] Total balance = -96636102.04
+[Bob] Total balance = 5560000.00
+
+Balance status on 2024.09
+[Alice] Total balance = -96365102.04
+[Bob] Total balance = 5820000.00
+
+Balance status on 2024.10
+[Alice] Total balance = -96094102.04
+[Bob] Total balance = 6080000.00
+
+Balance status on 2024.11
+[Alice] Total balance = -95823102.04
+[Bob] Total balance = 6340000.00
+
+Balance status on 2024.12
+[Alice] Total balance = -95552102.04
+[Bob] Total balance = 6600000.00
+
+Information after indexation/inflation of 2025.01
+----------------------Person statistic---------------------
+Alice: balance = 1427102.32, salary = 336000.00
+
+Expenses count = 2
+        [0] Expense info: Name = Parking
+        [0] Amount = 10080.00
+        [0] Duration months = 2
+
+        [1] Expense info: Name = Life_trats
+        [1] Amount = 22400.00
+
+Credits count = 2
+        [0] Credit info: Name = Micro-ZAIM
+        [0] Amount = 2000000.00
+        [0] Monthly payment = 72304.79
+        [0] Interest rate = 18.00 %
+        [0] Duration months = 26
+
+        [1] Credit info: Name = Ipoteka++
+        [1] Amount = 18000000.00
+        [1] Monthly payment = 271275.36
+        [1] Interest rate = 18.00 %
+        [1] Duration months = 350
+
+Savings count = 0
+===========================================================
+
+----------------------Person statistic---------------------
+Bob: balance = 0.00, salary = 336000.00
+
+Expenses count = 2
+        [0] Expense info: Name = Eat
+        [0] Amount = 16800.00
+
+        [1] Expense info: Name = Flat
+        [1] Amount = 28000.00
+
+Credits count = 0
+Savings count = 1
+        [0] Expense info: Name = Deposit
+        [0] Balance = 7656000.00
+        [0] Interest rate = 16.00 %
+
+===========================================================
+
+Balance status on 2025.01
+[Alice] Total balance = -95095678.22
+[Bob] Total balance = 7947200.00
+
+Balance status on 2025.02
+[Alice] Total balance = -94792158.22
+[Bob] Total balance = 8238400.00
+
+Balance status on 2025.03
+[Alice] Total balance = -94478558.22
+[Bob] Total balance = 8529600.00
+
+Balance status on 2025.04
+[Alice] Total balance = -94164958.22
+[Bob] Total balance = 8820800.00
+
+Balance status on 2025.05
+[Alice] Total balance = -93851358.22
+[Bob] Total balance = 9112000.00
+
+Balance status on 2025.06
+[Alice] Total balance = -93537758.22
+[Bob] Total balance = 9403200.00
+
+Balance status on 2025.07
+[Alice] Total balance = -93224158.22
+[Bob] Total balance = 9694400.00
+
+Balance status on 2025.08
+[Alice] Total balance = -92910558.22
+[Bob] Total balance = 9985600.00
+
+Balance status on 2025.09
+[Alice] Total balance = -92596958.22
+[Bob] Total balance = 10276800.00
+
+Balance status on 2025.10
+[Alice] Total balance = -92283358.22
+[Bob] Total balance = 10568000.00
+
+Balance status on 2025.11
+[Alice] Total balance = -91969758.22
+[Bob] Total balance = 10859200.00
+
+Balance status on 2025.12
+[Alice] Total balance = -91656158.22
+[Bob] Total balance = 11150400.00
+
+Information after indexation/inflation of 2026.01
+----------------------Person statistic---------------------
+Alice: balance = 1172842.18, salary = 376320.00
+
+Expenses count = 2
+        [0] Expense info: Name = Parking
+        [0] Amount = 11289.60
+        [0] Duration months = 0
+
+        [1] Expense info: Name = Life_trats
+        [1] Amount = 25088.00
+
+Credits count = 2
+        [0] Credit info: Name = Micro-ZAIM
+        [0] Amount = 2000000.00
+        [0] Monthly payment = 72304.79
+        [0] Interest rate = 18.00 %
+        [0] Duration months = 14
+
+        [1] Credit info: Name = Ipoteka++
+        [1] Amount = 18000000.00
+        [1] Monthly payment = 271275.36
+        [1] Interest rate = 18.00 %
+        [1] Duration months = 338
+
+Savings count = 0
+===========================================================
+
+----------------------Person statistic---------------------
+Bob: balance = 0.00, salary = 376320.00
+
+Expenses count = 2
+        [0] Expense info: Name = Eat
+        [0] Amount = 18816.00
+
+        [1] Expense info: Name = Flat
+        [1] Amount = 31360.00
+
+Credits count = 0
+Savings count = 1
+        [0] Expense info: Name = Deposit
+        [0] Balance = 12934464.00
+        [0] Interest rate = 16.00 %
+
+===========================================================
+
+Balance status on 2026.01
+[Alice] Total balance = -91179264.56
+[Bob] Total balance = 13260608.00
+
+Balance status on 2026.02
+[Alice] Total balance = -90828032.56
+[Bob] Total balance = 13586752.00
+
+Balance status on 2026.03
+[Alice] Total balance = -90476800.56
+[Bob] Total balance = 13912896.00
+
+Balance status on 2026.04
+[Alice] Total balance = -90125568.56
+[Bob] Total balance = 14239040.00
+
+Balance status on 2026.05
+[Alice] Total balance = -89774336.56
+[Bob] Total balance = 14565184.00
+
+
+
+.
+.
+.
+.
+.
+
+
+Balance status on 2053.07
+[Alice] Total balance = 1717768966.56
+[Bob] Total balance = 4582191312.61
+
+Balance status on 2053.08
+[Alice] Total balance = 1725186642.09
+[Bob] Total balance = 4589146294.99
+
+Balance status on 2053.09
+[Alice] Total balance = 1732604317.62
+[Bob] Total balance = 4596101277.37
+
+Balance status on 2053.10
+[Alice] Total balance = 1740021993.15
+[Bob] Total balance = 4603056259.75
+
+Balance status on 2053.11
+[Alice] Total balance = 1747439668.68
+[Bob] Total balance = 4610011242.13
+
+Balance status on 2053.12
+[Alice] Total balance = 1754857344.21
+[Bob] Total balance = 4616966224.51
+
+Information after indexation/inflation of 2054.01
+----------------------Person statistic---------------------
+Alice: balance = 1966047882.32, salary = 8987975.52
+
+Expenses count = 2
+        [0] Expense info: Name = Parking
+        [0] Amount = 269638.57
+        [0] Duration months = 0
+
+        [1] Expense info: Name = Life_trats
+        [1] Amount = 599197.56
+
+Credits count = 2
+        [0] Credit info: Name = Micro-ZAIM
+        [0] Amount = 2000000.00
+        [0] Monthly payment = 72304.79
+        [0] Interest rate = 18.00 %
+        [0] Duration months = -322
+
+        [1] Credit info: Name = Ipoteka++
+        [1] Amount = 18000000.00
+        [1] Monthly payment = 271275.36
+        [1] Interest rate = 18.00 %
+        [1] Duration months = 2
+
+Savings count = 0
+===========================================================
+
+----------------------Person statistic---------------------
+Bob: balance = 0.00, salary = 8987975.52
+
+Expenses count = 2
+        [0] Expense info: Name = Eat
+        [0] Amount = 449398.06
+
+        [1] Expense info: Name = Flat
+        [1] Amount = 748997.20
+
+Credits count = 0
+Savings count = 1
+        [0] Expense info: Name = Deposit
+        [0] Balance = 5355680820.43
+        [0] Interest rate = 16.00 %
+
+===========================================================
+
+Balance status on 2054.01
+[Alice] Total balance = 1973821804.77
+[Bob] Total balance = 5363470400.69
+
+Balance status on 2054.02
+[Alice] Total balance = 1982138277.94
+[Bob] Total balance = 5371259980.95

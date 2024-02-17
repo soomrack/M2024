@@ -137,6 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="2024.02.16_output.txt" />
+    <Text Include="2024.02.17_output_v2.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
