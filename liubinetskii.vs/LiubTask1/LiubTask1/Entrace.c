@@ -464,6 +464,7 @@ void person_create_Alice() {
     Money initial_fee = 2 * MILLION_CU;
     Money mortgage_amount = flat_cost - initial_fee;
     alice->balance -= initial_fee;
+    // https://www.banki.ru/services/calculators/credits/?amount=18000000&periodNotation=30y&rate=18
     create_credit(alice, "Mortgage", mortgage_amount, CREDIT_RATE, PROCESSING_YEARS * MONTHS_IN_YEAR);
 
     create_property(alice, "My little home", flat_cost);
@@ -495,6 +496,35 @@ void person_create_Bob() {
 }
 
 
+void garbage_collector() {
+    for (int person_index = 0; person_index < persons_count; ++person_index) {
+        free(persons[person_index]->name);
+
+        for (int i = 0; i < persons[person_index]->expenses_count; ++i) {
+            free(persons[person_index]->expenses[i]->name);
+            free(persons[person_index]->expenses[i]);
+        }
+
+        for (int i = 0; i < persons[person_index]->credits_count; ++i) {
+            free(persons[person_index]->credits[i]->name);
+            free(persons[person_index]->credits[i]);
+        }
+
+        for (int i = 0; i < persons[person_index]->savings_count; ++i) {
+            free(persons[person_index]->savings[i]->name);
+            free(persons[person_index]->savings[i]);
+        }
+
+        for (int i = 0; i < persons[person_index]->properties_count; ++i) {
+            free(persons[person_index]->properties[i]->name);
+            free(persons[person_index]->properties[i]);
+        }
+
+        free(persons[person_index]);
+    }
+}
+
+
 int main() {
 
     person_create_Alice();
@@ -504,7 +534,7 @@ int main() {
 
     start_processing(PROCESSING_YEARS * MONTHS_IN_YEAR);
 
-    // TODO garbage collector :)
+    garbage_collector();
 
     return 1;
 }
@@ -518,6 +548,7 @@ double сredit_сalculation_recursion(double base, int exponent) {
         return base * сredit_сalculation_recursion(base, exponent - 1);
 }
 
+// https://www.banki.ru/services/calculators/credits/
 Money credit_get_monthly_payment(Money credit_amount, double annual_credit_rate, int duration_months) {
     double monthly_credit_rate = annual_credit_rate / 12;
 
