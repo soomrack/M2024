@@ -1,8 +1,10 @@
+#include <stdio.h>
+#include "../alice/alice_monthly_payment.h"
 #include "../variables.h"
 
-// Функция считает повышение значения на к/л процент.
-float percentage_calculation(float value, int time_unit){
-    float sum = 0;
+// Функция считает сумму всех значений, повышенных на инфляцию
+double percentage_calculation(double value, int time_unit){
+    double sum = 0;
     for (int i=0; i<time_unit; i++){
         value = value * (1 + INFLATION);
         sum = sum + value;
@@ -10,24 +12,16 @@ float percentage_calculation(float value, int time_unit){
     return sum;
 }
 
-float entire_period_expenses(float expenses){
-    // m_* it means "monthly"
-    // Считаю сколько потратит денег за n лет
-    float entire_period_expenses = percentage_calculation(expenses * 12, YEARS);
-    return entire_period_expenses;
+// Функция считает сколько потратит денег за YEARS лет с учетом инфляции при неизменном базом числе
+double entire_period_expenses(double expenses, int years){
+    double full_expenses = percentage_calculation(expenses * 12, years);
+    return full_expenses;
 }
 
-float entire_period_deposit_balance(){
-    float margin = (SALARY - WASTES - FLAT_RENT) * 12;
-    float balance = 0;
-    for (int i=0; i<YEARS; i++){
-        /* Считает годовую маржу и умножает на инфляцию.
-        '1' в аргументе - значит проходит один цикл в функции entire_period_expenses(),
-        т.к. 30-годовой цикл выполняется внутри текущей функции, для того чтобы текущую годовую
-        маржу прибавлять к депозиту и умножать на процент по вкладу.*/ 
-        margin = percentage_calculation(margin, 1);
-        balance = balance + margin;
-        balance = percentage_calculation(balance, 1);
-    }
+double entire_period_deposit_balance(){
+    double margin = (SALARY - WASTES - FLAT_RENT);
+    double balance = margin * 12 * recursive((1 + DEPOSIT_RATE),YEARS);
+    printf("On deposit for %d years: %.0f\n", YEARS, balance);
+
     return balance;
 }
