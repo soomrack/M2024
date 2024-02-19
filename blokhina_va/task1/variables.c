@@ -1,19 +1,22 @@
 #include "./variables.h"
 
+// Все денежные переменные указываются в сумма/месяц, 
+// кроме CREDIT
+
 // Alice
-float CREDIT = 18*1000*1000;
-float CREDIT_RATE = 0.11;
+double FLAT_PRICE = 20*1000*1000;
+double CREDIT = 18*1000*1000;
+double CREDIT_RATE = 0.11;
+double FLAT_RENOVATION = 100*1000;
 
 // Bob
-float SALARY = 150*1000;
+int FLAT_RENT = 25*1000;
+double DEPOSIT_RATE = 0.16;
 
 // Common Expenses
-float WASTES = 30*1000;
-float FLAT_RENOVATION = 100*1000;
-int FLAT_RENT = 25*1000;
-float inflation = 0.04;
-int MONTHS = 30 * 12;
+double SALARY = 150*1000;
+double WASTES = 30*1000;
+double INFLATION = 0.04;
 int YEARS = 30;
-
-double a = 2.0f;
-int b = 3;
+int FLAT_RENOVATION_YEARS = 2;
+int MONTHS = 30 * 12;

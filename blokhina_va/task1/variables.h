@@ -1,18 +1,17 @@
 // Alice
-extern float CREDIT;
-extern float CREDIT_RATE;
+extern double FLAT_PRICE;
+extern double CREDIT;
+extern double CREDIT_RATE;
+extern double FLAT_RENOVATION;
 
 // Bob
-extern float SALARY;
+extern int FLAT_RENT;
+extern double DEPOSIT_RATE;
 
 // Common Expenses
-extern float WASTES;
-extern float FLAT_RENOVATION;
-extern int FLAT_RENT;
-extern float INFLATION;
-extern int MONTHS;
+extern double SALARY;
+extern double WASTES;
+extern double INFLATION;
 extern int YEARS;
-
-
-extern double a;
-extern int b;
+extern int FLAT_RENOVATION_YEARS;
+extern int MONTHS;
