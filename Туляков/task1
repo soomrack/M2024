@@ -1,0 +1,100 @@
+#include <stdio.h>
+#include <math.h>
+
+int main() {
+    // Параметры квартиры и финансовые данные
+    int apartment_price = 20000000; // Стоимость квартиры
+    const int initial_capital = 2000000; // Начальный капитал
+    int mortgage_rate = 16; // Процентная ставка по ипотеке
+    const int mortgage_years = 30; // Срок ипотеки в годах
+    const int renovation_years = 2; // Годы на ремонт
+    const int renovation_cost_per_year = 1000000; // Расходы на ремонт в год
+    const int savings_interest_rate = 12; // Процентная ставка по сбережениям
+    const int inflation_rate = 11; // Инфляция
+    int monthly_salary = 360000; // Ежемесячная зарплата
+    const int monthly_expenses = 40000; // Расходы на еду в месяц
+    const int vacation_expenses = 200000; // Расходы на отпуск в год
+
+    // Финансовые данные Боба
+    int bob_savings = initial_capital; // Сбережения Боба
+    double total_bob_savings_with_interest = bob_savings; // Общая сумма сбережений Боба с учетом процентов
+    double total_bob_payments = 0; // Общие выплаты Боба
+    double total_bob_earnings = 0; // Общий заработок Боба
+
+    // Финансовые данные Элис
+    int alice_mortgage = apartment_price - initial_capital; // Размер ипотеки Элис
+    double mortgage_rate_monthly = (double)mortgage_rate / (12 * 100); // Ежемесячная процентная ставка по ипотеке
+    int total_months = mortgage_years * 12; // Общее количество месяцев ипотеки
+    double monthly_mortgage_payment = alice_mortgage * mortgage_rate_monthly / (1 - pow(1 + mortgage_rate_monthly, -total_months)); // Ежемесячный платеж по ипотеке Элис
+    double total_alice_payments = monthly_mortgage_payment * total_months; // Общие выплаты Элис по ипотеке
+    double total_alice_earnings = 0; // Общий заработок Элис
+
+    // Проверка, что плата за ипотеку не превышает 70% от ежемесячного дохода
+    double max_mortgage_payment = 0.7 * monthly_salary;
+    if (monthly_mortgage_payment > max_mortgage_payment) {
+        printf("Situation is not possible: Alice's mortgage payment exceeds 70%% of monthly income\n");
+        printf("Monthly mortgage payment needed: %.2f rubles\n", monthly_mortgage_payment);
+        printf("Alice's monthly salary: %d rubles\n", monthly_salary);
+        return 0;
+    }
+
+    // Моделирование финансовых операций на протяжении 30 лет
+    for (int year = 1; year <= mortgage_years; ++year) {
+        // Обновление стоимости квартиры с учетом инфляции
+        apartment_price *= (1 + inflation_rate / 100.0);
+
+        // Обновление ставки по ипотеке с учетом инфляции
+        mortgage_rate *= (1 + inflation_rate / 100.0);
+
+        // Расходы на ремонт для первых двух лет
+        int renovation_cost = (year <= renovation_years) ? renovation_cost_per_year : 0;
+
+        // Расходы на еду для каждого месяца с учетом инфляции
+        int monthly_expenses_adjusted = monthly_expenses * 12 * year * (1 + inflation_rate / 100.0);
+
+        // Увеличение зарплаты каждый год с учетом инфляции
+        monthly_salary *= (1 + inflation_rate / 100.0);
+
+        // Обновление финансовых данных Боба
+        int bob_income = monthly_salary * 12;
+        total_bob_earnings += bob_income;
+        bob_savings += bob_income - monthly_expenses_adjusted - renovation_cost - vacation_expenses;
+        total_bob_savings_with_interest *= (1 + savings_interest_rate / 100.0);
+        total_bob_savings_with_interest += bob_savings;
+        total_bob_payments += monthly_mortgage_payment;
+
+        // Обновление финансовых данных Элис
+        total_alice_earnings += monthly_salary * 12;
+    }
+
+    // Вычисление суммы денег, которую Alice внесла по ипотеке
+    double alice_mortgage_contribution = total_alice_payments - alice_mortgage;
+
+    // Вычисление суммы денег, которую заработал Bob на сберегательном счету в банке за эти 30 лет
+    double bob_savings_interest = total_bob_savings_with_interest - initial_capital - total_bob_earnings;
+
+    // Вычисление капитала Alice с учетом стоимости квартиры в итоге
+    double alice_final_capital = total_alice_earnings - total_alice_payments + apartment_price;
+
+    // Вычисление капитала Bob с учетом стоимости квартиры в итоге
+    double bob_final_capital = total_bob_savings_with_interest - total_bob_payments + apartment_price;
+
+    // Вывод результатов
+    printf("Sum of money Alice contributed to the mortgage: %.2f rubles\n", alice_mortgage_contribution);
+    printf("Amount of money Bob earned on the savings account over these 30 years: %.2f rubles\n", bob_savings_interest);
+    printf("Alice's capital including the value of the apartment in the end: %.2f rubles\n", alice_final_capital);
+    printf("Bob's capital including the value of the apartment in the end: %.2f rubles\n", bob_final_capital);
+
+    // Определение победителя
+    if (alice_final_capital > bob_final_capital) {
+        printf("Alice remains in greater advantage\n");
+    }
+    else if (alice_final_capital < bob_final_capital) {
+        printf("Bob remains in greater advantage\n");
+    }
+    else {
+        printf("Both Alice and Bob remain in equal advantage\n");
+    }
+
+    return 0;
+}
