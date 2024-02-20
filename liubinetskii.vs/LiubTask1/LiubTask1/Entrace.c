@@ -217,7 +217,55 @@ int create_property(struct Person* person, char* name, Money cost) {
     return 1;
 }
 
-#pragma endregion
+
+char* generate_line(char sym, int length) {
+    char* line = (char*)malloc(length + 2 * sizeof(char));
+
+    for (int i = 0; i < length; ++i) {
+        line[i] = sym;
+    }
+
+    line[length - 1] = '\n';
+    line[length] = '\0';
+    return line;
+}
+
+
+char* generate_line_with_text(char sym, int length, const char* text) {
+    size_t text_length = strlen(text);
+    if (text_length > length) {
+        return text;
+    }
+
+    int left_padding = (length - text_length) / 2;
+    char* line_with_text = generate_line(sym, length);
+
+    for (int i = 0; i < text_length; i++) {
+        line_with_text[i + left_padding] = text[i];
+    }
+
+    return line_with_text;
+}
+
+
+double сredit_сalculation_recursion(double base, int exponent) {
+    if (exponent == 0)
+        return 1;
+    else
+        return base * сredit_сalculation_recursion(base, exponent - 1);
+}
+
+// https://www.banki.ru/services/calculators/credits/
+Money credit_get_monthly_payment(Money credit_amount, double annual_credit_rate, int duration_months) {
+    double monthly_credit_rate = annual_credit_rate / 12;
+
+    double all_credit_time_inflation = сredit_сalculation_recursion((1 + monthly_credit_rate), duration_months);
+
+    double coefficient = (monthly_credit_rate * all_credit_time_inflation) / (all_credit_time_inflation - 1);
+
+    Money monthlyPayment = (Money)(credit_amount * coefficient);
+    return monthlyPayment;
+}
 
 
 int current_year = 2024;
@@ -538,59 +586,3 @@ int main() {
 
     return 1;
 }
-
-#pragma region Black box for calculating credit monthly payment
-
-double сredit_сalculation_recursion(double base, int exponent) {
-    if (exponent == 0)
-        return 1;
-    else
-        return base * сredit_сalculation_recursion(base, exponent - 1);
-}
-
-// https://www.banki.ru/services/calculators/credits/
-Money credit_get_monthly_payment(Money credit_amount, double annual_credit_rate, int duration_months) {
-    double monthly_credit_rate = annual_credit_rate / 12;
-
-    double all_credit_time_inflation = сredit_сalculation_recursion((1 + monthly_credit_rate), duration_months);
-
-    double coefficient = (monthly_credit_rate * all_credit_time_inflation) / (all_credit_time_inflation - 1);
-
-    Money monthlyPayment = (Money)(credit_amount * coefficient);
-    return monthlyPayment;
-}
-
-#pragma endregion
-
-#pragma region Vizual methods
-
-char* generate_line(char sym, int length) {
-    char* line = (char*)malloc(length + 2 * sizeof(char));
-
-    for (int i = 0; i < length; ++i) {
-        line[i] = sym;
-    }
-
-    line[length - 1] = '\n';
-    line[length] = '\0';
-    return line;
-}
-
-
-char* generate_line_with_text(char sym, int length, const char* text) {
-    size_t text_length = strlen(text);
-    if (text_length > length) {
-        return text;
-    }
-
-    int left_padding = (length - text_length) / 2;
-    char* line_with_text = generate_line(sym, length);
-
-    for (int i = 0; i < text_length; i++) {
-        line_with_text[i + left_padding] = text[i];
-    }
-
-    return line_with_text;
-}
-
-#pragma endregion
