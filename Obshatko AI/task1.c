@@ -11,24 +11,23 @@ int TOTAL_YEARS = 30;
 double INFLATION = 12 * 0.01;
 
 
-struct Person 
-{
+struct Person {
     int if_has_apartment = 0;
     Money apartment_price;
     Money savings;  // сумма денег на вкладе
-    int LOAN_PERIOD;  // в годах
+    int loan_period;  // в годах
 
     // в месяц
     Money salary;
     Money food_spending;
-    Money RENT;
-    Money LOAN_PAYMENT;  // вычисляется в функции compute_LOAN_payment
+    Money rent;
+    Money loan_payment;  // вычисляется в функции compute_loan_payment
     Money additional_spendings;
 
     // в год
-    Money APARTMENT_REPAIRS;
-    double LOAN_RATE;
-    double DEPOSIT_RATE;
+    Money apartment_repairs;
+    double loan_rate;
+    double deposit_rate;
 };
 
 struct Person Bob;
@@ -38,12 +37,12 @@ struct Person Alice;
 // вычисление ежемесячной оплаты кредита
 void calculate_loan_payment(struct Person *person)
 {
-    double numerator = pow(1 + person->LOAN_RATE / 12, person->LOAN_PERIOD * 12);
+    double numerator = pow(1 + person->loan_rate / 12, person->loan_period * 12);
     double denominator = numerator - 1;
-    person->LOAN_PAYMENT = Money((person->apartment_price - person->savings) * person->LOAN_RATE / 12 * numerator / denominator);
+    person->loan_payment = Money((person->apartment_price - person->savings) * person->loan_rate / 12 * numerator / denominator);
 
-    if (person->LOAN_RATE == 0) {
-        person->LOAN_PAYMENT = 0;
+    if (person->loan_rate == 0) {
+        person->loan_payment = 0;
         person->if_has_apartment = 0;
     }
     else 
@@ -51,7 +50,7 @@ void calculate_loan_payment(struct Person *person)
         person->if_has_apartment = 1;
     }
 
-    if (person->LOAN_PAYMENT > person->salary)
+    if (person->loan_payment > person->salary)
     {
         printf("Программа остановлена: Плата по кредиту больше заработной платы");
         exit(0);
@@ -64,14 +63,14 @@ void init_Bob()
     Bob.if_has_apartment = 0;
     Bob.apartment_price = 20 * 1000 * 1000 * 100;
     Bob.savings = 2 * 1000 * 1000 * 100;
-    Bob.LOAN_PERIOD = 0;
+    Bob.loan_period = 0;
     Bob.salary = 300 * 1000 * 100;
     Bob.food_spending = 15000 * 100;
-    Bob.RENT = 25000 * 100;
+    Bob.rent = 25000 * 100;
     Bob.additional_spendings = 0;
-    Bob.APARTMENT_REPAIRS = 0;
-    Bob.LOAN_RATE = 0;
-    Bob.DEPOSIT_RATE = 16 * 0.01;
+    Bob.apartment_repairs = 0;
+    Bob.loan_rate = 0;
+    Bob.deposit_rate = 16 * 0.01;
 
     calculate_loan_payment(&Bob);
 }
@@ -82,140 +81,147 @@ void init_Alice()
     Alice.if_has_apartment = 0;
     Alice.apartment_price = 20 * 1000 * 1000 * 100;
     Alice.savings = 2 * 1000 * 1000 * 100;
-    Alice.LOAN_PERIOD = 30;
+    Alice.loan_period = 30;
     Alice.salary = 300 * 1000 * 100;
     Alice.food_spending = 15000 * 100;
-    Alice.RENT = 0;
+    Alice.rent = 0;
     Alice.additional_spendings = 0;
-    Alice.APARTMENT_REPAIRS = 100 * 1000 * 100;
-    Alice.LOAN_RATE = 18 * 0.01;
-    Alice.DEPOSIT_RATE = 16 * 0.01;
+    Alice.apartment_repairs = 100 * 1000 * 100;
+    Alice.loan_rate = 18 * 0.01;
+    Alice.deposit_rate = 16 * 0.01;
 
     calculate_loan_payment(&Alice);
 }
 
 
 // ежемесячное начисление зарплаты
-void get_salary_Bob(int month, int year)
+void Bob_get_salary(int month, int year)
 {
     Bob.savings += Bob.salary;
+
+    if (month == 12) {
+        Bob_indexation(year, month);
+    }
 }
 
 
-void get_salary_Alice(int month, int year)
+void Alice_get_salary(int month, int year)
 {
     Alice.savings += Alice.salary;
+
+    if (month == 12) {
+        Alice_indexation(year, month);
+    }
 }
 
 
 // ежемесячная покупка еды
-void buy_food_Bob(int month, int year)
+void Bob_buy_food(int month, int year)
 {
     Bob.savings -= Bob.food_spending;
 }
 
 
-void buy_food_Alice(int month, int year)
+void Alice_buy_food(int month, int year)
 {
     Alice.savings -= Alice.food_spending;
 }
 
 
 // ежемесячная оплата аренды
-void pay_rent_Bob(int month, int year)
+void Bob_pay_rent(int month, int year)
 {
-    Bob.savings -= Bob.RENT;
+    Bob.savings -= Bob.rent;
 }
 
 
-void pay_rent_Alice(int month, int year)
+void Alice_pay_rent(int month, int year)
 {
-    Alice.savings -= Alice.RENT;
+    Alice.savings -= Alice.rent;
 }
 
 
 // ежемесячная плата по кредиту
-void pay_loan_Bob(int month, int year)
+void Bob_pay_loan(int month, int year)
 {
-    Bob.savings -= Bob.LOAN_PAYMENT;
+    Bob.savings -= Bob.loan_payment;
 }
 
 
-void pay_loan_Alice(int month, int year)
+void Alice_pay_loan(int month, int year)
 {
-    Alice.savings -= Alice.LOAN_PAYMENT;
+    Alice.savings -= Alice.loan_payment;
 }
 
 
 // ежемесячный учет дополнительных расходов
-void pay_additional_Bob(int month, int year)
+void Bob_pay_additional(int month, int year)
 {
     Bob.savings -= Bob.additional_spendings;
 }
 
 
-void pay_additional_Alice(int month, int year)
+void Alice_pay_additional(int month, int year)
 {
     Alice.savings -= Alice.additional_spendings;
 }
 
 
 // ежегодный ремонт квартиры
-void repair_apartment_Bob(int month, int year)
+void Bob_repair_apartment(int month, int year)
 {
-    Bob.savings -= Bob.APARTMENT_REPAIRS;
+    Bob.savings -= Bob.apartment_repairs;
 }
 
 
-void repair_apartment_Alice(int month, int year)
+void Alice_repair_apartment(int month, int year)
 {
-    Alice.savings -= Alice.APARTMENT_REPAIRS;
+    Alice.savings -= Alice.apartment_repairs;
 }
 
 
 //  ежемесячная выплата процентов по вкладу
-void deposit_income_Bob(int month, int year)
+void Bob_deposit_income(int month, int year)
 {
-    long double income = Bob.savings * Bob.DEPOSIT_RATE / 12;
+    long double income = Bob.savings * Bob.deposit_rate / 12;
     Bob.savings += income;
 }
 
 
-void deposit_income_Alice(int month, int year)
+void Alice_deposit_income(int month, int year)
 {
-    long double income = Alice.savings * Alice.DEPOSIT_RATE / 12;
+    long double income = Alice.savings * Alice.deposit_rate / 12;
     Alice.savings += income;
 }
 
 
 // ежегодное повышение зарплаты
-void indexation_Bob(int month, int year)
+void Bob_indexation(int month, int year)
 {
     Bob.salary += Bob.salary * INFLATION;
 }
 
 
-void indexation_Alice(int month, int year)
+void Alice_indexation(int month, int year)
 {
     Alice.salary += Alice.salary * INFLATION;
 }
 
 
-void buy_apartment_if_has_not()
+void Bob_buy_apartment_if_has_not()
 {
-    if (!Bob.if_has_apartment)
-    {
-        if (Bob.savings >= Bob.apartment_price)
-        {
+    if (!Bob.if_has_apartment) {
+        if (Bob.savings >= Bob.apartment_price) {
             Bob.savings -= Bob.apartment_price;
             Bob.if_has_apartment = 1;
         }
     }
+}
 
-    if (!Alice.if_has_apartment)
-    {
-        if (Alice.savings >= Alice.apartment_price)
-        {
+void Alice_buy_apartment_if_has_not()
+{
+    if (!Alice.if_has_apartment) {
+        if (Alice.savings >= Alice.apartment_price) {
             Alice.savings -= Alice.apartment_price;
             Alice.if_has_apartment = 1;
         }
@@ -237,51 +243,42 @@ void inflate(int month, int year)
 // вычисление результатов
 void calculate() 
 {
-    time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
+    time_t time_ = time(NULL);
+    struct tm time_now = *localtime(&time_);
 
-    int STARTING_YEAR = tm.tm_year + 1900;
-    int STARTING_MONTH = tm.tm_mon + 1;
+    int STARTING_YEAR = time_now.tm_year + 1900;
+    int STARTING_MONTH = time_now.tm_mon + 1;
     int year = STARTING_YEAR;
     int month = STARTING_MONTH;
 
-    while(!(year == STARTING_YEAR + TOTAL_YEARS && month == STARTING_MONTH))
-    {
-        get_salary_Bob(year, month);
-        get_salary_Alice(year, month);
+    while(!(year == STARTING_YEAR + TOTAL_YEARS && month == STARTING_MONTH)) {
+        Bob_get_salary(year, month);
+        Bob_buy_food(year, month);
+        Bob_pay_rent(year, month);
+        Bob_pay_loan(year, month);
+        Bob_pay_additional(year, month);
+        Bob_deposit_income(year, month);
+        Bob_buy_apartment_if_has_not();
 
-        buy_food_Bob(year, month);
-        buy_food_Alice(year, month);
-
-        pay_rent_Bob(year, month);
-        pay_rent_Alice(year, month);
-
-        pay_loan_Bob(year, month);
-        pay_loan_Alice(year, month);
-
-        pay_additional_Bob(year, month);
-        pay_additional_Alice(year, month);
-
-        deposit_income_Bob(year, month);
-        deposit_income_Alice(year, month);
-
-        buy_apartment_if_has_not();
+        Alice_get_salary(year, month);
+        Alice_buy_food(year, month);
+        Alice_pay_rent(year, month);
+        Alice_pay_loan(year, month);
+        Alice_pay_additional(year, month);
+        Alice_deposit_income(year, month);
+        Alice_buy_apartment_if_has_not();
 
         inflate(year, month);
 
+        if (month == 12) {
+            Bob_repair_apartment(year, month);
+            Alice_repair_apartment(year, month);
+        }
 
-        if(month != 12)
-        {
+        if(month != 12) {
             month += 1;
         }
-        else
-        {
-            repair_apartment_Bob(year, month);
-            repair_apartment_Alice(year, month);
-
-            indexation_Bob(year, month);
-            indexation_Alice(year, month);
-
+        else {
             month = 1;
             year += 1;
         }
@@ -290,12 +287,11 @@ void calculate()
 }
 
 // Вывод результатов Боба
-void print_results_Bob()
+void Bob_print_results()
 {
     Money Bob_savings_roubles = Bob.savings / 100;
     long long int count_digits = 1;
-    while (count_digits < Bob_savings_roubles)
-    {
+    while (count_digits < Bob_savings_roubles) {
         count_digits *= 1000;
     }
     count_digits /= 1000;
@@ -306,8 +302,7 @@ void print_results_Bob()
     Bob_savings_roubles %= count_digits;
     count_digits /= 1000;
 
-    for (count_digits; count_digits > 0; count_digits /= 1000)
-    {
+    for (count_digits; count_digits > 0; count_digits /= 1000) {
         int number_to_print = Bob_savings_roubles / count_digits;
         printf("%03d ", number_to_print);
         Bob_savings_roubles %= count_digits;
@@ -317,12 +312,11 @@ void print_results_Bob()
 
 
 // Вывод результатов Алисы
-void print_results_Alice()
+void Alice_print_results()
 {
     Money Alice_savings_roubles = Alice.savings / 100;
     long long int count_digits = 1;
-    while (count_digits < Alice_savings_roubles)
-    {
+    while (count_digits < Alice_savings_roubles) {
         count_digits *= 1000;
     }
     count_digits /= 1000;
@@ -333,8 +327,7 @@ void print_results_Alice()
     Alice_savings_roubles %= count_digits;
     count_digits /= 1000;
 
-    for (count_digits; count_digits > 0; count_digits /= 1000)
-    {
+    for (count_digits; count_digits > 0; count_digits /= 1000) {
         int number_to_print = Alice_savings_roubles / count_digits;
         printf("%03d ", number_to_print);
         Alice_savings_roubles %= count_digits;
@@ -352,6 +345,6 @@ int main()
 
     calculate();
 
-    print_results_Bob();
-    print_results_Alice();
+    Bob_print_results();
+    Alice_print_results();
 }
