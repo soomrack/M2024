@@ -2,6 +2,7 @@
 #include <math.h>
 
 typedef long long int money; // считаем в копейках
+
 struct Person {
     money capital;
     money income;
@@ -19,9 +20,9 @@ const money SALARY = 150 * 1000 * 100;
 const money FIRST_FLAT_PAYNMENT = 2000 * 1000 * 100;
 const money LIFE_SPENDING = 15 * 1000 * 100;
 
-const int YEARS = 30;
-const int START_MONTH = 2;
-const int START_YEAR = 2024;
+const short YEARS = 30;
+const short START_MONTH = 2;
+const short START_YEAR = 2024;
 
 double INFLATION = 0.07;
 double BANK_RATE = 0.05;
@@ -34,6 +35,7 @@ void bob_init() {
     Bob.flat_payment = FLAT_RENT_PRICE;
 }
 
+
 void alice_init() {
     Alice.income = SALARY;
     Alice.capital = 2000 * 1000 * 100;
@@ -43,40 +45,47 @@ void alice_init() {
     Alice.overpayment = Alice.flat_payment * 12 * YEARS - FLAT_PRICE;
 }
 
+
 void bob_salary(int year, int month) {
     Bob.capital += Bob.income;
 }
+
 
 void bob_deposite(int year, int month) {
     Bob.capital *= (1.0 + BANK_RATE / 12.0);
 }
 
+
 void bob_spendings(int year, int month) {
     Bob.capital -= (Bob.spendings + Bob.flat_payment);
 }
+
 
 void alice_salary(int year, int month) {
     Alice.capital += Alice.income;
 }
 
+
 void alice_deposite(int year, int month) {
     Alice.capital *= (1.0 + BANK_RATE / 12.0);
 }
+
 
 void alice_spendings(int year, int month) {
     Alice.capital -= (Alice.spendings + Alice.flat_payment);
 }
 
+
 void inflation(int year, int month) {
     if (month % 12 == 0) {
-        //INFLATION *= 1.05;
-        Alice.income *= (1.0 + INFLATION);
-        Bob.income *= (1.0 + INFLATION);
-        Bob.flat_payment *= (1.0 + INFLATION);
-        Alice.spendings *= (1.0 + INFLATION);
-        Bob.spendings *= (1.0 + INFLATION);
+        Alice.income *= (1 + INFLATION);
+        Alice.spendings *= (1 + INFLATION);
+        Bob.income *= (1 + INFLATION);
+        Bob.flat_payment *= (1 + INFLATION);
+        Bob.spendings *= (1 + INFLATION);
     }
 }
+
 
 void simulation() {
 
@@ -101,19 +110,21 @@ void simulation() {
     }
 }
 
+
 void print_bob() {
-    printf("Bob Capital: %lli\n", Bob.capital / 100);
-    printf("Bob Income: %lli\n", Bob.income / 100);
-    printf("Bob Life spendings: %lli\n", Bob.spendings / 100);
-    printf("Bob Monthly payment: %lli\n", Bob.flat_payment / 100);
+    printf("Bob Capital: %lli rub\n", Bob.capital / 100);
+    printf("Bob Income: %lli rub\n", Bob.income / 100);
+    printf("Bob Life spendings: %lli rub\n", Bob.spendings / 100);
+    printf("Bob Monthly payment: %lli rub\n", Bob.flat_payment / 100);
 }
 
+
 void print_alice() {
-    printf("Alice Capital: %lli\n", Alice.capital / 100);
-    printf("Alice Income: %lli\n", Alice.income / 100);
-    printf("Alice Life spendings: %lli\n", Alice.spendings / 100);
-    printf("Alice Monthly payment: %lli\n", Alice.flat_payment / 100);
-    printf("Alice Overpayment: %lli\n", Alice.overpayment / 100);
+    printf("Alice Capital: %lli rub\n", Alice.capital / 100);
+    printf("Alice Income: %lli rub\n", Alice.income / 100);
+    printf("Alice Life spendings: %lli rub\n", Alice.spendings / 100);
+    printf("Alice Monthly payment: %lli rub\n", Alice.flat_payment / 100);
+    printf("Alice Overpayment: %lli rub\n", Alice.overpayment / 100);
     printf("\n");
 }
 
