@@ -95,116 +95,103 @@ void init_Alice()
 
 
 // ежемесячное начисление зарплаты
-void Bob_get_salary(int month, int year)
+void Bob_get_salary(const int month, const int year)
 {
     Bob.savings += Bob.salary;
 
     if (month == 12) {
-        Bob_indexation(year, month);
+        Bob.salary += Bob.salary * INFLATION;  // индексация
     }
 }
 
 
-void Alice_get_salary(int month, int year)
+void Alice_get_salary(const int month, const int year)
 {
     Alice.savings += Alice.salary;
 
     if (month == 12) {
-        Alice_indexation(year, month);
+        Alice.salary += Alice.salary * INFLATION;  // индексация
     }
 }
 
 
 // ежемесячная покупка еды
-void Bob_buy_food(int month, int year)
+void Bob_buy_food(const int month, const int year)
 {
     Bob.savings -= Bob.food_spending;
 }
 
 
-void Alice_buy_food(int month, int year)
+void Alice_buy_food(const int month, const int year)
 {
     Alice.savings -= Alice.food_spending;
 }
 
 
 // ежемесячная оплата аренды
-void Bob_pay_rent(int month, int year)
+void Bob_pay_rent(const int month, const int year)
 {
     Bob.savings -= Bob.rent;
 }
 
 
-void Alice_pay_rent(int month, int year)
+void Alice_pay_rent(const int month, const int year)
 {
     Alice.savings -= Alice.rent;
 }
 
 
 // ежемесячная плата по кредиту
-void Bob_pay_loan(int month, int year)
+void Bob_pay_loan(const int month, const int year)
 {
     Bob.savings -= Bob.loan_payment;
 }
 
 
-void Alice_pay_loan(int month, int year)
+void Alice_pay_loan(const int month, const int year)
 {
     Alice.savings -= Alice.loan_payment;
 }
 
 
 // ежемесячный учет дополнительных расходов
-void Bob_pay_additional(int month, int year)
+void Bob_pay_additional(const int month, const int year)
 {
     Bob.savings -= Bob.additional_spendings;
 }
 
 
-void Alice_pay_additional(int month, int year)
+void Alice_pay_additional(const int month, const int year)
 {
     Alice.savings -= Alice.additional_spendings;
 }
 
 
 // ежегодный ремонт квартиры
-void Bob_repair_apartment(int month, int year)
+void Bob_repair_apartment(const int month, const int year)
 {
     Bob.savings -= Bob.apartment_repairs;
 }
 
 
-void Alice_repair_apartment(int month, int year)
+void Alice_repair_apartment(const int month, const int year)
 {
     Alice.savings -= Alice.apartment_repairs;
 }
 
 
 //  ежемесячная выплата процентов по вкладу
-void Bob_deposit_income(int month, int year)
+void Bob_deposit_income(const int month, const int year)
 {
     long double income = Bob.savings * Bob.deposit_rate / 12;
     Bob.savings += income;
 }
 
 
-void Alice_deposit_income(int month, int year)
+void Alice_deposit_income(const int month, const int year)
 {
     long double income = Alice.savings * Alice.deposit_rate / 12;
     Alice.savings += income;
-}
-
-
-// ежегодное повышение зарплаты
-void Bob_indexation(int month, int year)
-{
-    Bob.salary += Bob.salary * INFLATION;
-}
-
-
-void Alice_indexation(int month, int year)
-{
-    Alice.salary += Alice.salary * INFLATION;
 }
 
 
@@ -230,7 +217,7 @@ void Alice_buy_apartment_if_has_not()
 
 
 // ежемесячный рост цен
-void inflate(int month, int year)
+void inflate(const int month, const int year)
 {
     Bob.food_spending += Bob.food_spending * INFLATION / 12;
     Bob.additional_spendings += Bob.additional_spendings * INFLATION / 12;
