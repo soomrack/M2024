@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <math.h>
+
+typedef long long int Money;  // руб
+
+//Общая информация
+const int years = 30;
+const int inflation = 12;
+const int start = 2*1000*1000;
+Money salary = 150*1000;
+Money food = 15*1000;
+
+//Алиса
+Money Alice_bank = 0;
+const int flat_rate = 18;
+const int flat_cost = 20*1000*1000;
+Money flat_reparation = 100*1000;
+const int flat_reparation_years = 2; //года
+
+//Боб
+Money Bob_bank = 0;
+Money flat_rent = 25*1000;
+const int deposit_rate = 16;
+
+const int months = years * 12;
+const int flat_reparation_months = flat_reparation_years * 12;
+
+Money Alice_balance = start; //в начале месяца
+Money Bob_balance = start;
+
+int main()
+{
+    double degree = pow (1 + (double) flat_rate / 1200, months);
+    double mortgage_month = (double) flat_cost * flat_rate/1200 * degree / (degree - 1);
+
+    for (int i = 0; i <= months; i++)
+{
+    if (i % 12 == 0) //индексация
+    {
+        food *= 1 + inflation * 0.01;
+        salary *= 1 + inflation * 0.01;
+        flat_reparation *= 1 + inflation * 0.01;
+        flat_rent *= 1 + inflation * 0.01;
+    }
+
+    //Алиса
+    Alice_balance += salary;
+    Alice_balance -= food;
+    if (i < flat_reparation_months)
+    {
+        Alice_balance -= flat_reparation;
+    }
+    Alice_balance -= mortgage_month;
+    Alice_bank += Alice_balance;
+    Alice_balance = 0;
+    Alice_bank *= (1 + deposit_rate / 100 / 12);
+
+    //Боб
+    Bob_balance += salary;
+    Bob_balance -= food + flat_rent;
+    Bob_bank += Bob_balance;
+    Bob_balance = 0;
+    Bob_bank *= (1 + deposit_rate / 100 / 12);
+}
+
+    Alice_balance = Alice_bank;
+    Bob_balance = Bob_bank; 
+
+    printf ("%s %d %s %d %s\n", "Через ", years, "лет баланс Алисы будет составлять: ", Alice_balance, "руб");
+    printf ("%s %d %s %d %s\n", "Через ", years, "лет баланс Боба будет составлять: ", Bob_balance, "руб");
+
+    return 0;
+}
