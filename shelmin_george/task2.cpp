@@ -10,7 +10,6 @@ struct matrix {
 };
 
 
-
 void init_matrix(struct matrix *any_matrix, int cols, int rows) {
 	any_matrix->cols = cols;
 	any_matrix->rows = rows;
@@ -23,7 +22,7 @@ void init_matrix(struct matrix *any_matrix, int cols, int rows) {
 }
 
 
-struct matrix create_empty_matrix_for_calculus(struct matrix* any_matrix) {
+struct matrix create_empty_matrix_for_simple_calculus(struct matrix* any_matrix) {
 	struct matrix new_matrix;
 	new_matrix.cols = any_matrix->cols;
 	new_matrix.rows = any_matrix->rows;
@@ -76,7 +75,7 @@ bool matrix_size_simple_check(struct matrix* first_matrix, struct matrix* second
 struct matrix matrix_summ(struct matrix* first_matrix, struct matrix* second_matrix) {
 	
 	if (matrix_size_simple_check(first_matrix, second_matrix)) {
-		struct matrix new_matrix = create_empty_matrix_for_calculus(first_matrix);
+		struct matrix new_matrix = create_empty_matrix_for_simple_calculus(first_matrix);
 
 		for (int index = 0; index < first_matrix->rows * first_matrix->cols;index++) {
 			new_matrix.data[index] = first_matrix->data[index] + second_matrix->data[index];
@@ -89,7 +88,7 @@ struct matrix matrix_summ(struct matrix* first_matrix, struct matrix* second_mat
 struct matrix matrix_sub(struct matrix* first_matrix, struct matrix* second_matrix) {
 
 	if (matrix_size_simple_check(first_matrix, second_matrix)) {
-		struct matrix new_matrix = create_empty_matrix_for_calculus(first_matrix);
+		struct matrix new_matrix = create_empty_matrix_for_simple_calculus(first_matrix);
 
 		for (int index = 0; index < first_matrix->rows * first_matrix->cols; index++) {
 			new_matrix.data[index] = first_matrix->data[index] - second_matrix->data[index];
@@ -100,7 +99,7 @@ struct matrix matrix_sub(struct matrix* first_matrix, struct matrix* second_matr
 
 
 struct matrix matrix_scalar_mult(struct matrix* any_matrix,double scalar) {
-	struct matrix new_matrix = create_empty_matrix_for_calculus(any_matrix);
+	struct matrix new_matrix = create_empty_matrix_for_simple_calculus(any_matrix);
 	for (int index = 0; index < any_matrix->rows * any_matrix->cols; index++) {
 		new_matrix.data[index] = any_matrix->data[index] * scalar;
 	}
@@ -143,3 +142,4 @@ int main()
 	free_matrix_memory(&matrix_B);
 	free_matrix_memory(&matrix_C);
 }
+
