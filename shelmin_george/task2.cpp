@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <stdlib.h>
 #include <time.h>
 
@@ -20,6 +20,15 @@ void init_matrix(struct matrix *any_matrix, int cols, int rows) {
 		printf("Не удалось выделить память");
 		exit(0);
 	}
+}
+
+
+struct matrix create_empty_matrix_for_calculus(struct matrix* any_matrix) {
+	struct matrix new_matrix;
+	new_matrix.cols = any_matrix->cols;
+	new_matrix.rows = any_matrix->rows;
+	new_matrix.data = (double*)malloc(new_matrix.cols * new_matrix.rows * sizeof(double));
+	return new_matrix;
 }
 
 
@@ -67,10 +76,7 @@ bool matrix_size_simple_check(struct matrix* first_matrix, struct matrix* second
 struct matrix matrix_summ(struct matrix* first_matrix, struct matrix* second_matrix) {
 	
 	if (matrix_size_simple_check(first_matrix, second_matrix)) {
-		struct matrix new_matrix;
-		new_matrix.cols = first_matrix->cols;
-		new_matrix.rows = first_matrix->rows;
-		new_matrix.data = (double*)malloc(new_matrix.cols * new_matrix.rows * sizeof(double));
+		struct matrix new_matrix = create_empty_matrix_for_calculus(first_matrix);
 
 		for (int index = 0; index < first_matrix->rows * first_matrix->cols;index++) {
 			new_matrix.data[index] = first_matrix->data[index] + second_matrix->data[index];
@@ -83,16 +89,22 @@ struct matrix matrix_summ(struct matrix* first_matrix, struct matrix* second_mat
 struct matrix matrix_sub(struct matrix* first_matrix, struct matrix* second_matrix) {
 
 	if (matrix_size_simple_check(first_matrix, second_matrix)) {
-		struct matrix new_matrix;
-		new_matrix.cols = first_matrix->cols;
-		new_matrix.rows = first_matrix->rows;
-		new_matrix.data = (double*)malloc(new_matrix.cols * new_matrix.rows * sizeof(double));
+		struct matrix new_matrix = create_empty_matrix_for_calculus(first_matrix);
 
 		for (int index = 0; index < first_matrix->rows * first_matrix->cols; index++) {
 			new_matrix.data[index] = first_matrix->data[index] - second_matrix->data[index];
 		}
 		return new_matrix;
 	}
+}
+
+
+struct matrix matrix_scalar_mult(struct matrix* any_matrix,double scalar) {
+	struct matrix new_matrix = create_empty_matrix_for_calculus(any_matrix);
+	for (int index = 0; index < any_matrix->rows * any_matrix->cols; index++) {
+		new_matrix.data[index] = any_matrix->data[index] * scalar;
+	}
+	return new_matrix;
 }
 
 
@@ -123,10 +135,11 @@ int main()
 
 	struct matrix matrix_C=matrix_summ(&matrix_A, &matrix_B);
 	cout_matrix(&matrix_C);
+	matrix_C = matrix_scalar_mult(&matrix_C, 2);
+	cout_matrix(&matrix_C);
 
 
 	free_matrix_memory(&matrix_A);
 	free_matrix_memory(&matrix_B);
 	free_matrix_memory(&matrix_C);
 }
-
