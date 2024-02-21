@@ -196,21 +196,30 @@ struct Matrix matrix_power(struct Matrix* any_matrix, const unsigned int power_n
 }
 
 
-/*struct Matrix matrix_exp(struct Matrix* any_matrix) {
-    const unsigned int accuracy = 10;
+struct Matrix matrix_exp(struct Matrix* any_matrix) {
+    const unsigned int accuracy = 100;
 
     if (any_matrix->cols == any_matrix->rows) {
         struct Matrix new_matrix = create_empty_matrix_for_mult(any_matrix, any_matrix);
         new_matrix = *any_matrix;
 
+        struct Matrix submatrix;
+        init_matrix(&submatrix, new_matrix.cols,new_matrix.rows);
+        submatrix = *any_matrix;
+
         double factorial = 1;
         for (int index = 2; index < accuracy + 1; index++) {
             factorial /= index;
-            new_matrix = matrix_summ(&new_matrix,&matrix_scalar_mult(&matrix_power(any_matrix,index),factorial));
+            submatrix = matrix_power(any_matrix, index);
+            submatrix = matrix_scalar_mult(&submatrix, factorial);
+            
+            new_matrix = matrix_summ(&new_matrix,&submatrix);
         }
+        free_matrix_memory(&submatrix);
+
         return new_matrix;
     }
-}*/
+}
 
 
 int main()
@@ -221,21 +230,22 @@ int main()
     struct Matrix matrix_A;
     init_matrix(&matrix_A, 2, 2);
     random_fill_matrix(&matrix_A);
-    cout_matrix(&matrix_A);
+    //cout_matrix(&matrix_A);
 
     struct Matrix matrix_B;
     init_matrix(&matrix_B, 2, 2);
     random_fill_matrix(&matrix_B);
-    cout_matrix(&matrix_B);
+    //cout_matrix(&matrix_B);
 
     struct Matrix matrix_C=matrix_mult(&matrix_A, &matrix_B);
     cout_matrix(&matrix_C);
-    //matrix_C = matrix_exp(&matrix_C);
-    //cout_matrix(&matrix_C);
+    //fill_identity_matrix(&matrix_C);
+    //matrix_C = matrix_scalar_mult(&matrix_C, 10);
+    matrix_C = matrix_exp(&matrix_C);
+    cout_matrix(&matrix_C);
 
-
+        
     free_matrix_memory(&matrix_A);
     free_matrix_memory(&matrix_B);
     free_matrix_memory(&matrix_C);
 }
-
