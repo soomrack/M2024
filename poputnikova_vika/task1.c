@@ -17,8 +17,7 @@ const float INFLATION = 0.07 / 12;
 const int CURRENT_YEAR = 2024;
 const int CURRENT_MONTH = 2;
 
-typedef struct Person
-{
+typedef struct Person {
     Money balance;
     Money income;
     Money expenses;
@@ -65,8 +64,7 @@ Money calculate_Bob() {
 }
 
 int calculate_Alice_Bob() {
-    if (CURRENT_MONTH == 2 && CURRENT_YEAR == 2024)
-    {
+    if (CURRENT_MONTH == 2 && CURRENT_YEAR == 2024) {
         calculate_Alice();
         calculate_Bob();
     }
