@@ -1,4 +1,14 @@
-﻿#include <stdio.h>
+﻿// Liubinetskii V. (@liubvlad)
+// 
+//
+// ☑ Добавить базовые операции с матрицей
+//
+// ☑ Расчёт определителя
+// □  Экспонента матрицы (https://ru.wikipedia.org/wiki/%D0%AD%D0%BA%D1%81%D0%BF%D0%BE%D0%BD%D0%B5%D0%BD%D1%82%D0%B0_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D1%8B)
+//
+// □  Логгер
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -47,6 +57,7 @@ Matrix sumMatrices(Matrix mat1, Matrix mat2) {
     for (size_t i = 0; i < mat1.rows * mat1.cols; i++) {
         result.data[i] = mat1.data[i] + mat2.data[i];
     }
+
     return result;
 }
 
@@ -62,6 +73,7 @@ Matrix subtractMatrices(Matrix mat1, Matrix mat2) {
     for (size_t i = 0; i < mat1.rows * mat1.cols; i++) {
         result.data[i] = mat1.data[i] - mat2.data[i];
     }
+
     return result;
 }
 
@@ -84,6 +96,7 @@ Matrix multiplyMatrices(Matrix mat1, Matrix mat2) {
             result.data[i * mat2.cols + j] = sum;
         }
     }
+
     return result;
 }
 
@@ -94,6 +107,7 @@ Matrix multiplyMatrixByScalar(Matrix mat, double scalar) {
     for (size_t i = 0; i < mat.rows * mat.cols; i++) {
         result.data[i] = mat.data[i] * scalar;
     }
+
     return result;
 }
 
@@ -199,7 +213,6 @@ void case_sum_and_print() {
     Matrix result = sumMatrices(mat1, mat2);
     printMatrix(result);
 
-    // Free allocated memory
     freeMatrix(mat1);
     freeMatrix(mat2);
     freeMatrix(result);
@@ -219,7 +232,6 @@ void case_prepair_matrix_and_get_determinant() {
     double det = determinant(mat);
     printf("Determinant of the matrix: %.2f\n", det);
 
-    // Free allocated memory
     freeMatrix(mat);
 }
 
@@ -234,7 +246,6 @@ void case_get_matrix_determinant() {
     double det = determinant(mat);
     printf("Determinant of the matrix: %.2f\n", det);
 
-    // Free allocated memory
     freeMatrix(mat);
 }
 
