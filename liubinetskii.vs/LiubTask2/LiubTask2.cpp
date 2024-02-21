@@ -190,7 +190,7 @@ void fillMatrix(Matrix mat) {
 
 // Function to fill a matrix with random numbers
 void fillMatrixRandom(Matrix mat) {
-    srand(time(NULL));
+    srand(time(NULL)); // TODO in main
     for (size_t i = 0; i < mat.rows * mat.cols; i++) {
         mat.data[i] = (double)rand() / RAND_MAX;
     }
