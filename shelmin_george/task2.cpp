@@ -92,8 +92,7 @@ void cout_matrix(struct Matrix* any_matrix) {
 
 
 void free_matrix_memory(struct Matrix *any_matrix) {
-        free(any_matrix->data);
-    
+        free(any_matrix->data);   
 }
 
 
@@ -117,6 +116,10 @@ struct Matrix matrix_summ(struct Matrix* first_matrix, struct Matrix* second_mat
         }
         return new_matrix;
     }
+    else {
+        printf("неверные размеры матриц");
+        return *first_matrix;
+    }
 }
 
 
@@ -128,6 +131,10 @@ struct Matrix matrix_sub(struct Matrix* first_matrix, struct Matrix* second_matr
             new_matrix.data[index] = first_matrix->data[index] - second_matrix->data[index];
         }
         return new_matrix;
+    }
+    else {
+        printf("неверные размеры матриц");
+        return *first_matrix;
     }
 }
 
@@ -169,6 +176,10 @@ struct Matrix matrix_mult(struct Matrix* first_matrix, struct Matrix* second_mat
         }
         return new_matrix;
     }
+    else {
+        printf("неверные размеры матриц");
+        return *first_matrix;
+    }
 }
 
 
@@ -193,6 +204,7 @@ struct Matrix matrix_power(struct Matrix* any_matrix, const unsigned int power_n
         }
         else {
             printf("размер матрицы не подходит");
+            return *any_matrix;
         }
 }
 
@@ -219,6 +231,10 @@ struct Matrix matrix_exp(struct Matrix* any_matrix) {
         free_matrix_memory(&submatrix);
 
         return new_matrix;
+    }
+    else {
+        printf("неверный размер матрицы");
+        return *any_matrix;
     }
 }
 
@@ -261,6 +277,7 @@ struct Matrix create_matrix_for_minor(struct Matrix* any_matrix, const unsigned 
     }
     else {
         printf("размер матрицы не соответствует индексам");
+        return *any_matrix;
     }
 }
 
@@ -302,14 +319,12 @@ int main()
 
     struct Matrix matrix_C=matrix_mult(&matrix_A, &matrix_B);
     cout_matrix(&matrix_C);
-    struct Matrix matrix_M = create_matrix_for_minor(&matrix_C, 3, 2);
-    cout_matrix(&matrix_M);
+
 
 
         
     free_matrix_memory(&matrix_A);
     free_matrix_memory(&matrix_B);
     free_matrix_memory(&matrix_C);
-    free_matrix_memory(&matrix_M);
 }
 
