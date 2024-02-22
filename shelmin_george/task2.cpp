@@ -239,7 +239,6 @@ struct Matrix matrix_exp(struct Matrix* any_matrix) {
 }
 
 
-// внутренняя функция для завершения рекурсии вызова определителя
 // не нужна тк является частным случаем
 /*double matrix_2x2_det(struct Matrix* any_matrix) {
     if ((any_matrix->cols == any_matrix->rows)&&(any_matrix->cols==2)) {
