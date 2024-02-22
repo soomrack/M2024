@@ -299,8 +299,24 @@ double matrix_determinant(struct Matrix* any_matrix) {
         }
         return determinant;
     }
-    printf("размер матрицы неверный");
-    return 0;
+    else {
+    printf("определитель равен нулю");
+    return *any_matrix;
+    }
+}
+
+
+struct Matrix matrix_transposition(struct Matrix* any_matrix) {
+    struct Matrix new_matrix;
+    init_matrix(&new_matrix, any_matrix->rows, any_matrix->cols);
+
+    for (int current_col = 0; current_col < new_matrix.cols; current_col++) {
+        for (int current_row = 0; current_row < new_matrix.rows; current_row++) {
+            new_matrix.data[new_matrix.rows * current_col + current_row] =
+                any_matrix->data[new_matrix.cols*current_row+current_col];            
+        }
+    }
+    return new_matrix;
 }
 
 
