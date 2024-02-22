@@ -320,25 +320,57 @@ struct Matrix matrix_transposition(struct Matrix* any_matrix) {
 }
 
 
+struct Matrix inverse_matrix(struct Matrix* any_matrix) {
+    double det = matrix_determinant(any_matrix);
+    if (det != 0) {
+        struct Matrix inv_matrix = create_empty_matrix_for_simple_calculus(any_matrix);
+
+        for (int current_col = 0; current_col < inv_matrix.cols; current_col++) {
+            for (int current_row = 0; current_row < inv_matrix.rows; current_row++) {
+                struct Matrix matrix_M = create_matrix_for_minor(any_matrix, current_col, current_row);
+
+                inv_matrix.data[current_col*inv_matrix.cols+current_row]=
+                    int(pow(-1, current_col+current_row)) * matrix_determinant(&matrix_M);
+
+                free_matrix_memory(&matrix_M);
+            }
+        }
+        inv_matrix = matrix_transposition(&inv_matrix);
+        inv_matrix = matrix_scalar_mult(&inv_matrix, 1 / det);
+        return inv_matrix;
+    }
+    else {
+        printf("определитель равен нулю");
+        return *any_matrix;
+    }
+}
+
+
 int main()
 {
     srand(time(NULL));
     setlocale(LC_ALL, "rus");
 
     struct Matrix matrix_A;
-    init_matrix(&matrix_A, 2, 2);
+    init_matrix(&matrix_A, 4, 4);
     random_fill_matrix(&matrix_A);
     cout_matrix(&matrix_A);
 
     struct Matrix matrix_B;
-    init_matrix(&matrix_B, 2, 2);
+    init_matrix(&matrix_B, 4, 4);
     random_fill_matrix(&matrix_B);
     cout_matrix(&matrix_B);
+
 
     struct Matrix matrix_C=matrix_mult(&matrix_A, &matrix_B);
     //fill_identity_matrix(&matrix_C);
     cout_matrix(&matrix_C);
-    printf("\n%f", matrix_determinant(&matrix_C));
+    struct Matrix matrix_inv = inverse_matrix(&matrix_C);
+    cout_matrix(&matrix_inv);
+    matrix_C = matrix_mult(&matrix_inv, &matrix_C);
+    cout_matrix(&matrix_C);
+    free_matrix_memory(&matrix_inv);
+    //printf("\n%f", matrix_determinant(&matrix_C));
 
 
 
