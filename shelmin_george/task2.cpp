@@ -201,14 +201,14 @@ struct Matrix matrix_exp(struct Matrix* any_matrix) {
 
     if (any_matrix->cols == any_matrix->rows) {
         struct Matrix new_matrix = create_empty_matrix_for_mult(any_matrix, any_matrix);
-        new_matrix = *any_matrix;
+        fill_identity_matrix(&new_matrix);
 
         struct Matrix submatrix;
         init_matrix(&submatrix, new_matrix.cols,new_matrix.rows);
         submatrix = *any_matrix;
 
         double factorial = 1;
-        for (int index = 2; index < accuracy + 1; index++) {
+        for (int index = 1; index < accuracy + 1; index++) {
             factorial /= index;
             submatrix = matrix_power(any_matrix, index);
             submatrix = matrix_scalar_mult(&submatrix, factorial);
