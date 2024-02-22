@@ -92,7 +92,8 @@ void cout_matrix(struct Matrix* any_matrix) {
 
 
 void free_matrix_memory(struct Matrix *any_matrix) {
-    free(any_matrix->data);
+        free(any_matrix->data);
+    
 }
 
 
@@ -222,30 +223,93 @@ struct Matrix matrix_exp(struct Matrix* any_matrix) {
 }
 
 
+double matrix_2x2_det(struct Matrix* any_matrix) {
+    if ((any_matrix->cols == any_matrix->rows)&&(any_matrix->cols==2)) {
+        double deterninant = any_matrix->data[0] * any_matrix->data[3] - 
+            any_matrix->data[1] * any_matrix->data[2];
+        return deterninant;
+    }
+}
+
+
+struct Matrix create_matrix_for_minor(struct Matrix* any_matrix, const unsigned int col_number, const unsigned int row_number) {
+    if ((col_number < any_matrix->cols) && (row_number < any_matrix->rows)) {
+        struct Matrix minor_matrix;
+        init_matrix(&minor_matrix, any_matrix->cols - 1, any_matrix->rows - 1);
+
+        int minor_index = 0;
+        int origin_index = 0;
+        for (int current_col = 0; current_col < minor_matrix.cols; current_col++) {
+            if (current_col == col_number) {
+                origin_index += any_matrix->cols;
+            }
+            for (int current_row = 0; current_row < minor_matrix.rows; current_row++) {
+                if (current_row == row_number) {
+                    origin_index += 1;
+                }
+
+                minor_matrix.data[minor_index] = any_matrix->data[origin_index];
+
+                minor_index += 1;
+                origin_index += 1;
+            }
+            if (row_number == minor_matrix.rows) {  // иначе не обрабатывается последний столбец
+                origin_index += 1;
+            }
+        }
+        return minor_matrix;
+    }
+    else {
+        printf("размер матрицы не соответствует индексам");
+    }
+}
+
+
+/*
+double matrix_determinant(struct Matrix* any_matrix) {
+    if (any_matrix->cols == any_matrix->rows) {
+        double determinant = 0;
+        if (any_matrix->cols == 1) {
+            determinant = any_matrix->data[0];
+        }
+        else {
+
+
+
+
+
+            
+        }
+        return determinant;
+    }
+}
+*/
+
 int main()
 {
     srand(time(NULL));
     setlocale(LC_ALL, "rus");
 
     struct Matrix matrix_A;
-    init_matrix(&matrix_A, 2, 2);
+    init_matrix(&matrix_A, 4, 4);
     random_fill_matrix(&matrix_A);
     //cout_matrix(&matrix_A);
 
     struct Matrix matrix_B;
-    init_matrix(&matrix_B, 2, 2);
+    init_matrix(&matrix_B, 4, 4);
     random_fill_matrix(&matrix_B);
     //cout_matrix(&matrix_B);
 
     struct Matrix matrix_C=matrix_mult(&matrix_A, &matrix_B);
     cout_matrix(&matrix_C);
-    //fill_identity_matrix(&matrix_C);
-    //matrix_C = matrix_scalar_mult(&matrix_C, 10);
-    matrix_C = matrix_exp(&matrix_C);
-    cout_matrix(&matrix_C);
+    struct Matrix matrix_M = create_matrix_for_minor(&matrix_C, 3, 2);
+    cout_matrix(&matrix_M);
+
 
         
     free_matrix_memory(&matrix_A);
     free_matrix_memory(&matrix_B);
     free_matrix_memory(&matrix_C);
+    free_matrix_memory(&matrix_M);
 }
+
