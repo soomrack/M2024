@@ -239,13 +239,15 @@ struct Matrix matrix_exp(struct Matrix* any_matrix) {
 }
 
 
-double matrix_2x2_det(struct Matrix* any_matrix) {
+// внутренняя функция для завершения рекурсии вызова определителя
+// не нужна тк является частным случаем
+/*double matrix_2x2_det(struct Matrix* any_matrix) {
     if ((any_matrix->cols == any_matrix->rows)&&(any_matrix->cols==2)) {
         double deterninant = any_matrix->data[0] * any_matrix->data[3] - 
             any_matrix->data[1] * any_matrix->data[2];
         return deterninant;
     }
-}
+}*/
 
 
 struct Matrix create_matrix_for_minor(struct Matrix* any_matrix, const unsigned int col_number, const unsigned int row_number) {
@@ -282,25 +284,27 @@ struct Matrix create_matrix_for_minor(struct Matrix* any_matrix, const unsigned 
 }
 
 
-/*
+
 double matrix_determinant(struct Matrix* any_matrix) {
-    if (any_matrix->cols == any_matrix->rows) {
+    if ((any_matrix->cols == any_matrix->rows)&&(any_matrix->cols>0)) {
         double determinant = 0;
         if (any_matrix->cols == 1) {
             determinant = any_matrix->data[0];
         }
         else {
-
-
-
-
-
-            
+            for (int summ_index = 0; summ_index < any_matrix->rows; summ_index++) {
+                struct Matrix matrix_M;
+                matrix_M = create_matrix_for_minor(any_matrix, 0, summ_index);
+                determinant += int(pow(-1, summ_index)) * any_matrix->data[summ_index] * matrix_determinant(&matrix_M);
+                free_matrix_memory(&matrix_M);
+            }
         }
         return determinant;
     }
+    printf("размер матрицы неверный");
+    return 0;
 }
-*/
+
 
 int main()
 {
@@ -308,17 +312,19 @@ int main()
     setlocale(LC_ALL, "rus");
 
     struct Matrix matrix_A;
-    init_matrix(&matrix_A, 4, 4);
+    init_matrix(&matrix_A, 2, 2);
     random_fill_matrix(&matrix_A);
-    //cout_matrix(&matrix_A);
+    cout_matrix(&matrix_A);
 
     struct Matrix matrix_B;
-    init_matrix(&matrix_B, 4, 4);
+    init_matrix(&matrix_B, 2, 2);
     random_fill_matrix(&matrix_B);
-    //cout_matrix(&matrix_B);
+    cout_matrix(&matrix_B);
 
     struct Matrix matrix_C=matrix_mult(&matrix_A, &matrix_B);
+    //fill_identity_matrix(&matrix_C);
     cout_matrix(&matrix_C);
+    printf("\n%f", matrix_determinant(&matrix_C));
 
 
 
