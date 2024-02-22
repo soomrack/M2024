@@ -283,7 +283,6 @@ struct Matrix create_matrix_for_minor(struct Matrix* any_matrix, const unsigned 
 }
 
 
-
 double matrix_determinant(struct Matrix* any_matrix) {
     if ((any_matrix->cols == any_matrix->rows)&&(any_matrix->cols>0)) {
         double determinant = 0;
