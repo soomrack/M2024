@@ -40,6 +40,7 @@ Money alice_monthly_payment() { //Расчет ежемесячного плат
     return ipoteka;
 }
 
+
 void init_bob() { //Боб
     bob.salary = 150 * 1000 * 100;
     bob.bank_account = 2 * 1000 * 1000 * 100;
@@ -62,7 +63,6 @@ void inflation_common() { //Инфляция
         eda *= (1.0 + inflation / 100.0);
         odezda *= (1.0 + inflation / 100.0);
         intertaiments *= (1.0 + inflation / 100.0);
-
     }
 }
 
@@ -79,6 +79,7 @@ void enrollment_bob() {
     bob.bank_account += bob.salary;
 }
 
+
 void spendings_alice() {
     alice.bank_account -= eda + odezda + intertaiments;
     if (current_year < 2027) {
@@ -93,20 +94,9 @@ void spendings_bob() {
 }
 
 
-
-void print_alice() {
+void print_common() {
     if (current_month == 1) {
-       
-    
         printf("[%d]Alice: money %lld\n", current_year, alice.bank_account + kvartira);
-    }    
-}
-
-
-void print_bob() {
-    if (current_month == 1) {
-       
-    
         printf("[%d]Bob: money %lld\n", current_year, bob.bank_account);
     }    
 }
@@ -114,14 +104,12 @@ void print_bob() {
 
 void processing() {
     while (current_year * 12 + current_month != end_year * 12 + end_month) {
-        inflation_common();
         enrollment_alice();
         enrollment_bob();
         spendings_alice();
         spendings_bob();
-        print_alice();
-        print_bob();
-
+        print_common();
+        inflation_common();
         current_month++;
         if (current_month % 13 == 0) {
             current_month = 1;
