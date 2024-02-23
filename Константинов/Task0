@@ -1,8 +1,6 @@
-#include <iostream>
-using namespace std;
-
-int main()
+#include <studio.h>
+int main(void) 
 {
-    cout << "Hello world!" << endl;
-    return 0;
+   printf("Hello World!\n");
+   return 0;
 }
