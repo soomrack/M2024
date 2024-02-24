@@ -1,0 +1,146 @@
+#include <stdio.h>
+#include <math.h>
+
+typedef long long Cash; //Задаем новый тип данных для сокращения
+
+struct Person {
+    char* name;
+    Cash salary;
+    Cash bank_capital;
+    Cash monthly_ipoteka_payment;
+    int saving_account_rate;
+} alice, bob;
+
+//Alice
+Cash flat = 20000000 * 100;
+Cash credit = 18000000 * 100;
+int ipoteka_rate = 5;
+Cash repair = 50000 * 100;
+//Money wastes_alice = eda + odezda + intertaiments;
+
+//Bob
+Cash rent = 25000 * 100;
+
+//Common
+Cash eda = 15000 * 100;
+Cash house = 2000 * 100; 
+Cash other = 5000 * 100; 
+int inflation = 12;
+int num_of_years = 30;
+int current_year = 2024;
+int current_month = 3;
+int end_year = 2054;
+int end_month = 3;
+int job_promotion_percent = 10;
+
+Cash alice_monthly_payment() { //Расчет ежемесячного платежа по ипотеке
+    float monthly_ipoteka_rate = ipoteka_rate / 12.0 / 100.0; // Месячная ставка 
+    int total_payments = num_of_years * 12; // Вычисляем общее количество платежей
+    Cash ipoteka = (credit * monthly_ipoteka_rate) / (1.0 - pow(1.0 + monthly_ipoteka_rate, -total_payments)); // Вычисляем ежемесячный платеж используя формулу аннуитетного платежа
+    return ipoteka;
+}
+
+void person_bob() { //Боб
+    bob.salary = 150 * 1000 * 100;
+    bob.bank_capital = 2 * 1000 * 1000 * 100;
+    bob.saving_account_rate = 16;
+}
+
+
+void person_alice() { //Алиса
+    alice.salary = 150 * 1000 * 100;
+    alice.bank_capital = 100 * 1000 * 100;
+    alice.monthly_ipoteka_payment = alice_monthly_payment ();
+}
+
+void inflation_common() { // Инфляция
+    if (current_month == 1) {
+        alice.salary *= (1.0 + inflation / 100.0);
+        flat *= (1.0 + inflation / 100.0);
+        bob.salary *= (1.0 + inflation / 100.0);
+        eda *= (1.0 + inflation / 100.0);
+        house *= (1.0 + inflation / 100.0);
+        other *= (1.0 + inflation / 100.0);
+    }
+}
+
+void job_promotion_common(){ // Повышение на работе каждые 5 лет
+    if (current_month == 1){
+
+    if ( (current_year % 10 == 4) || (current_year % 10 == 9) ) {
+        printf("_With PROMOTION!_");
+        alice.salary *= (1.0 + job_promotion_percent / 100.0);
+        bob.salary *= (1.0 + job_promotion_percent / 100.0);
+    }
+    
+    }
+    
+}
+
+void dohod_alice() {
+    alice.bank_capital += alice.salary;
+}
+
+
+void dohod_bob() {
+    if (current_month == 1) {
+        bob.bank_capital *= (1.0 + bob.saving_account_rate / 100.0);
+    }
+    bob.bank_capital += bob.salary;
+}
+
+void month_expences_alice() {
+    alice.bank_capital -= eda + house + other;
+    if (current_year < 2027) {
+        alice.bank_capital -= repair;
+    }
+    alice.bank_capital -= alice.monthly_ipoteka_payment;
+}
+
+
+void month_expences_bob() {
+    bob.bank_capital -= eda + house + other + rent;
+}
+
+void print_common() {
+    if (current_month == 1) {
+        printf("[Year: %d ]\n", current_year);
+        printf("Alice's capital: %lld\n", alice.bank_capital + flat);
+        printf("Bob's capital: %lld\n\n", bob.bank_capital);
+    }    
+}
+
+void processing() {
+    while (current_year * 12 + current_month != end_year * 12 + end_month) {
+        dohod_alice();
+        dohod_bob();
+        month_expences_alice();
+        month_expences_bob();
+        inflation_common();
+        job_promotion_common();
+        print_common();
+        current_month++;
+        if (current_month % 13 == 0) {
+            current_month = 1;
+            current_year++;
+        }
+    }
+        printf("Final!\n");
+        Cash difference = alice.bank_capital + flat - bob.bank_capital;
+
+        if ( difference > 0) {
+            printf("Alice's strategy is more profitable! She became richer than Bob by %lld money!\n\n", difference);
+        } 
+        else {
+            printf("Bob's strategy is more profitable! He became richer than Alice by %lld money!\n\n", llabs( difference ));
+        }
+    
+}
+   
+
+int main() {
+    person_alice ();
+    person_bob ();
+    processing ();
+       return 0;
+}
