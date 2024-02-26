@@ -42,11 +42,9 @@ struct Matrix create_empty_matrix_for_mult(struct Matrix* first_matrix, struct M
 
 void random_fill_matrix(struct Matrix *any_matrix) {
     if (not(any_matrix->data == NULL)) {
-        int current_index = 0;
         for (int col = 0; col < any_matrix->cols; col++) {
             for (int row = 0; row < any_matrix->rows; row++) {
-                any_matrix->data[current_index] = double(rand() % 1000000) / 10000;
-                current_index += 1;
+                any_matrix->data[col*any_matrix->rows+row] = double(rand() % 1000000) / 10000;
             }
         }
     }
@@ -58,16 +56,14 @@ void random_fill_matrix(struct Matrix *any_matrix) {
 
 void fill_identity_matrix(struct Matrix* any_matrix) {
     if (not(any_matrix->data == NULL)) {
-        int current_index = 0;
         for (int col = 0; col < any_matrix->cols; col++) {
             for (int row = 0; row < any_matrix->rows; row++) {
                 if (row == col) {
-                    any_matrix->data[current_index] = 1.0;
+                    any_matrix->data[col * any_matrix->rows + row] = 1.0;
                 }
                 else {
-                    any_matrix->data[current_index] = 0.0;
+                    any_matrix->data[col * any_matrix->rows + row] = 0.0;
                 }
-                current_index += 1;
             }
         }
     }
@@ -78,13 +74,11 @@ void fill_identity_matrix(struct Matrix* any_matrix) {
 
 
 void cout_matrix(struct Matrix* any_matrix) {
-    int current_index = 0;
     printf("\n");
     for (int col = 0; col < any_matrix->cols; col++) {
         for (int row = 0; row < any_matrix->rows; row++) {
-            printf("%f", any_matrix->data[current_index]);
+            printf("%f", any_matrix->data[col * any_matrix->rows + row]);
             printf(" ");
-            current_index += 1;
         }
         printf("\n");
     }
