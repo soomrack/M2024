@@ -233,22 +233,11 @@ struct Matrix matrix_exp(struct Matrix* any_matrix) {
 }
 
 
-// не нужна тк является частным случаем
-/*double matrix_2x2_det(struct Matrix* any_matrix) {
-    if ((any_matrix->cols == any_matrix->rows)&&(any_matrix->cols==2)) {
-        double deterninant = any_matrix->data[0] * any_matrix->data[3] - 
-            any_matrix->data[1] * any_matrix->data[2];
-        return deterninant;
-    }
-}*/
-
-
 struct Matrix create_matrix_for_minor(struct Matrix* any_matrix, const unsigned int col_number, const unsigned int row_number) {
     if ((col_number < any_matrix->cols) && (row_number < any_matrix->rows)) {
         struct Matrix minor_matrix;
         init_matrix(&minor_matrix, any_matrix->cols - 1, any_matrix->rows - 1);
 
-        int minor_index = 0;
         int origin_index = 0;
         for (int current_col = 0; current_col < minor_matrix.cols; current_col++) {
             if (current_col == col_number) {
@@ -258,10 +247,7 @@ struct Matrix create_matrix_for_minor(struct Matrix* any_matrix, const unsigned 
                 if (current_row == row_number) {
                     origin_index += 1;
                 }
-
-                minor_matrix.data[minor_index] = any_matrix->data[origin_index];
-
-                minor_index += 1;
+                minor_matrix.data[current_col*minor_matrix.rows+current_row] = any_matrix->data[origin_index];
                 origin_index += 1;
             }
             if (row_number == minor_matrix.rows) {  // иначе не обрабатывается последний столбец
