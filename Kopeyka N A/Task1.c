@@ -58,6 +58,21 @@ void alice_spendings(int year, int month) {
     Alice.capital -= (Alice.spendings + Alice.flat_payment);
 }
 
+void alice_buying_car(int year, int month) {
+    if ((year == YEAR_BUY_CAR) && (month == START_MONTH))  // Покупка машины
+    {
+        Alice.capital -= CAR_PRICE;
+        Alice.spendings += CAR_SPENDINGS;
+    }
+}
+
+void alice_car_TO(int year, int month) {
+    if ((year - YEAR_BUY_CAR) % 3 == 0)     // Тех обслуживание раз в 3 года
+    {
+        Alice.capital -= CAR_TO;
+    }
+}
+
 void bob_salary(int year, int month) {
     Bob.capital += Bob.income;
 }
@@ -91,6 +106,9 @@ void simulation() {
         alice_salary(year, month);
         alice_spendings(year, month);
 
+        alice_buying_car(year, month);
+        alice_car_TO(year, month);
+
         bob_deposite(year, month);
         bob_salary(year, month);
         bob_spendings(year, month);
@@ -98,17 +116,7 @@ void simulation() {
         inflation(year, month);
         month++;
 
-        if ((year == YEAR_BUY_CAR) && (month == START_MONTH))  // Покупка машины
-        {
-            Alice.capital -= CAR_PRICE;
-            Alice.spendings += CAR_SPENDINGS;
-        }
-
-        if ((year - YEAR_BUY_CAR) % 3 == 0)     // Тех обслуживание раз в 3 года
-        {
-            Alice.capital -= CAR_TO;
-        }
-
+        
         if (month > 12)
         {
             year++;
