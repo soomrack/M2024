@@ -3,7 +3,6 @@
 #include <time.h>
 //функция которая проверяет вывели ли другие функции сообщения о коде ошибке и убрать exit
 //проверять не выходит ли выделение памяти за пределы возможностей функции
-//проверки размерностей не делать отдельными функциями
 //if не охватывает всю функцию а проверяет исключение и завершает ее если что
 //в степени и экспоненте память выделяется но не освобождается
 
@@ -98,19 +97,8 @@ void matrix_free_memory(struct Matrix *any_matrix) {
 }
 
 
-// проверка размерности матриц для сложения и вычитания
-bool matrix_size_simple_check(struct Matrix* first_matrix, struct Matrix* second_matrix) {
-    bool rows_check = (first_matrix->rows == second_matrix->rows);
-    bool cols_check = (first_matrix->cols == second_matrix->cols);
-    if (not(rows_check&&cols_check)){
-        printf("размеры матриц не совпадают\n");
-    }
-    return rows_check * cols_check;
-}
-
-
 struct Matrix matrix_summ(struct Matrix* first_matrix, struct Matrix* second_matrix) { 
-    if (!matrix_size_simple_check(first_matrix, second_matrix)) {
+    if ((first_matrix->rows != second_matrix->rows)||(first_matrix->cols != second_matrix->cols)) {
         printf("неверные размеры матриц");
         return *first_matrix;
     }
@@ -124,7 +112,7 @@ struct Matrix matrix_summ(struct Matrix* first_matrix, struct Matrix* second_mat
 
 
 struct Matrix matrix_sub(struct Matrix* first_matrix, struct Matrix* second_matrix) {
-    if (!matrix_size_simple_check(first_matrix, second_matrix)) {
+    if ((first_matrix->rows != second_matrix->rows) || (first_matrix->cols != second_matrix->cols)) {
         printf("неверные размеры матриц");
         return *first_matrix;
     }
@@ -145,39 +133,27 @@ struct Matrix matrix_scalar_mult(struct Matrix* any_matrix,double scalar) {
     return new_matrix;
 }
 
-
-// проверка размерности матриц для умножения
-bool matrix_size_hard_check(struct Matrix* first_matrix, struct Matrix* second_matrix) {
-    bool check = (first_matrix->rows == second_matrix->cols);
-    if (not(check)) {
-        printf("размеры матриц не совпадают\n");
-    }
-    return check;
-}
-
     
 struct Matrix matrix_mult(struct Matrix* first_matrix, struct Matrix* second_matrix) {
-    if (matrix_size_hard_check(first_matrix, second_matrix)) {
-        struct Matrix new_matrix=matrix_create_empty_for_mult(first_matrix, second_matrix);
-
-        for (int current_col = 0; current_col < new_matrix.cols; current_col++) {
-            for (int current_row = 0; current_row < new_matrix.rows; current_row++) {
-                new_matrix.data[new_matrix.rows * current_col + current_row] = 0;
-
-                for (int summ_index = 0; summ_index < first_matrix->rows; summ_index++) {
-
-                    new_matrix.data[new_matrix.rows * current_col + current_row] += 
-                        first_matrix->data[current_col * new_matrix.cols + summ_index] *
-                        second_matrix->data[summ_index* new_matrix.rows+ current_row];
-                }
-            }
-        }
-        return new_matrix;
-    }
-    else {
+    if (first_matrix->rows != second_matrix->cols) {
         printf("неверные размеры матриц");
         return *first_matrix;
     }
+    struct Matrix new_matrix = matrix_create_empty_for_mult(first_matrix, second_matrix);
+
+    for (int current_col = 0; current_col < new_matrix.cols; current_col++) {
+        for (int current_row = 0; current_row < new_matrix.rows; current_row++) {
+            new_matrix.data[new_matrix.rows * current_col + current_row] = 0;
+
+            for (int summ_index = 0; summ_index < first_matrix->rows; summ_index++) {
+
+                new_matrix.data[new_matrix.rows * current_col + current_row] +=
+                    first_matrix->data[current_col * new_matrix.cols + summ_index] *
+                    second_matrix->data[summ_index * new_matrix.rows + current_row];
+            }
+        }
+    }
+    return new_matrix;
 }
 
 
@@ -369,3 +345,4 @@ int main()
     matrix_free_memory(&matrix_B);
 
 }
+
