@@ -1,13 +1,13 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-enum Log_type {
+enum LogLevel {
     DEBUG,
     INFO,
     WARNING,
     ERROR
 };
 
-void log(enum Log_type type, char *msg);
+void log(enum LogLevel type, char *msg);
 
 #endif /* LOGGER_H */

@@ -1,13 +1,13 @@
 #include <stdio.h>
 
-enum Log_type {
+enum LogLevel {
     DEBUG,
     INFO,
     WARNING,
     ERROR
 };
 
-void log(enum Log_type type, char* msg) {
+void log(enum LogLevel type, char* msg) {
     switch (type) {
     case DEBUG:
         printf("[DEBUG]: %s\n", msg);
