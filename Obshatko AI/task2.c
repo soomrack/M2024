@@ -13,238 +13,79 @@ struct Matrix matrix_A;
 struct Matrix matrix_B;
 struct Matrix matrix_C;
 
+enum LogLevel {ERROR, WARNING};
+
+
+void matrix_log(enum LogLevel level, char* msg) 
+{
+    switch (level)
+    {
+    case ERROR:
+        printf("ERROR: ");
+        break;
+    case WARNING:
+        printf("WARNING: ");
+        break;
+    default:
+        break;
+    }
+    printf(msg);
+    printf("\n");
+}
+
+
+struct Matrix matrix_create(const size_t cols, const size_t rows)
+{
+    struct Matrix matrix;
+    matrix.cols = cols;
+    matrix.rows = rows;
+    matrix.data = (double*)malloc(cols * rows * sizeof(double));
+
+    if(matrix.data == NULL) {
+        matrix_log(ERROR, "Ошибка выделения памяти");
+        matrix.cols = 0;
+        matrix.rows = 0;
+    }
+    return matrix;
+}
+
 
 // инициализация матрицы, заполненной случайными числами от 0 до 10
-void init_matrix(struct Matrix *matrix, size_t cols, size_t rows)
+struct Matrix matrix_init(const size_t cols, const size_t rows)
 {
-    matrix->cols = cols;
-    matrix->rows = rows;
-    matrix->data = (double*)malloc(cols * rows * sizeof(double));
-
-    if(matrix->data == NULL) {
-        printf("Ошибка выделения памяти");
-        exit(0);
-    }
+    struct Matrix matrix = matrix_create(cols, rows);
 
     for(size_t index_row = 0; index_row < rows; index_row++) {
         for(size_t index_col = 0; index_col < cols; index_col++) {
             double random_number = round(((float)rand()/RAND_MAX)*(float)(100.0)) / 10;
-            matrix->data[index_row * cols + index_col] = random_number;
+            matrix.data[index_row * cols + index_col] = random_number;
         }
     }
+    return matrix;
 }
 
 
 // инициализация единичной матрицы
-void init_unit_matrix(struct Matrix *matrix, size_t size)
+struct Matrix matrix_init_unit(const size_t size)
 {
-    matrix->cols = size;
-    matrix->rows = size;
-    matrix->data = (double*)malloc(size * size * sizeof(double));
-
-    if(matrix->data == NULL) {
-        printf("Ошибка выделения памяти");
-        exit(0);
-    }
+    struct Matrix matrix = matrix_create(size, size);
 
     for(size_t index_row = 0; index_row < size; index_row++) {
         for(size_t index_col = 0; index_col < size; index_col++) {
             size_t index = index_row * size + index_col;
             if(index_row == index_col) {
-                matrix->data[index] = 1;
+                matrix.data[index] = 1;
             } else {
-                matrix->data[index] = 0;
+                matrix.data[index] = 0;
             }
         }
     }
+    return matrix;
 }
 
 
-void free_initial_matrices() {
-    free(matrix_A.data);
-    free(matrix_B.data);
-    free(matrix_C.data);
-}
-
-
-// проверка размерностей матриц для сложения и вычитания
-int if_equal_dimensions(struct Matrix *matrix_1, struct Matrix *matrix_2) {
-    int check;
-    if(matrix_1->cols == matrix_2->cols && matrix_1->rows == matrix_2->rows) {
-        check = 1;
-    } else {
-        check = 0;
-    }
-    return check;
-}
-
-
-// проверка согласованности матриц для умножения
-int if_matching_dimensions(struct Matrix *matrix_1, struct Matrix *matrix_2) {
-    int check;
-    if(matrix_1->cols == matrix_2->rows) {
-        check = 1;
-    } else {
-        check = 0;
-    }
-    return check;
-}
-
-
-// проверка равности количества строк и столбцов для возведения в степень
-int if_square_matrix(struct Matrix *matrix) {
-    int check;
-    if(matrix->cols == matrix->rows) {
-        check = 1;
-    } else {
-        check = 0;
-    }
-    return check;
-}
-
-
-void sum_matrices(struct Matrix *matrix_1, struct Matrix *matrix_2, struct Matrix *result_matrix) {
-    int condition = if_equal_dimensions(matrix_1, matrix_2);
-    if(!condition) {
-        printf("Для выпонлнения операции сложения размерости матриц должны совпадать");
-        free_initial_matrices();
-        exit(0);
-    }
-
-    size_t cols = matrix_1->cols;
-    size_t rows = matrix_1->rows;
-    init_matrix(result_matrix, cols, rows);
-
-    for(size_t index_row = 0; index_row < rows; index_row++) {
-        for(size_t index_col = 0; index_col < cols; index_col++) {
-            size_t index = index_row * cols + index_col;
-            result_matrix->data[index] = matrix_1->data[index] + matrix_2->data[index];
-        }
-    }
-}
-
-
-void substract_matrices(struct Matrix *matrix_1, struct Matrix *matrix_2, struct Matrix *result_matrix) {
-    int condition = if_matching_dimensions(matrix_1, matrix_2);
-    if(!condition) {
-        printf("Для выпонлнения операции вычитания размерости матриц должны совпадать");
-        free_initial_matrices();
-        exit(0);
-    }
-
-    size_t cols = matrix_1->cols;
-    size_t rows = matrix_1->rows;
-    init_matrix(result_matrix, cols, rows);
-
-    for(size_t index_row = 0; index_row < rows; index_row++) {
-        for(size_t index_col = 0; index_col < cols; index_col++) {
-            size_t index = index_row * cols + index_col;
-            result_matrix->data[index] = matrix_1->data[index] - matrix_2->data[index];
-        }
-    }
-}
-
-
-void multiply_matrices(struct Matrix *matrix_1, struct Matrix *matrix_2, struct Matrix *result_matrix) {
-    int condition = if_matching_dimensions(matrix_1, matrix_2);
-    if(!condition) {
-        printf("Для выпонлнения операции умножения размерости матриц должны быть согласованными");
-        free_initial_matrices();
-        exit(0);
-    }
-
-    size_t cols = matrix_2->cols;  // количество столбцов результирующей матрицы
-    size_t rows = matrix_1->rows;  // количетсво строк результирующей матрицы
-    size_t cols_of_matrix_1 = matrix_1->cols;  // количество столбцов первой исходной матрицы
-    size_t operations_per_element = cols_of_matrix_1;  // количество операций умножения на каждый элемент результирующей матрицы
-    init_matrix(result_matrix, cols, rows);
-
-    for(size_t index_row = 0; index_row < rows; index_row++) {
-        for(size_t index_col = 0; index_col < cols; index_col++) {
-            double current_element = 0;
-            for(size_t operation = 0; operation < operations_per_element; operation++) {
-                double matrix_1_element = matrix_1->data[index_row * cols_of_matrix_1 + operation];
-                double matrix_2_element = matrix_2->data[index_col + cols * operation];
-                current_element += matrix_1_element * matrix_2_element;
-            }
-            size_t index = index_row * cols + index_col;
-            result_matrix->data[index] = current_element;
-        }
-    }
-}
-
-
-void scalar_multiplication(struct Matrix *matrix_1, double multiplier, struct Matrix *result_matrix) {
-    size_t cols = matrix_1->cols;
-    size_t rows = matrix_1->rows;
-    init_matrix(result_matrix, cols, rows);
-
-    for(size_t index_row = 0; index_row < rows; index_row++) {
-        for(size_t index_col = 0; index_col < cols; index_col++) {
-            size_t index = index_row * cols + index_col;
-            result_matrix->data[index] = matrix_1->data[index] * multiplier;
-        }
-    }
-}
-
-
-void matrix_power(struct Matrix *matrix, int power, struct Matrix *result_matrix) {
-    int condition = if_square_matrix(matrix);
-    if(!condition) {
-        printf("Для выпонлнения операции возведения в степень матрица должна быть квадратной");
-        free_initial_matrices();
-        exit(0);
-    }
-
-    size_t size = matrix->cols;
-    init_unit_matrix(result_matrix, size);  // результирующая матрица инициализируется как единичная
-
-    struct Matrix intermediate_matrix;  // промежуточная матрица, необходима, чтобы в ходе вычислений результирующей матрицы не менялась исходная
-
-    for(int iteration = 0; iteration < power; iteration++) {
-        multiply_matrices(result_matrix, matrix, &intermediate_matrix);
-        *result_matrix = intermediate_matrix;
-    }
-    free(intermediate_matrix.data);
-}
-
-
-void matrix_exponential(struct Matrix *matrix, struct Matrix *result_matrix) {
-    int condition = if_square_matrix(matrix);
-    if(!condition) {
-        printf("Для выпонлнения операции возведения в степень матрица должна быть квадратной");
-        free_initial_matrices();
-        exit(0);
-    }
-    
-    size_t size = matrix->cols;
-    init_unit_matrix(result_matrix, size);  // результирующая матрица инициализируется как единичная
-
-    struct Matrix intermediate_matrix_1;  // первая промежуточная матрица
-    struct Matrix intermediate_matrix_2;  // вторая промежуточная матрица
-    struct Matrix intermediate_matrix_3;  // третья промежуточная матрица
-
-    double coefficient = 1.0;
-    for(int iteration = 1; iteration < 30; iteration++) {
-        matrix_power(matrix, iteration, &intermediate_matrix_1);
-        coefficient /= iteration;
-        scalar_multiplication(&intermediate_matrix_1, coefficient, &intermediate_matrix_2);
-        sum_matrices(result_matrix, &intermediate_matrix_2, &intermediate_matrix_3);
-        *result_matrix = intermediate_matrix_3;
-        //print_matrix(result_matrix);
-    }
-    free(intermediate_matrix_1.data);
-    free(intermediate_matrix_2.data);
-    free(intermediate_matrix_3.data);
-}
-
-
-double det_matrix() {
-
-}
-
-
-void print_matrix(struct Matrix *matrix) {
+void matrix_print(struct Matrix *matrix) 
+{
     size_t cols = matrix->cols;
     size_t rows = matrix->rows;
 
@@ -258,23 +99,203 @@ void print_matrix(struct Matrix *matrix) {
 }
 
 
+// проверка равности размерноти матриц для сложения и вычитания
+int if_equal_dimensions(struct Matrix *A, struct Matrix *B) 
+{
+    int check;
+    if(A->cols == B->cols && A->rows == B->rows) {
+        check = 1;
+    } else {
+        check = 0;
+    }
+    return check;
+}
+
+
+// проверка согласованности размерности матриц для умножения
+int if_matching_dimensions(struct Matrix *A, struct Matrix *B) 
+{
+    int check;
+    if(A->cols == B->rows) {
+        check = 1;
+    } else {
+        check = 0;
+    }
+    return check;
+}
+
+
+// проверка что матрица квадратная для операции возведения в степень
+int if_square_matrix(struct Matrix *matrix) 
+{
+    int check;
+    if(matrix->cols == matrix->rows) {
+        check = 1;
+    } else {
+        check = 0;
+    }
+    return check;
+}
+
+
+struct Matrix matrix_sum(struct Matrix *A, struct Matrix *B) 
+{
+    int condition = if_equal_dimensions(A, B);
+    if(!condition) {
+        matrix_log(ERROR, "Для выполнения операции сложения матицы должны иметь одинаковые размерности");
+        struct Matrix result_matrix = matrix_init(0, 0);
+        return result_matrix;
+    }
+
+    size_t cols = A->cols;
+    size_t rows = A->rows;
+    struct Matrix result_matrix = matrix_init(cols, rows);
+
+    for(size_t index_row = 0; index_row < rows; index_row++) {
+        for(size_t index_col = 0; index_col < cols; index_col++) {
+            size_t index = index_row * cols + index_col;
+            result_matrix.data[index] = A->data[index] + B->data[index];
+        }
+    }
+    return result_matrix;
+}
+
+
+struct Matrix matrix_substract(struct Matrix *A, struct Matrix *B) 
+{
+    int condition = if_matching_dimensions(A, B);
+    if(!condition) {
+        matrix_log(ERROR, "Для выполнения операции вычитания матицы должны иметь одинаковые размерности");
+        struct Matrix result_matrix = matrix_init(0, 0);
+        return result_matrix;
+    }
+
+    size_t cols = A->cols;
+    size_t rows = A->rows;
+    struct Matrix result_matrix = matrix_init(cols, rows);
+
+    for(size_t index_row = 0; index_row < rows; index_row++) {
+        for(size_t index_col = 0; index_col < cols; index_col++) {
+            size_t index = index_row * cols + index_col;
+            result_matrix.data[index] = A->data[index] - B->data[index];
+        }
+    }
+    return result_matrix;
+}
+
+
+struct Matrix matrix_multiplication(struct Matrix *A, struct Matrix *B) 
+{
+    int condition = if_matching_dimensions(A, B);
+    if(!condition) {
+        matrix_log(ERROR, "Для выполнения операции умножения матрицы должны иметь согласованные размерности");
+        struct Matrix result_matrix = matrix_init(0, 0);
+        return result_matrix;
+    }
+
+    size_t cols = B->cols;  // количество столбцов второй матрицы
+    size_t rows = A->rows;  // количество строк второй матрицы
+    size_t cols_of_A = A->cols;  // количество столбцов первой матрицы
+    size_t operations_per_element = cols_of_A;  // количество операций умножения на каждый элемент результирующей матрицы
+    struct Matrix result_matrix = matrix_init(cols, rows);
+
+    for(size_t index_row = 0; index_row < rows; index_row++) {
+        for(size_t index_col = 0; index_col < cols; index_col++) {
+            double current_element = 0;
+            for(size_t operation = 0; operation < operations_per_element; operation++) {
+                double A_element = A->data[index_row * cols_of_A + operation];
+                double B_element = B->data[index_col + cols * operation];
+                current_element += A_element * B_element;
+            }
+            size_t index = index_row * cols + index_col;
+            result_matrix.data[index] = current_element;
+        }
+    }
+    return result_matrix;
+}
+
+
+struct Matrix matrix_scalar_multiplication(struct Matrix *matrix, double multiplier) 
+{
+    size_t cols = matrix->cols;
+    size_t rows = matrix->rows;
+    struct Matrix result_matrix = matrix_init(cols, rows);
+
+    for(size_t index_row = 0; index_row < rows; index_row++) {
+        for(size_t index_col = 0; index_col < cols; index_col++) {
+            size_t index = index_row * cols + index_col;
+            result_matrix.data[index] = matrix->data[index] * multiplier;
+        }
+    }
+    return result_matrix;
+}
+
+
+struct Matrix matrix_power(struct Matrix *matrix, const int power) 
+{
+    int condition = if_square_matrix(matrix);
+    if(!condition) {
+        matrix_log(ERROR, "Для выполнения операции возведения в степень матрица должна быть квадратной");
+        struct Matrix result_matrix = matrix_init(0, 0);
+        return result_matrix;
+    }
+
+    size_t size = matrix->cols;
+    struct Matrix result_matrix = matrix_init_unit(size);  // результирующая матрица инициализируется как единичная
+
+    for(int iteration = 0; iteration < power; iteration++) {
+        result_matrix = matrix_multiplication(&result_matrix, matrix);
+    }
+    return result_matrix;
+}
+
+
+struct Matrix matrix_exponential(struct Matrix *matrix) 
+{
+    int condition = if_square_matrix(matrix);
+    if(!condition) {
+        matrix_log(ERROR, "Для выполнения операции возведения в степень матрица должна быть квадратной");
+        struct Matrix result_matrix = matrix_init(0, 0);
+        return result_matrix;
+    }
+    
+    size_t size = matrix->cols;
+    struct Matrix result_matrix = matrix_init_unit(size);  // результирующая матрица инициализируется как единичная
+
+    struct Matrix intermediate_matrix;  // промежуточная матрица для последовательного выполнения операций
+
+    double coefficient = 1.0;
+    for(int iteration = 1; iteration < 30; iteration++) {
+        intermediate_matrix = matrix_power(matrix, iteration);
+        coefficient /= iteration;
+        intermediate_matrix = matrix_scalar_multiplication(&intermediate_matrix, coefficient);
+        result_matrix = matrix_sum(&result_matrix, &intermediate_matrix);
+        //matrix_print(result_matrix);
+    }
+    free(intermediate_matrix.data);
+    return result_matrix;
+}
+
+
 int main()
 {
-    init_matrix(&matrix_A, 3, 3);
-    init_matrix(&matrix_B, 1, 3);
+    setlocale(LC_CTYPE, "");
+    struct Matrix matrix_A = matrix_init(3, 3);
+    struct Matrix matrix_B = matrix_init(3, 3);
 
-    //sum_matrices(&matrix_A, &matrix_B, &matrix_C);
-    //substract_matrices(&matrix_A, &matrix_B, &matrix_C);
-    //multiply_matrices(&matrix_A, &matrix_B, &matrix_C);
-    //scalar_multiplication(&matrix_A, 2, &matrix_C);
-    //matrix_power(&matrix_A, 1, &matrix_C);
-    matrix_exponential(&matrix_A, &matrix_C);
+    struct Matrix matrix_C = matrix_sum(&matrix_A, &matrix_B);
+    //struct Matrix matrix_C = matrix_substract(&matrix_A, &matrix_B);
+    //struct Matrix matrix_C = matrix_multiplication(&matrix_A, &matrix_B);
+    //struct Matrix matrix_C = matrix_scalar_multiplication(&matrix_A, 2);
+    //struct Matrix matrix_C = matrix_power(&matrix_A, 2);
+    //struct Matrix matrix_C = matrix_exponential(&matrix_A);
 
-    print_matrix(&matrix_A);
-    print_matrix(&matrix_B);
-    print_matrix(&matrix_C);
+    matrix_print(&matrix_A);
+    matrix_print(&matrix_B);
+    matrix_print(&matrix_C);
 
-    free_initial_matrices();
-
+    free(matrix_A.data);
+    free(matrix_B.data);
+    free(matrix_C.data);
     return 0;
 }
