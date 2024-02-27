@@ -144,10 +144,10 @@ void simulation()
     int year = START_YEAR;
     while (month != YEARS * 12.0 + START_MONTH) {
         alice_deposite(year, month);
-        alice_salary(year, month);
         if (month > 35) {
             alice_lost_job(year, month);
         }
+        alice_salary(year, month);
         alice_spendings(year, month);
 
         bob_deposite(year, month);
