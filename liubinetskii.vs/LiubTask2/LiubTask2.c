@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "logger.h"
 
 typedef double Matrix_data_type;
 
@@ -34,16 +35,6 @@ const struct Matrix MATRIX_NULL = { .cols = 0, .rows = 0, .data = NULL };
 const int EXPONENT_ITERATION_COUNT = 10;
 
 
-void log(char* msg) {
-    printf("%s\n", msg);
-}
-
-
-void log_error(char* msg) {
-    log("Error: %s", msg);
-}
-
-
 Matrix* create_matrix(const size_t rows, const size_t cols) {
 
     if (rows == 0 || cols == 0) {
@@ -52,21 +43,21 @@ Matrix* create_matrix(const size_t rows, const size_t cols) {
 
     // Verify on overflow
     if (rows >= SIZE_MAX / sizeof(Matrix_data_type) / cols) {
-        log_error("Required memory amount went beyond the data type's capacity.");
+        log(ERROR, "Required memory amount went beyond the data type's capacity.");
         return &MATRIX_NULL;
     }
 
     // Allocate memory for the matrix
     Matrix* M = (Matrix*)malloc(sizeof(Matrix));
     if (M == NULL) {
-        log_error("Memory allocation for matrix failed.");
+        log(ERROR, "Memory allocation for matrix failed.");
         return &MATRIX_NULL;
     }
 
     // Allocate memory for the matrix data
     M->data = (Matrix_data_type*)malloc(rows * cols * sizeof(Matrix_data_type));
     if (M->data == NULL) {
-        log_error("Memory allocation for data failed.");
+        log(ERROR, "Memory allocation for data failed.");
         return &MATRIX_NULL;
     }
 
@@ -94,12 +85,12 @@ void free_matrix(Matrix *M) {
 // Function to sum two matrices
 Matrix* sum_matrices(const Matrix *A, const Matrix *B) {
     if (A->rows == 0 || B->rows == 0 || A->cols == 0 || B->cols == 0) {
-        log_error("One of dimensions of sum matrices has value 0.");
+        log(ERROR, "One of dimensions of sum matrices has value 0.");
         return &MATRIX_NULL;
     };
 
     if (A->rows != B->rows || A->cols != B->cols) {
-        log_error("Matrices have different dimensions.");
+        log(WARNING, "Matrices have different dimensions.");
         return &MATRIX_NULL;
     }
 
@@ -115,12 +106,12 @@ Matrix* sum_matrices(const Matrix *A, const Matrix *B) {
 // Function to subtract two matrices
 Matrix* subtract_matrices(const Matrix *A, const Matrix *B) {
     if (A->rows == 0 || B->rows == 0 || A->cols == 0 || B->cols == 0) {
-        log_error("One of dimensions of subtract matrices has value 0.");
+        log(ERROR, "One of dimensions of subtract matrices has value 0.");
         return &MATRIX_NULL;
     };
 
     if (A->rows != B->rows || A->cols != B->cols) {
-        log_error("Matrices have different dimensions.");
+        log(WARNING, "Matrices have different dimensions.");
         return &MATRIX_NULL;
     }
 
@@ -136,12 +127,12 @@ Matrix* subtract_matrices(const Matrix *A, const Matrix *B) {
 // Function to multiply two matrices
 Matrix* multiply_matrices(const Matrix *A, const Matrix *B) {
     if (A->rows == 0 || B->rows == 0 || A->cols == 0 || B->cols == 0) {
-        log_error("One of dimensions of multiply matrices has value 0.");
+        log(ERROR, "One of dimensions of multiply matrices has value 0.");
         return &MATRIX_NULL;
     };
 
     if (A->cols != B->rows) {
-        log_error("Matrices cannot be multiplied due to incompatible dimensions.");
+        log(WARNING, "Matrices cannot be multiplied due to incompatible dimensions.");
         return &MATRIX_NULL;
     }
 
@@ -162,7 +153,7 @@ Matrix* multiply_matrices(const Matrix *A, const Matrix *B) {
 // Function to multiply a matrix by a scalar
 Matrix* multiply_matrix_by_scalar(const Matrix *M, double scalar) {
     if (M->rows == 0 || M->cols == 0) {
-        log_error("One of dimensions of multiply matrix on scalar has value 0.");
+        log(ERROR, "One of dimensions of multiply matrix on scalar has value 0.");
         return &MATRIX_NULL;
     };
 
@@ -176,12 +167,12 @@ Matrix* multiply_matrix_by_scalar(const Matrix *M, double scalar) {
 
 Matrix* exponential_matrix(const Matrix *M) {
     if (M->rows == 0 || M->cols == 0) {
-        log_error("Matrix should be size more then zero!");
+        log(ERROR, "Matrix should be size more then zero!");
         return M;
     }
 
     if (M->rows != M->cols) {
-        log_error("Exponential can only be calculated for sqare matrices.");
+        log(WARNING, "Exponential can only be calculated for sqare matrices.");
         return M;
     }
 
@@ -221,17 +212,17 @@ Matrix* exponential_matrix(const Matrix *M) {
 // Function to calculate the determinant of matrix by minors
 Matrix_data_type determinant_of_matrix_by_minors(const Matrix *M) {
     if (M->rows == 0 || M->cols == 0) {
-        log_error("Matrix should be size more then zero!");
+        log(ERROR, "Matrix should be size more then zero!");
         return 0;
     }
 
     if (M->rows != M->cols) {
-        log_error("Determinant can only be calculated for sqare matrices.");
+        log(WARNING, "Determinant can only be calculated for sqare matrices.");
         return 0;
     }
 
     if (M->rows > 7) {
-        log_error("Can't be calculated for a matrix of dimensions greater than 7.");
+        log(WARNING, "Can't be calculated for a matrix of dimensions greater than 7.");
         return 0;
     }
 
@@ -271,10 +262,10 @@ Matrix_data_type determinant_of_matrix_by_minors(const Matrix *M) {
 
 
 void print_matrix(const Matrix *M) {
-    printf("Matrix:\n");
+    log(INFO, "Matrix:");
 
     if (M->rows == 0 || M->cols == 0) {
-        log_error("Matrix is null.\n");
+        log(ERROR, "Matrix is null.\n");
         return;
     }
 

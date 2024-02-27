@@ -127,7 +127,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="LiubTask2.cpp" />
+    <ClCompile Include="LiubTask2.c" />
+    <ClCompile Include="logger.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="logger.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
