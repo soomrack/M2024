@@ -4,18 +4,18 @@
 // ☑ Добавить базовые операции с матрицей
 //
 // ☑ Расчёт определителя
-// □  Экспонента матрицы (https://ru.wikipedia.org/wiki/%D0%AD%D0%BA%D1%81%D0%BF%D0%BE%D0%BD%D0%B5%D0%BD%D1%82%D0%B0_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D1%8B)
+// (+-) ☑Экспонента матрицы (https://ru.wikipedia.org/wiki/%D0%AD%D0%BA%D1%81%D0%BF%D0%BE%D0%BD%D0%B5%D0%BD%D1%82%D0%B0_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D1%8B)
 //
 // ☑snake_case
-// size_t check
+// ☑size_t check
 // ☑free on *
-// для цикла переменные idx, row, col.. etc
+// ☑для цикла переменные idx, row, col.. etc
 // ☑consts params
 // ☑названия переменых массивов передаваемых в функцию A и B (M - для одной)
 // ☑exit(1) - нельзя (NULL matrix)
 // 
 // 
-// □  Логгер
+// ☑Логгер
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,6 +33,17 @@ typedef struct Matrix {
 const struct Matrix MATRIX_NULL = { .cols = 0, .rows = 0, .data = NULL };
 const int EXPONENT_ITERATION_COUNT = 10;
 
+
+void log(char* msg) {
+    printf("%s\n", msg);
+}
+
+
+void log_error(char* msg) {
+    log("Error: %s", msg);
+}
+
+
 Matrix* create_matrix(const size_t rows, const size_t cols) {
 
     if (rows == 0 || cols == 0) {
@@ -41,21 +52,21 @@ Matrix* create_matrix(const size_t rows, const size_t cols) {
 
     // Verify on overflow
     if (rows >= SIZE_MAX / sizeof(Matrix_data_type) / cols) {
-        printf("Error: Required memory amount went beyond the data type's capacity.\n");
+        log_error("Required memory amount went beyond the data type's capacity.");
         return &MATRIX_NULL;
     }
 
     // Allocate memory for the matrix
     Matrix* M = (Matrix*)malloc(sizeof(Matrix));
     if (M == NULL) {
-        printf("Error: Memory allocation for matrix failed.\n");
+        log_error("Memory allocation for matrix failed.");
         return &MATRIX_NULL;
     }
 
     // Allocate memory for the matrix data
     M->data = (Matrix_data_type*)malloc(rows * cols * sizeof(Matrix_data_type));
     if (M->data == NULL) {
-        printf("Error: Memory allocation for data failed.\n");
+        log_error("Memory allocation for data failed.");
         return &MATRIX_NULL;
     }
 
@@ -83,18 +94,18 @@ void free_matrix(Matrix *M) {
 // Function to sum two matrices
 Matrix* sum_matrices(const Matrix *A, const Matrix *B) {
     if (A->rows == 0 || B->rows == 0 || A->cols == 0 || B->cols == 0) {
-        printf("Error: One of dimensions of sum matrices has value 0.\n");
+        log_error("One of dimensions of sum matrices has value 0.");
         return &MATRIX_NULL;
     };
 
     if (A->rows != B->rows || A->cols != B->cols) {
-        printf("Error: Matrices have different dimensions.\n");
+        log_error("Matrices have different dimensions.");
         return &MATRIX_NULL;
     }
 
     Matrix *result = create_matrix(A->rows, A->cols);
-    for (size_t i = 0; i < A->rows * A->cols; i++) {
-        result->data[i] = A->data[i] + B->data[i];
+    for (size_t idx = 0; idx < A->rows * A->cols; idx++) {
+        result->data[idx] = A->data[idx] + B->data[idx];
     }
 
     return result;
@@ -104,18 +115,18 @@ Matrix* sum_matrices(const Matrix *A, const Matrix *B) {
 // Function to subtract two matrices
 Matrix* subtract_matrices(const Matrix *A, const Matrix *B) {
     if (A->rows == 0 || B->rows == 0 || A->cols == 0 || B->cols == 0) {
-        printf("Error: One of dimensions of subtract matrices has value 0.\n");
+        log_error("One of dimensions of subtract matrices has value 0.");
         return &MATRIX_NULL;
     };
 
     if (A->rows != B->rows || A->cols != B->cols) {
-        printf("Error: Matrices have different dimensions.\n");
+        log_error("Matrices have different dimensions.");
         return &MATRIX_NULL;
     }
 
     Matrix *result = create_matrix(A->rows, A->cols);
-    for (size_t i = 0; i < A->rows * A->cols; i++) {
-        result->data[i] = A->data[i] - B->data[i];
+    for (size_t idx = 0; idx < A->rows * A->cols; idx++) {
+        result->data[idx] = A->data[idx] - B->data[idx];
     }
 
     return result;
@@ -125,23 +136,23 @@ Matrix* subtract_matrices(const Matrix *A, const Matrix *B) {
 // Function to multiply two matrices
 Matrix* multiply_matrices(const Matrix *A, const Matrix *B) {
     if (A->rows == 0 || B->rows == 0 || A->cols == 0 || B->cols == 0) {
-        printf("Error: One of dimensions of multiply matrices has value 0.\n");
+        log_error("One of dimensions of multiply matrices has value 0.");
         return &MATRIX_NULL;
     };
 
     if (A->cols != B->rows) {
-        printf("Error: Matrices cannot be multiplied due to incompatible dimensions.\n");
+        log_error("Matrices cannot be multiplied due to incompatible dimensions.");
         return &MATRIX_NULL;
     }
 
     Matrix *result = create_matrix(A->rows, B->cols);
-    for (size_t i = 0; i < A->rows; i++) {
-        for (size_t j = 0; j < B->cols; j++) {
+    for (size_t row = 0; row < A->rows; row++) {
+        for (size_t col = 0; col < B->cols; col++) {
             Matrix_data_type sum = 0;
-            for (size_t k = 0; k < A->cols; k++) {
-                sum += A->data[i * A->cols + k] * B->data[k * B->cols + j];
+            for (size_t offset = 0; offset < A->cols; offset++) {
+                sum += A->data[row * A->cols + offset] * B->data[offset * B->cols + col];
             }
-            result->data[i * B->cols + j] = sum;
+            result->data[row * B->cols + col] = sum;
         }
     }
     return result;
@@ -151,13 +162,13 @@ Matrix* multiply_matrices(const Matrix *A, const Matrix *B) {
 // Function to multiply a matrix by a scalar
 Matrix* multiply_matrix_by_scalar(const Matrix *M, double scalar) {
     if (M->rows == 0 || M->cols == 0) {
-        printf("Error: One of dimensions of multiply matrix on scalar has value 0.\n");
+        log_error("One of dimensions of multiply matrix on scalar has value 0.");
         return &MATRIX_NULL;
     };
 
     Matrix *result = create_matrix(M->rows, M->cols);
-    for (size_t i = 0; i < M->rows * M->cols; i++) {
-        result->data[i] = M->data[i] * scalar;
+    for (size_t idx = 0; idx < M->rows * M->cols; idx++) {
+        result->data[idx] = M->data[idx] * scalar;
     }
     return result;
 }
@@ -165,45 +176,40 @@ Matrix* multiply_matrix_by_scalar(const Matrix *M, double scalar) {
 
 Matrix* exponential_matrix(const Matrix *M) {
     if (M->rows == 0 || M->cols == 0) {
-        printf("Error: Matrix should be size more then zero!\n");
+        log_error("Matrix should be size more then zero!");
         return M;
     }
 
     if (M->rows != M->cols) {
-        printf("Error: Exponential can only be calculated for sqare matrices.\n");
+        log_error("Exponential can only be calculated for sqare matrices.");
         return M;
     }
 
     size_t size = M->rows;
-
     size_t factorial = 1;
 
     Matrix *result = create_square_matrix(size);
     Matrix *power = create_square_matrix(size);
 
-    // Инициализируем как единичную матрицу
+    // Инициализируем как единичные матрицы
     for (size_t row = 0; row < size; row++) {
         for (size_t col = 0; col < size; col++) {
             result->data[row * size + col] = (row == col) ? 1 : 0;
+            power->data[row * size + col] = (row == col) ? 1 : 0;
         }
     }
 
     // Расчёт матричного экспоненциального ряда
     for (int iteration = 1; iteration <= EXPONENT_ITERATION_COUNT; iteration++) {
 
-
-
-
-
-
-        // Расчёт степени матрицы
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-            }
-        }
-
         factorial *= iteration;
 
+        power = multiply_matrices(power, M);
+        // ?? what about memory?
+        Matrix* temp = multiply_matrix_by_scalar(power, 1.0 / factorial);
+        result = sum_matrices(result, temp);
+
+        free_matrix(temp);
     }
 
     free_matrix(power);
@@ -213,19 +219,19 @@ Matrix* exponential_matrix(const Matrix *M) {
 
 
 // Function to calculate the determinant of matrix by minors
-Matrix_data_type determinant_of_matrix(const Matrix *M) {
+Matrix_data_type determinant_of_matrix_by_minors(const Matrix *M) {
     if (M->rows == 0 || M->cols == 0) {
-        printf("Error: Matrix should be size more then zero!\n");
+        log_error("Matrix should be size more then zero!");
         return 0;
     }
 
     if (M->rows != M->cols) {
-        printf("Error: Determinant can only be calculated for sqare matrices.\n");
+        log_error("Determinant can only be calculated for sqare matrices.");
         return 0;
     }
 
     if (M->rows > 7) {
-        printf("Error: Can't be calculated for a matrix of dimensions greater than 7.\n");
+        log_error("Can't be calculated for a matrix of dimensions greater than 7.");
         return 0;
     }
 
@@ -237,12 +243,12 @@ Matrix_data_type determinant_of_matrix(const Matrix *M) {
     Matrix_data_type det = 0;
     Matrix *submat = create_square_matrix(size - 1);
 
-    for (size_t i = 0; i < size; i++) {
+    for (size_t idx = 0; idx < size; idx++) {
         size_t sub_row = 0;
         for (size_t row = 1; row < size; row++) {
             size_t sub_col = 0;
             for (size_t col = 0; col < size; col++) {
-                if (col == i) {
+                if (col == idx) {
                     continue;
                 }
 
@@ -253,9 +259,9 @@ Matrix_data_type determinant_of_matrix(const Matrix *M) {
             sub_row++;
         }
 
-        short sign = (i % 2 == 0) ? 1 : -1;
-        Matrix_data_type subdet = determinant_of_matrix(submat);
-        det += sign * M->data[i] * subdet;
+        short sign = (idx % 2 == 0) ? 1 : -1;
+        Matrix_data_type subdet = determinant_of_matrix_by_minors(submat);
+        det += sign * M->data[idx] * subdet;
     }
 
     free_matrix(submat);
@@ -268,13 +274,13 @@ void print_matrix(const Matrix *M) {
     printf("Matrix:\n");
 
     if (M->rows == 0 || M->cols == 0) {
-        printf("Matrix is null.\n\n");
+        log_error("Matrix is null.\n");
         return;
     }
 
-    for (size_t i = 0; i < M->rows; i++) {
-        for (size_t j = 0; j < M->cols; j++) {
-            printf("%.2f\t", M->data[i * M->cols + j]);
+    for (size_t row = 0; row < M->rows; row++) {
+        for (size_t col = 0; col < M->cols; col++) {
+            printf("%.2f\t", M->data[row * M->cols + col]);
         }
 
         printf("\n\n");
@@ -284,8 +290,8 @@ void print_matrix(const Matrix *M) {
 
 // Function to fill a matrix (in progress)
 void fill_matrix(Matrix *M) {
-    for (size_t i = 0; i < M->rows * M->cols; i++) {
-        M->data[i] = i * 2 + 1;
+    for (size_t idx = 0; idx < M->rows * M->cols; idx++) {
+        M->data[idx] = idx * 2 + 1;
     }
 }
 
@@ -293,8 +299,8 @@ void fill_matrix(Matrix *M) {
 // Function to fill a matrix with random numbers
 void fill_matrix_random(Matrix *M) {
     srand(time(NULL));
-    for (size_t i = 0; i < M->rows * M->cols; i++) {
-        M->data[i] = (Matrix_data_type)rand() / RAND_MAX;
+    for (size_t idx = 0; idx < M->rows * M->cols; idx++) {
+        M->data[idx] = (Matrix_data_type)rand() / RAND_MAX;
     }
 }
 
@@ -332,7 +338,7 @@ void case_prepair_matrix_and_get_determinant() {
 
     print_matrix(matrix);
 
-    Matrix_data_type det = determinant_of_matrix(matrix);
+    Matrix_data_type det = determinant_of_matrix_by_minors(matrix);
     printf("Determinant of the matrix: %.2f\n", det);
 
     free_matrix(matrix);
@@ -346,7 +352,7 @@ void case_get_matrix_determinant() {
     fill_matrix_random(matrix);
     print_matrix(matrix);
 
-    Matrix_data_type det = determinant_of_matrix(matrix);
+    Matrix_data_type det = determinant_of_matrix_by_minors(matrix);
     printf("Determinant of the matrix: %.2f\n", det);
 
     free_matrix(matrix);
@@ -354,24 +360,17 @@ void case_get_matrix_determinant() {
 
 
 void case_exp() {
-    // Example usage of matrix exponential calculation
-
-    // Create a square matrix
-    int size = 2; // Change size as needed
+    int size = 2; 
     Matrix *matrix = create_square_matrix(size);
 
-    // Fill matrix with values (example)
     matrix->data[0] = 1; matrix->data[1] = 2;
     matrix->data[2] = 3; matrix->data[3] = 4;
 
-    // Calculate matrix exponential
     Matrix *expMat = exponential_matrix(matrix);
 
-    // Print matrix exponential
-    printf("Exponential of the matrix:\n");
+    log("Exponential of the matrix:");
     print_matrix(expMat);
 
-    // Free allocated memory
     free_matrix(matrix);
     free_matrix(expMat);
 }
@@ -386,32 +385,22 @@ void case_test_exp() {
     fill_matrix(A);
     print_matrix(A);
 
-    Matrix *B = create_square_matrix(size);
-    for (size_t row = 0; row < size; row++) {
-        for (size_t col = 0; col < size; col++) {
-            B->data[row * size + col] = 1;
-        }
-    }
-    print_matrix(B);
-
-    Matrix* C1 = multiply_matrices(A, B);
-    print_matrix(C1);
-
-    Matrix* C2 = multiply_matrices(B, A);
-    print_matrix(C2);
-
+    Matrix* Exp1 = exponential_matrix(A);
+    print_matrix(Exp1);
 }
 
 
 int main() {
     
-    //case_test_exp();
+    case_test_exp();
 
     return 0;
 }
 
+
 /*
 * Output:
+
     Matrix:
     1.00    3.00    5.00
     7.00    9.00    11.00
@@ -437,4 +426,32 @@ int main() {
 
 Det(Matrix) = 0.76·0.25·0.93 + 0.91·0.96·0.83 + 0.09·0.89·0.67 - 0.09·0.25·0.83 - 0.76·0.96·0.67 - 0.91·0.89·0.93 =
             = 0.1767 + 0.725088 + 0.053667 - 0.018675 - 0.488832 - 0.753207 = -0.305259
+
+*/
+
+/*
+exp:
+
+1.00    3.00    5.00
+7.00    9.00    11.00
+13.00   15.00   17.00
+
+_____________________________________________
+2.72    5.15    8.59
+12.03   16.46   18.90
+22.34   25.77   30.21
+
+Matrix:
+1.00    3.00    5.00
+
+7.00    9.00    11.00
+
+13.00   15.00   17.00
+
+Matrix:
+19033382.71     23904323.93     28775266.14
+
+48967356.61     61498873.95     74030389.28
+
+78901331.50     99093421.96     119285513.43
 */
