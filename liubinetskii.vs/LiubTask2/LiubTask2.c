@@ -76,13 +76,16 @@ Matrix matrix_create_square(const size_t size) {
 }
 
 
-void free_matrix(Matrix M) {
-    free(M.data);
+void matrix_free(Matrix *M) {
+    M->rows = 0;
+    M->cols = 0;
+    free(M->data);
+    free(M);
 }
 
 
 // Function to sum two matrices
-Matrix matrices_sum(const Matrix A, const Matrix B) {
+Matrix matrix_sum(const Matrix A, const Matrix B) {
     if (A.rows != B.rows || A.cols != B.cols) {
         log(WARNING, "Matrices have different dimensions.");
         return MATRIX_NULL;
@@ -103,7 +106,7 @@ Matrix matrices_sum(const Matrix A, const Matrix B) {
 
 
 // Function to subtract two matrices
-Matrix matrices_subtract(const Matrix A, const Matrix B) {
+Matrix matrix_subtract(const Matrix A, const Matrix B) {
     if (A.rows != B.rows || A.cols != B.cols) {
         log(WARNING, "Matrices have different dimensions.");
         return MATRIX_NULL;
@@ -124,7 +127,7 @@ Matrix matrices_subtract(const Matrix A, const Matrix B) {
 
 
 // Function to multiply two matrices
-Matrix matrices_multiply(const Matrix A, const Matrix B) {
+Matrix matrix_multiply(const Matrix A, const Matrix B) {
     if (A.cols != B.rows) {
         log(WARNING, "Matrices cannot be multiplied due to incompatible dimensions.");
         return MATRIX_NULL;
@@ -181,7 +184,6 @@ Matrix matrix_exponential(const Matrix M, int iteration_count) {
     }
 
     size_t size = M.rows;
-    size_t factorial = 1;
 
     Matrix result = matrix_create_square(size);
     if (result.data == NULL) {
@@ -192,6 +194,7 @@ Matrix matrix_exponential(const Matrix M, int iteration_count) {
     Matrix temp = matrix_create_square(size);
     if (temp.data == NULL) {
         log(ERROR, "Watchout! Data matrix of 'temp' is NULL!");
+        matrix_free(&result);
         return MATRIX_NULL;
     }
     
@@ -206,22 +209,21 @@ Matrix matrix_exponential(const Matrix M, int iteration_count) {
 
     // Расчёт матричного экспоненциального ряда
     for (int iteration = 1; iteration <= iteration_count; iteration++) {
-
-        factorial *= iteration;
-
         Matrix copy_ptr = temp;
-        temp = matrices_multiply(temp, M);
-        free_matrix(copy_ptr);
+        temp = matrix_multiply(temp, M);
+        matrix_free(&copy_ptr);
 
         Matrix copy_ptr = temp;
         temp = matrix_multiply_by_scalar(temp, 1.0 / iteration);
-        free_matrix(copy_ptr);
+        matrix_free(&copy_ptr);
 
-        result = matrices_sum(result, temp);
-        free_matrix(temp);
+        Matrix copy_ptr = result;
+        result = matrix_sum(result, temp);
+        matrix_free(&copy_ptr);
+        matrix_free(&temp);
     }
 
-    free_matrix(temp);
+    matrix_free(&temp);
 
     return result;
 }
@@ -277,13 +279,13 @@ MatrixData matrix_determinant_of_by_minors(const Matrix M) {
         det += sign * M.data[idx] * subdet;
     }
 
-    free_matrix(submat);
+    matrix_free(&submat);
 
     return det;
 }
 
 
-void print_matrix(const Matrix M) {
+void matrix_print(const Matrix M) {
     log(INFO, "Matrix:");
 
     if (M.rows == 0 || M.cols == 0) {
@@ -329,15 +331,15 @@ void case_sum_and_print() {
     matrix_fill(mat1);
     matrix_fill_random(mat2);
 
-    print_matrix(mat1);
-    print_matrix(mat2);
+    matrix_print(mat1);
+    matrix_print(mat2);
 
-    Matrix result = matrices_sum(mat1, mat2);
-    print_matrix(result);
+    Matrix result = matrix_sum(mat1, mat2);
+    matrix_print(result);
 
-    free_matrix(mat1);
-    free_matrix(mat2);
-    free_matrix(result);
+    matrix_free(&mat1);
+    matrix_free(&mat2);
+    matrix_free(&result);
 }
 
 
@@ -349,12 +351,12 @@ void case_prepair_matrix_and_get_determinant() {
     matrix.data[3] = 4; matrix.data[4] = 5; matrix.data[5] = 6;
     matrix.data[6] = 7; matrix.data[7] = 8; matrix.data[8] = 9;
 
-    print_matrix(matrix);
+    matrix_print(matrix);
 
     MatrixData det = matrix_determinant_of_by_minors(matrix);
     printf("Determinant of the matrix: %.2f\n", det);
 
-    free_matrix(matrix);
+    matrix_free(&matrix);
 }
 
 
@@ -363,12 +365,12 @@ void case_get_matrix_determinant() {
 
     Matrix matrix = matrix_create_square(size);
     matrix_fill_random(matrix);
-    print_matrix(matrix);
+    matrix_print(matrix);
 
     MatrixData det = matrix_determinant_of_by_minors(matrix);
     printf("Determinant of the matrix: %.2f\n", det);
 
-    free_matrix(matrix);
+    matrix_free(&matrix);
 }
 
 
@@ -382,10 +384,10 @@ void case_exp() {
     Matrix expMat = matrix_exponential(matrix, 8);
 
     log(INFO, "Exponential of the matrix:");
-    print_matrix(expMat);
+    matrix_print(expMat);
 
-    free_matrix(matrix);
-    free_matrix(expMat);
+    matrix_free(&matrix);
+    matrix_free(&expMat);
 }
 
 
@@ -396,10 +398,10 @@ void case_test_exp() {
 
     Matrix A = matrix_create_square(size);
     matrix_fill(A);
-    print_matrix(A);
+    matrix_print(A);
 
     Matrix Exp1 = matrix_exponential(A, 8);
-    print_matrix(Exp1);
+    matrix_print(Exp1);
 }
 
 
@@ -409,62 +411,3 @@ int main() {
 
     return 0;
 }
-
-
-/*
-* Output:
-
-    Matrix:
-    1.00    3.00    5.00
-    7.00    9.00    11.00
-
-    Matrix:
-    0.86    0.25    0.49
-    0.62    0.94    0.67
-
-    Matrix: (sum)
-    1.86    3.25    5.49
-    7.62    9.94    11.67
-
-****
-* Determinant
-    Matrix:
-    0.76    0.91    0.09
-
-    0.89    0.25    0.96
-
-    0.83    0.67    0.93
-
-    Determinant of the matrix: -0.31
-
-Det(Matrix) = 0.76·0.25·0.93 + 0.91·0.96·0.83 + 0.09·0.89·0.67 - 0.09·0.25·0.83 - 0.76·0.96·0.67 - 0.91·0.89·0.93 =
-            = 0.1767 + 0.725088 + 0.053667 - 0.018675 - 0.488832 - 0.753207 = -0.305259
-
-*/
-
-/*
-exp:
-
-1.00    3.00    5.00
-7.00    9.00    11.00
-13.00   15.00   17.00
-
-_____________________________________________
-2.72    5.15    8.59
-12.03   16.46   18.90
-22.34   25.77   30.21
-
-Matrix:
-1.00    3.00    5.00
-
-7.00    9.00    11.00
-
-13.00   15.00   17.00
-
-Matrix:
-19033382.71     23904323.93     28775266.14
-
-48967356.61     61498873.95     74030389.28
-
-78901331.50     99093421.96     119285513.43
-*/
