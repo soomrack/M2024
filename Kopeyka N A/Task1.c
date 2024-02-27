@@ -25,6 +25,12 @@ double INFLATION = 0.12;    // ежегодная инфляция
 double BANK_RATE = 0.16;    // годовая ставка по вкладу
 double MORTGAGE_RATE = 0.10;    // годовая ставка по ипотеке
 
+const money YEAR_BUY_CAR = 2028;    // Стоимость машины
+const money CAR_PRICE = 2000 * 1000 * 100;
+const money CAR_SPENDINGS = 10 * 1000;
+const money CAR_TO = 100 * 1000;
+
+
 void alice_init() {
     Alice.income = SALARY;
     Alice.capital = 0;
@@ -91,8 +97,19 @@ void simulation() {
 
         inflation(year, month);
         month++;
-        
-        if (month > 12) 
+
+        if ((year == YEAR_BUY_CAR) && (month == START_MONTH))  // Покупка машины
+        {
+            Alice.capital -= CAR_PRICE;
+            Alice.spendings += CAR_SPENDINGS;
+        }
+
+        if ((year - YEAR_BUY_CAR) % 3 == 0)     // Тех обслуживание раз в 3 года
+        {
+            Alice.capital -= CAR_TO;
+        }
+
+        if (month > 12)
         {
             year++;
             month = 1;
@@ -110,7 +127,7 @@ void print_bob()
 
 void print_alice()
 {
-    printf("Alice Capital: %lld\n", Alice.capital + FLAT_PRICE);
+    printf("Alice Capital: %lld\n", Alice.capital + FLAT_PRICE + CAR_PRICE);
     printf("Alice Income: %lld\n", Alice.income);
     printf("Alice Life spendings: ""%lld\n", Alice.spendings);
     printf("Alice Monthly payment: %lld\n", Alice.flat_payment);
