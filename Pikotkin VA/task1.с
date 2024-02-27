@@ -2,7 +2,8 @@
 #include <math.h>
 
 
-#define PERIOD_JOB_LOST 2
+#define PERIOD_JOB_LOST 1
+#define PERIOD_JOB_LOST_AGAIN 1
 
 typedef long long int Money; // считаем в копейках
 
@@ -85,25 +86,56 @@ void bob_spendings(int year, int month)
 
 void alice_salary(int year, int month) 
 {
-    Alice.capital += Alice.income;
-    if (month % 12 == 0) {
+    if (month < 40) {  // ПЕРВАЯ РАБОТА
         Alice.capital += Alice.income;
+        if (month % 12 == 0) {
+            Alice.capital += Alice.income;
+        }
     }
-}
-
-
-void alice_lost_job(int year, int month)
-{
-    static int counter = PERIOD_JOB_LOST;
-    if (counter > 0) {
+    if (month >= 40 && month <= 41) {
         Alice.income = 0;
-        counter--;
     }
-    else if (Alice.income == 0 )
-    {
-        Alice.income = updated_salary;
+    if (month > 41 && month < 90) { // ВТОРАЯ РАБОТА
+        static int counter = PERIOD_JOB_LOST;
+        if (counter > 0) {
+            Alice.income = 180 * 1000 * 10;
+            counter--;
+        }
+        Alice.capital += Alice.income;
+    } 
+    if (month % 12 == 0) { 
+            Alice.capital += Alice.income;
+        } else if (month >= 90 && month <= 91) {
+            Alice.income = 0;
+        }
+    if (month > 91) {  // ТРЕТЬЯ РАБОТА
+        static int schetchik = PERIOD_JOB_LOST_AGAIN;
+        if (schetchik > 0) {
+            Alice.income = 250 * 1000 * 10;
+            schetchik--;
+        }
+        Alice.capital += Alice.income;
+        if (month % 12 == 0) {
+            Alice.capital += Alice.income;
+        }
     }
 }
+
+
+//void alice_lost_job(int year, int month)
+//{
+   // if (month > 35) {
+       // static int counter = PERIOD_JOB_LOST;
+       // if (counter > 0) {
+           // Alice.income = 0;
+          //  counter--;
+       // }
+       // else if (Alice.income == 0)
+        //{
+         //   Alice.income = updated_salary;
+       // }
+   // }
+//}
 
 
 void alice_deposite(int year, int month) 
@@ -133,7 +165,7 @@ void inflation(int year, int month)
         Bob.flat_payment *= (1.0 + INFLATION);
         Bob.spendings *= (1.0 + INFLATION);
         Bob.car_expenses *= (1.0 + INFLATION);
-        updated_salary *= (1.0 + INFLATION);
+        //updated_salary *= (1.0 + INFLATION);
     }
 }
 
@@ -144,9 +176,7 @@ void simulation()
     int year = START_YEAR;
     while (month != YEARS * 12.0 + START_MONTH) {
         alice_deposite(year, month);
-        if (month > 35) {
-            alice_lost_job(year, month);
-        }
+       // alice_lost_job(year, month);
         alice_salary(year, month);
         alice_spendings(year, month);
 
