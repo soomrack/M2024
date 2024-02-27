@@ -75,10 +75,13 @@ void alice_bank(int year, int month) {
 }
 
 
-void alice_spending(int year, int month) {
-    A.deposit -= (A.expenses + A.flat_payment);
+void alice_expenses(int year, int month) {
+    A.deposit -= A.expenses;
 }
 
+void alice_flat_payment(int year, int month) {
+    A.deposit -=  A.flat_payment;
+}
 
 void bob_bank(int year, int month) {
     B.deposit = B.deposit * (1.0 + BANK_RATE / 12.0) + B.salary;
@@ -91,13 +94,18 @@ void bob_expenses(int year, int month) {
 
 
 void bob_flat_payment(int year, int month) {
-    B.deposit = B.deposit - B.flat_payment;
+    if (B.has_flat == 0) {
+        B.deposit = B.deposit - B.flat_payment;
+    }
 }
 
 
 void bob_buy_flat(int year, int month) {
-    B.deposit = B.deposit - FLAT_PRICE;
-    B.has_flat = 1;
+    if ((B.has_flat == 0) && (B.deposit > FLAT_PRICE)){
+        B.deposit = B.deposit - FLAT_PRICE;
+        B.has_flat = 1;
+        TIME_OF_BUYING_FLAT = year;
+    }
 }
 
 
@@ -119,27 +127,23 @@ void simulation() {
         alice_bank(year, month);
         bob_bank(year, month);
 
-        alice_spending(year, month);
+        alice_expenses(year, month);
         bob_expenses(year, month);
         
-        if ((B.has_flat == 0) && (B.deposit > FLAT_PRICE)) {
-            bob_buy_flat(year, month);
-            TIME_OF_BUYING_FLAT = year;
-        }
-        
-        if (B.has_flat == 0) {
-            bob_flat_payment(year, month);
-        }
-
+        bob_buy_flat(year, month);
+               
+        alice_flat_payment(year, month);
+        bob_flat_payment(year, month);
+    
         inflation(year, month);
-
-        if (month != 12) {
-            month += 1;
-        }
-        else {
+        
+        month += 1;
+        
+        if (month == 13) {
             month = 1;
             year += 1;
         }
+       
     }
 }
 
