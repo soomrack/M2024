@@ -15,7 +15,9 @@ const short int YEARS = 30; //расчетный период
 const Kopeyka SALARY = 17000000; //зарплата (на первый год)
 const Kopeyka RENT = 8500000; //стоимость аренды (на первый год)
 int current_month = 2;
-float annuity_coef = MORTGAGE_RATE / 12 * pow(1 + MORTGAGE_RATE / 12, YEARS * 12) / (pow(1 + MORTGAGE_RATE / 12, YEARS * 12) - 1);
+float annuity_coef;
+Kopeyka ap_cost;
+
 
 struct Person
 {
@@ -26,10 +28,10 @@ struct Person
     Kopeyka expenses;
 };
 
+
 struct Person Alice;
 struct Person Bob;
 
-Kopeyka ap_cost = APARTMENT_COST;
 
 void Alice_init()
 {
@@ -119,8 +121,17 @@ void bob()
 
 
 }
+
+void init_vars() {
+    ap_cost = APARTMENT_COST;
+    annuity_coef = MORTGAGE_RATE / 12 * pow(1 + MORTGAGE_RATE / 12, YEARS * 12) / (pow(1 + MORTGAGE_RATE / 12, YEARS * 12) - 1);
+}
+
+
 void main()
 {
+    init_vars();
+
     Alice_init();
     Bob_init();
     alice();
