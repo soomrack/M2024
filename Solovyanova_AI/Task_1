@@ -104,11 +104,11 @@ void Alice_salary(int month)
 
     Alice.balance += salary;
     
-    if (month > years_lose_job * 12) {
+    if (month > years_lose_job * 12 && month < years_lose_job * 12 + month_unemployment) {
         salary = 0;
     }
 
-    if (month > years_lose_job * 12 + month_unemployment) {
+    if (month == years_lose_job * 12 + month_unemployment) {
         salary = Alice.earn.salary * 1.5;
     }
 }
