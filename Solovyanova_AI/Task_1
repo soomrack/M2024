@@ -5,6 +5,8 @@ typedef long long int Money;  // копейки
 
 int years = 30;
 int years_reparation = 2;
+int years_lose_job = 4;
+int month_unemployment = 3;
 double indexation_perc = 12;
 double deposite_perc = 16;
 double flat_rate_perc = 18;
@@ -31,20 +33,22 @@ struct Person Bob;
 
 void Alice_finance()
 {
-    Alice.balance = 2 * 1000 * 1000 * 100;
-    Alice.earn.salary = 150 * 1000 * 100;
+    Alice.balance = 3 * 1000 * 1000 * 100;
+    Alice.earn.salary = 300 * 1000 * 100;
     Alice.expen.flat_cost = 20 * 1000 * 1000 * 100;
     Alice.expen.reparation = 100 * 1000 * 100;
     Alice.expen.food = 15 * 1000 * 100;
 };
 
+
 void Bob_finance()
 {
-    Bob.balance = 2 * 1000 * 1000 * 100;
-    Bob.earn.salary = 150 * 1000 * 100;
+    Bob.balance = 3 * 1000 * 1000 * 100;
+    Bob.earn.salary = 300 * 1000 * 100;
     Bob.expen.rent = 25 * 1000 * 100;
     Bob.expen.food = 15 * 1000 * 100;
 }
+
 
 void Alice_print()
 {
@@ -54,6 +58,7 @@ void Alice_print()
     printf("\n");
 }
 
+
 void Bob_print()
 {
     printf("%s %d %s\n", "Через ", years, "лет баланс Боба будет составлять:");
@@ -62,10 +67,12 @@ void Bob_print()
     printf("\n");
 }
 
+
 void Alice_bank()
 {
     Alice.balance *= 1 + deposite_perc / 12 / 100;
 }
+
 
 void Alice_inflation()
 {
@@ -74,6 +81,7 @@ void Alice_inflation()
     Alice.expen.reparation *= 1 + indexation_perc / 100;
 }
 
+
 void Alice_mortgage ()
 {
     double degree = pow (1 + flat_rate_perc / 1200, years * 12);
@@ -81,25 +89,30 @@ void Alice_mortgage ()
     Alice.balance -= mortgage_month;
 }
 
+
 void Alice_buying_flat()
 {
     Alice.balance -= Alice.expen.flat_cost;
 }
+
 
 void Alice_salary()
 {
     Alice.balance += Alice.earn.salary;
 }
 
+
 void Alice_food()
 {
     Alice.balance -= Alice.expen.food;
 }
 
+
 void Alice_reparation()
 {
     Alice.balance -= Alice.expen.reparation;
 }
+
 
 void Alice_process()
 {
@@ -113,33 +126,46 @@ void Alice_process()
         }
         
         Alice_bank();
-        Alice_salary();
+
+        do {
+            Alice_salary();
+        } while (month < years_lose_job * 12 && month > years_lose_job * 12 + month_unemployment);
 
         if (month % 12 == 0) {     //индексация
             Alice_inflation();
+            printf("    %lld %s\n", Alice.balance / 100, "рублей");
+        }
+
+        if (month == years_lose_job * 12 + month_unemployment) {
+            Alice.earn.salary *= 1.5;
         }
     }
 };
+
 
 void Bob_food()
 {
     Bob.balance -= Bob.expen.food;
 }
 
+
 void Bob_rent()
 {
     Bob.balance -= Bob.expen.rent;
 }
+
 
 void Bob_bank()
 {
     Bob.balance *= 1 + deposite_perc / 12 / 100;
 }
 
+
 void Bob_salary()
 {
     Bob.balance += Bob.earn.salary;
 }
+
 
 void Bob_inflation()
 {
@@ -147,6 +173,7 @@ void Bob_inflation()
     Bob.earn.salary *= 1 + indexation_perc / 100;
     Bob.expen.rent *= 1 + indexation_perc / 100;
 }
+
 
 void Bob_process ()
 {
