@@ -5,7 +5,7 @@ typedef long long int Money;  // копейки
 
 int years = 30;
 int years_reparation = 2;
-double indexation = 12;
+double indexation_perc = 12;
 double deposite_perc = 16;
 double flat_rate_perc = 18;
 
@@ -69,9 +69,9 @@ void Alice_bank()
 
 void Alice_inflation()
 {
-    Alice.expen.food *= 1 + indexation / 100;
-    Alice.earn.salary *= 1 + indexation / 100;
-    Alice.expen.reparation *= 1 + indexation / 100;
+    Alice.expen.food *= 1 + indexation_perc / 100;
+    Alice.earn.salary *= 1 + indexation_perc / 100;
+    Alice.expen.reparation *= 1 + indexation_perc / 100;
 }
 
 void Alice_mortgage ()
@@ -143,9 +143,9 @@ void Bob_salary()
 
 void Bob_inflation()
 {
-    Bob.expen.food *= 1 + indexation / 100;
-    Bob.earn.salary *= 1 + indexation / 100;
-    Bob.expen.rent *= 1 + indexation / 100;
+    Bob.expen.food *= 1 + indexation_perc / 100;
+    Bob.earn.salary *= 1 + indexation_perc / 100;
+    Bob.expen.rent *= 1 + indexation_perc / 100;
 }
 
 void Bob_process ()
