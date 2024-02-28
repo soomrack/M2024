@@ -1,73 +1,179 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef long long int Money;  // руб
+typedef long long int Money;  // копейки
 
-//Общая информация
-const int years = 30;
-const int inflation = 12;
-const int start = 2*1000*1000;
-Money salary = 150*1000;
-Money food = 15*1000;
+int years = 30;
+int years_reparation = 2;
+double indexation = 12;
+double deposite_perc = 16;
+double flat_rate_perc = 18;
 
-//Алиса
-Money Alice_bank = 0;
-const int flat_rate = 18;
-const int flat_cost = 20*1000*1000;
-Money flat_reparation = 100*1000;
-const int flat_reparation_years = 2; //года
+struct Earnings {
+    Money salary;
+};
 
-//Боб
-Money Bob_bank = 0;
-Money flat_rent = 25*1000;
-const int deposit_rate = 16;
+struct Expenses {
+    Money flat_cost;
+    Money reparation;
+    Money rent;
+    Money food;
+};
 
-const int months = years * 12;
-const int flat_reparation_months = flat_reparation_years * 12;
+struct Person {
+    Money balance;
+    struct Earnings earn;
+    struct Expenses expen;
+};
 
-Money Alice_balance = start; //в начале месяца
-Money Bob_balance = start;
+struct Person Alice;
+struct Person Bob;
+
+void Alice_finance()
+{
+    Alice.balance = 2 * 1000 * 1000 * 100;
+    Alice.earn.salary = 150 * 1000 * 100;
+    Alice.expen.flat_cost = 20 * 1000 * 1000 * 100;
+    Alice.expen.reparation = 100 * 1000 * 100;
+    Alice.expen.food = 15 * 1000 * 100;
+};
+
+void Bob_finance()
+{
+    Bob.balance = 2 * 1000 * 1000 * 100;
+    Bob.earn.salary = 150 * 1000 * 100;
+    Bob.expen.rent = 25 * 1000 * 100;
+    Bob.expen.food = 15 * 1000 * 100;
+}
+
+void Alice_print()
+{
+    printf("%s %d %s\n", "Через ", years, "лет баланс Алисы будет составлять:");
+    printf("    %lld %s", Alice.balance / 100, "рублей");
+    printf(" %02d %s\n", Alice.balance % 100, "копеек");
+    printf("\n");
+}
+
+void Bob_print()
+{
+    printf("%s %d %s\n", "Через ", years, "лет баланс Боба будет составлять:");
+    printf("    %lld %s", Bob.balance / 100, "рублей");
+    printf(" %02d %s\n", Bob.balance % 100, "копеек");
+    printf("\n");
+}
+
+void Alice_bank()
+{
+    Alice.balance *= 1 + deposite_perc / 12 / 100;
+}
+
+void Alice_inflation()
+{
+    Alice.expen.food *= 1 + indexation / 100;
+    Alice.earn.salary *= 1 + indexation / 100;
+    Alice.expen.reparation *= 1 + indexation / 100;
+}
+
+void Alice_mortgage ()
+{
+    double degree = pow (1 + flat_rate_perc / 1200, years * 12);
+    double mortgage_month = Alice.expen.flat_cost * flat_rate_perc/ 1200 * degree / (degree - 1);
+    Alice.balance -= mortgage_month;
+}
+
+void Alice_buying_flat()
+{
+    Alice.balance -= Alice.expen.flat_cost;
+}
+
+void Alice_salary()
+{
+    Alice.balance += Alice.earn.salary;
+}
+
+void Alice_food()
+{
+    Alice.balance -= Alice.expen.food;
+}
+
+void Alice_reparation()
+{
+    Alice.balance -= Alice.expen.reparation;
+}
+
+void Alice_process()
+{
+    for (int month = 1; month <= years * 12; month++) {
+       
+        Alice_mortgage();
+        Alice_food();
+        
+        if (month <= years_reparation * 12) {
+            Alice_reparation();
+        }
+        
+        Alice_bank();
+        Alice_salary();
+
+        if (month % 12 == 0) {     //индексация
+            Alice_inflation();
+        }
+    }
+};
+
+void Bob_food()
+{
+    Bob.balance -= Bob.expen.food;
+}
+
+void Bob_rent()
+{
+    Bob.balance -= Bob.expen.rent;
+}
+
+void Bob_bank()
+{
+    Bob.balance *= 1 + deposite_perc / 12 / 100;
+}
+
+void Bob_salary()
+{
+    Bob.balance += Bob.earn.salary;
+}
+
+void Bob_inflation()
+{
+    Bob.expen.food *= 1 + indexation / 100;
+    Bob.earn.salary *= 1 + indexation / 100;
+    Bob.expen.rent *= 1 + indexation / 100;
+}
+
+void Bob_process ()
+{
+    for (int month = 1; month <= years * 12; month++) {
+       
+        Bob_food();
+        Bob_rent();
+
+        Bob_bank();
+        Bob_salary();
+
+        if (month % 12 == 0) {     //индексация
+            Bob_inflation();
+        }
+    };
+}
 
 int main()
 {
-    double degree = pow (1 + (double) flat_rate / 1200, months);
-    double mortgage_month = (double) flat_cost * flat_rate/1200 * degree / (degree - 1);
+    Alice_finance();
+    Bob_finance();
+    
+    Alice_process();
+    Bob_process();
 
-    for (int i = 0; i <= months; i++)
-{
-    if (i % 12 == 0) //индексация
-    {
-        food *= 1 + inflation * 0.01;
-        salary *= 1 + inflation * 0.01;
-        flat_reparation *= 1 + inflation * 0.01;
-        flat_rent *= 1 + inflation * 0.01;
-    }
-
-    //Алиса
-    Alice_balance += salary;
-    Alice_balance -= food;
-    if (i < flat_reparation_months)
-    {
-        Alice_balance -= flat_reparation;
-    }
-    Alice_balance -= mortgage_month;
-    Alice_bank += Alice_balance;
-    Alice_balance = 0;
-    Alice_bank *= (1 + deposit_rate / 100 / 12);
-
-    //Боб
-    Bob_balance += salary;
-    Bob_balance -= food + flat_rent;
-    Bob_bank += Bob_balance;
-    Bob_balance = 0;
-    Bob_bank *= (1 + deposit_rate / 100 / 12);
-}
-
-    Alice_balance = Alice_bank;
-    Bob_balance = Bob_bank; 
-
-    printf ("%s %d %s %d %s\n", "Через ", years, "лет баланс Алисы будет составлять: ", Alice_balance, "руб");
-    printf ("%s %d %s %d %s\n", "Через ", years, "лет баланс Боба будет составлять: ", Bob_balance, "руб");
-
-    return 0;
+    Alice_print();
+    Bob_print();
+    
+    return 1;
 }
