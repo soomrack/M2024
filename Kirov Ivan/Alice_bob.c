@@ -52,52 +52,49 @@ void alice_init()
     alice.mortgage_pp = 7;
     alice.mortgage_monthly_payment = 0;
 }
-void bob_car_buy (const int year, const int month) // покупка машины
+void bob_car_buy (const int year, const int month)  // покупка машины
 {
-    if(month==2 && year == 2026)
-    {
-        bob.bank_account = bob.bank_account - 2000*1000*100;
+    if(month==2 && year == 2026){
+        bob.bank_account = bob.bank_account - 2000 * 1000 * 100;
     }
-    
 }
 
-void bob_car_tires (const int year, const int month)
+void bob_car_tires (const int year, const int month)  // траты на шины
 {
-    if (month ==4 && year >= 2026)
-    {
-        bob.expenses= bob.expenses+40*1000*100;
+    if (month == 4 && year >= 2026){
+        bob.expenses = bob.expenses + 40 * 1000 * 100;
     }
-    if (month ==5 && year >= 2026)
-    {
-        bob.expenses= bob.expenses-40*1000*100;
+    if (month == 5 && year >= 2026){
+        bob.expenses = bob.expenses - 40 * 1000 * 100;
     }
-    if (month ==10  && year >= 2026)
-    {
-        bob.expenses= bob.expenses+50*1000*100;
+    if (month == 10  && year >= 2026){
+        bob.expenses = bob.expenses + 50 * 1000 * 100;
     }
-    if (month ==11 && year >= 2026)
-    {
-        bob.expenses= bob.expenses-50*1000*100;
+    if (month == 11 && year >= 2026){
+        bob.expenses = bob.expenses - 50 * 1000 * 100;
     }
-    
 }
 
 
-void bob_car_to (const int year, const int month)
+void bob_car_to (const int year, const int month)  // тех осмотр
 {
-    if (month ==2 && year >= 2026)
-    {
+    if (month ==2 && year >= 2026){
         bob.expenses= bob.expenses+15*1000*100;
     }
-    if (month ==3 && year >= 2026)
-    {
+    if (month ==3 && year >= 2026){
         bob.expenses= bob.expenses-15*1000*100;
     }
-    
+}
+
+void bob_car (const int year, const int month)
+{
+    bob_car_buy(year,month);
+    bob_car_to (year,month);
+    bob_car_tires(year,month);
 }
 
 
-void bob_salary_income(const int year, const int month)
+void bob_salary_income(const int year, const int month)  // доход Боба с учтом инфляции
 {
     bob.bank_account += bob.salary;
     if (month == 12) {
@@ -106,19 +103,19 @@ void bob_salary_income(const int year, const int month)
 }
 
 
-void bob_deposite_income(const int year, const int month)
+void bob_deposite_income(const int year, const int month)  // рост вклада Боба
 {
     bob.bank_account += (Money)(bob.bank_account * bob.bank_account_pp / 100.0 / 12.0);
 }
 
 
-void alice_deposite_income(const int year, const int month)
+void alice_deposite_income(const int year, const int month) // рост вклада Алисы
 {
     alice.bank_account += (Money)(alice.bank_account * alice.bank_account_pp / 100.0 / 12.0);
 }
 
 
-void bob_rent(const int year, const int month)
+void bob_rent(const int year, const int month)  // аренда жилья Боба
 {
     bob.bank_account -= bob.rent;
     if (month == 12) {
@@ -127,7 +124,7 @@ void bob_rent(const int year, const int month)
 }
 
 
-void bob_expenses(const int year, const int month)
+void bob_expenses(const int year, const int month) // расходы на жизнь Боба
 {
     bob.bank_account -= bob.expenses;
     if (month == 12) {
@@ -146,7 +143,7 @@ void alice_mortgage_monthly_payment(const Money pay , const double pp , const in
 }
 
 
-void alice_expenses(const int year, const int month)
+void alice_expenses(const int year, const int month)  // Расходы на жизнь Алисы
 {
     alice.bank_account -= alice.expenses;
     if (month == 12) {
@@ -155,7 +152,7 @@ void alice_expenses(const int year, const int month)
 }
 
 
-void alice_salary_income(const int year, const int month)
+void alice_salary_income(const int year, const int month)  // Доходы Алисы с учетом инфляции
 {
     alice.bank_account += alice.salary;
     if (month == 12) {
@@ -164,7 +161,7 @@ void alice_salary_income(const int year, const int month)
 }
 
 
-void alice_house_price(const int year, const int month)
+void alice_house_price(const int year, const int month)  // Цена дома Алисы
 {
     if (month == 12) {
         alice.house_price += (Money)(alice.house_price * (alice.inflation_pp / 100.));
@@ -182,9 +179,7 @@ void simulation()
 
 
     while (!(year == 2054 && month == 2)) {
-        bob_car_buy(year,month);
-        bob_car_to (year,month);
-        bob_car_tires(year,month);
+        bob_car(year,month);
         bob_deposite_income(year, month);
         bob_salary_income(year, month);
         bob_rent(year, month);
@@ -215,19 +210,16 @@ void print_person(const struct Person person)
 
 
 }
-void who_won(){
-    
-    if (alice.bank_account + alice.house_price > bob.bank_account + bob.house_price)
-    {
+void who_won()
+{
+    if (alice.bank_account + alice.house_price > bob.bank_account + bob.house_price){
         printf ("alice_won\n");
         printf("\n");
     }
-    else
-    {
+    else{
         printf ("bob_won\n");
         printf("\n");
     }
-    
 }
 
 
