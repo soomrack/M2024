@@ -74,11 +74,13 @@ void Alice_bank()
 }
 
 
-void Alice_inflation()
+void Alice_inflation(int month)
 {
-    Alice.expen.food *= 1 + indexation_perc / 100;
-    Alice.earn.salary *= 1 + indexation_perc / 100;
-    Alice.expen.reparation *= 1 + indexation_perc / 100;
+    if (month % 12 == 0) {
+        Alice.expen.food *= 1 + indexation_perc / 100;
+        Alice.earn.salary *= 1 + indexation_perc / 100;
+        Alice.expen.reparation *= 1 + indexation_perc / 100;
+    }
 }
 
 
@@ -96,9 +98,19 @@ void Alice_buying_flat()
 }
 
 
-void Alice_salary()
+void Alice_salary(int month)
 {
-    Alice.balance += Alice.earn.salary;
+    int salary = Alice.earn.salary;
+
+    Alice.balance += salary;
+    
+    if (month > years_lose_job * 12) {
+        salary = 0;
+    }
+
+    if (month > years_lose_job * 12 + month_unemployment) {
+        salary = Alice.earn.salary * 1.5;
+    }
 }
 
 
@@ -108,9 +120,11 @@ void Alice_food()
 }
 
 
-void Alice_reparation()
+void Alice_reparation(int month)
 {
-    Alice.balance -= Alice.expen.reparation;
+    if (month <= years_reparation * 12) {
+        Alice.balance -= Alice.expen.reparation;
+    }
 }
 
 
@@ -121,24 +135,12 @@ void Alice_process()
         Alice_mortgage();
         Alice_food();
         
-        if (month <= years_reparation * 12) {
-            Alice_reparation();
-        }
+        Alice_reparation(month);
         
         Alice_bank();
+        Alice_salary(month);
 
-        do {
-            Alice_salary();
-        } while (month < years_lose_job * 12 && month > years_lose_job * 12 + month_unemployment);
-
-        if (month % 12 == 0) {     //индексация
-            Alice_inflation();
-            printf("    %lld %s\n", Alice.balance / 100, "рублей");
-        }
-
-        if (month == years_lose_job * 12 + month_unemployment) {
-            Alice.earn.salary *= 1.5;
-        }
+        Alice_inflation(month);
     }
 };
 
@@ -167,11 +169,13 @@ void Bob_salary()
 }
 
 
-void Bob_inflation()
+void Bob_inflation(int month)
 {
-    Bob.expen.food *= 1 + indexation_perc / 100;
-    Bob.earn.salary *= 1 + indexation_perc / 100;
-    Bob.expen.rent *= 1 + indexation_perc / 100;
+    if (month % 12 == 0) {
+        Bob.expen.food *= 1 + indexation_perc / 100;
+        Bob.earn.salary *= 1 + indexation_perc / 100;
+        Bob.expen.rent *= 1 + indexation_perc / 100;
+    }
 }
 
 
@@ -185,9 +189,7 @@ void Bob_process ()
         Bob_bank();
         Bob_salary();
 
-        if (month % 12 == 0) {     //индексация
-            Bob_inflation();
-        }
+        Bob_inflation(month);
     };
 }
 
