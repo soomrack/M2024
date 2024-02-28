@@ -20,21 +20,8 @@ struct Person {
     Money mortgage_monthly_payment;
 };
 
-struct Person alice;
 struct Person bob;
-
-
-void alice_init()
-{
-    alice.bank_account = 2000 * 1000 * 100;
-    alice.bank_account_pp = 11;
-    alice.salary = 200 * 1000 * 100;
-    alice.inflation_pp = 7;
-    alice.house_price = 0;
-    strcpy(alice.name, "Alice");
-    alice.rent = 35 * 1000 * 100;
-    alice.expenses = 10 * 1000 * 100;
-}
+struct Person alice;
 
 
 void bob_init()
@@ -43,70 +30,25 @@ void bob_init()
     bob.bank_account_pp = 11;
     bob.salary = 200 * 1000 * 100;
     bob.inflation_pp = 7;
-    bob.house_price = 20 * 1000 * 1000 * 100;
-    strcpy(bob.name, "Bob");
-    bob.mortgage_first_fee = 1000 * 1000 * 100;
+    bob.house_price = 0;
+    strcpy(bob.name, "bob");
+    bob.rent = 35 * 1000 * 100;
     bob.expenses = 10 * 1000 * 100;
-    bob.mortgage_pp = 7;
-    bob.mortgage_monthly_payment = 0;
 }
 
 
-void alice_salary_income(const int year, const int month)
+void alice_init()
 {
-    alice.bank_account += alice.salary;
-    if (month == 12) {
-        alice.salary = (Money)(alice.salary * (alice.inflation_pp / 100.));
-    }
-}
-
-
-void alice_deposite_income(const int year, const int month)
-{
-    alice.bank_account += (Money)(alice.bank_account * alice.bank_account_pp / 100.0 / 12.0);
-}
-
-
-void bob_deposite_income(const int year, const int month)
-{
-    bob.bank_account += (Money)(bob.bank_account * bob.bank_account_pp / 100.0 / 12.0);
-}
-
-
-void alice_rent(const int year, const int month)
-{
-    alice.bank_account -= alice.rent;
-    if (month == 12) {
-        alice.rent = (Money)(alice.rent * (alice.inflation_pp / 100.));
-    }
-}
-
-
-void alice_expenses(const int year, const int month)
-{
-    alice.bank_account -= alice.expenses;
-    if (month == 12) {
-        alice.expenses = (Money)(alice.expenses * (alice.inflation_pp / 100.));
-    }
-}
-
-
-void bob_mortgage_monthly_payment(const Money pay , const double pp , const int months) {
-    // формула аннуитетного платежа по ипотеке
-    Money mortgage_monthly_installment = ((pay) * (pp * 0.01 / 12) * pow((1.0 + (pp * 0.01 / 12)), (months))) /
-        (pow((1.0 + (pp * 0.01 / 12)), (months)) - 1.0);
-
-    bob.mortgage_monthly_payment = mortgage_monthly_installment;
-    bob.bank_account -= bob.mortgage_first_fee;
-}
-
-
-void bob_expenses(const int year, const int month)
-{
-    bob.bank_account -= bob.expenses;
-    if (month == 12) {
-        bob.expenses = (Money)(bob.expenses * (bob.inflation_pp / 100.));
-    }
+    alice.bank_account = 2000 * 1000 * 100;
+    alice.bank_account_pp = 11;
+    alice.salary = 200 * 1000 * 100;
+    alice.inflation_pp = 7;
+    alice.house_price = 20 * 1000 * 1000 * 100;
+    strcpy(alice.name, "alice");
+    alice.mortgage_first_fee = 1000 * 1000 * 100;
+    alice.expenses = 10 * 1000 * 100;
+    alice.mortgage_pp = 7;
+    alice.mortgage_monthly_payment = 0;
 }
 
 
@@ -119,10 +61,68 @@ void bob_salary_income(const int year, const int month)
 }
 
 
-void bob_house_price(const int year, const int month)
+void bob_deposite_income(const int year, const int month)
+{
+    bob.bank_account += (Money)(bob.bank_account * bob.bank_account_pp / 100.0 / 12.0);
+}
+
+
+void alice_deposite_income(const int year, const int month)
+{
+    alice.bank_account += (Money)(alice.bank_account * alice.bank_account_pp / 100.0 / 12.0);
+}
+
+
+void bob_rent(const int year, const int month)
+{
+    bob.bank_account -= bob.rent;
+    if (month == 12) {
+        bob.rent = (Money)(bob.rent * (bob.inflation_pp / 100.));
+    }
+}
+
+
+void bob_expenses(const int year, const int month)
+{
+    bob.bank_account -= bob.expenses;
+    if (month == 12) {
+        bob.expenses = (Money)(bob.expenses * (bob.inflation_pp / 100.));
+    }
+}
+
+
+void alice_mortgage_monthly_payment(const Money pay , const double pp , const int months) {
+    // формула аннуитетного платежа по ипотеке
+    Money mortgage_monthly_installment = ((pay) * (pp * 0.01 / 12) * pow((1.0 + (pp * 0.01 / 12)), (months))) /
+        (pow((1.0 + (pp * 0.01 / 12)), (months)) - 1.0);
+
+    alice.mortgage_monthly_payment = mortgage_monthly_installment;
+    alice.bank_account -= alice.mortgage_first_fee;
+}
+
+
+void alice_expenses(const int year, const int month)
+{
+    alice.bank_account -= alice.expenses;
+    if (month == 12) {
+        alice.expenses = (Money)(alice.expenses * (alice.inflation_pp / 100.));
+    }
+}
+
+
+void alice_salary_income(const int year, const int month)
+{
+    alice.bank_account += alice.salary;
+    if (month == 12) {
+        alice.salary = (Money)(alice.salary * (alice.inflation_pp / 100.));
+    }
+}
+
+
+void alice_house_price(const int year, const int month)
 {
     if (month == 12) {
-        bob.house_price += (Money)(bob.house_price * (bob.inflation_pp / 100.));
+        alice.house_price += (Money)(alice.house_price * (alice.inflation_pp / 100.));
     }
 }
 
@@ -132,21 +132,21 @@ void simulation()
     int month = 2;
     int year = 2024;
 
-    bob_mortgage_monthly_payment(bob.house_price - bob.mortgage_first_fee,
-        bob.mortgage_pp, 30 * 12);
+    alice_mortgage_monthly_payment(alice.house_price - alice.mortgage_first_fee,
+        alice.mortgage_pp, 30 * 12);
 
 
     while (!(year == 2054 && month == 2)) {
 
-        alice_deposite_income(year, month);
-        alice_salary_income(year, month);
-        alice_rent(year, month);
-        alice_expenses(year, month);  // траты на еду, коммунальные платежи, одежду
-
         bob_deposite_income(year, month);
         bob_salary_income(year, month);
+        bob_rent(year, month);
         bob_expenses(year, month);  // траты на еду, коммунальные платежи, одежду
-        bob_house_price(year, month);
+
+        alice_deposite_income(year, month);
+        alice_salary_income(year, month);
+        alice_expenses(year, month);  // траты на еду, коммунальные платежи, одежду
+        alice_house_price(year, month);
 
         ++month;
         if (month == 13) {
@@ -170,14 +170,14 @@ void print_person(const struct Person person)
 }
 void who_won(){
     
-    if (bob.bank_account + bob.house_price > alice.bank_account + alice.house_price)
+    if (alice.bank_account + alice.house_price > bob.bank_account + bob.house_price)
     {
-        printf ("bob_won\n");
+        printf ("alice_won\n");
         printf("\n");
     }
     else
     {
-        printf ("alice_won\n");
+        printf ("bob_won\n");
         printf("\n");
     }
     
@@ -186,13 +186,13 @@ void who_won(){
 
 int main()
 {
-    alice_init();
     bob_init();
+    alice_init();
 
     simulation();
 
-    print_person(alice);
     print_person(bob);
+    print_person(alice);
     
     who_won();
     return 0;
