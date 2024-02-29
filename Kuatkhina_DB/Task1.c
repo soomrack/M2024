@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef long long Cash;
+typedef long long Cash;  // Один тип данных для копеек
 
 struct Person {
     char* name;
