@@ -73,7 +73,8 @@ void matrix_init(struct Matrix* any_matrix, size_t cols, size_t rows) {
     any_matrix->cols = cols;
     any_matrix->rows = rows;
     any_matrix->data = (double*)malloc(any_matrix->cols * any_matrix->rows * sizeof(double));
-    
+    memset(any_matrix->data, 0.0, any_matrix->cols * any_matrix->rows * sizeof(double));
+
     if (any_matrix->data == NULL) {
         error_log(4);
         return;
@@ -166,18 +167,20 @@ void matrix_free_memory(struct Matrix *any_matrix) {
 
 
 struct Matrix matrix_summ(struct Matrix first_matrix, struct Matrix second_matrix) {
+    struct Matrix new_matrix = matrix_create_empty_for_simple_calculus(first_matrix);
+
     if ((first_matrix.data == NULL) || (second_matrix.data == NULL)) {
         error_log(1);
-        return first_matrix;
+        return new_matrix;
     }
     if ((first_matrix.rows != second_matrix.rows) || (first_matrix.cols != second_matrix.cols)) {
         error_log(7);
-        return first_matrix;
+        return new_matrix;
     }
-    struct Matrix new_matrix = matrix_create_empty_for_simple_calculus(first_matrix);
+
     if (new_matrix.cols * new_matrix.rows<=0) {
         error_log(2);
-        return first_matrix;
+        return new_matrix;
     }
 
     for (int index = 0; index < first_matrix.rows * first_matrix.cols; index++) {
@@ -188,18 +191,19 @@ struct Matrix matrix_summ(struct Matrix first_matrix, struct Matrix second_matri
 
 
 struct Matrix matrix_sub(struct Matrix first_matrix, struct Matrix second_matrix) {
+    struct Matrix new_matrix = matrix_create_empty_for_simple_calculus(first_matrix);
+
     if ((first_matrix.data == NULL) || (second_matrix.data == NULL)) {
         error_log(1);
-        return first_matrix;
+        return new_matrix;
     }
     if ((first_matrix.rows != second_matrix.rows) || (first_matrix.cols != second_matrix.cols)) {
         error_log(7);
-        return first_matrix;
+        return new_matrix;
     }
-    struct Matrix new_matrix = matrix_create_empty_for_simple_calculus(first_matrix);
     if (new_matrix.cols * new_matrix.rows <= 0) {
         error_log(2);
-        return first_matrix;
+        return new_matrix;
     }
 
     for (int index = 0; index < first_matrix.rows * first_matrix.cols; index++) {
@@ -210,16 +214,17 @@ struct Matrix matrix_sub(struct Matrix first_matrix, struct Matrix second_matrix
 
 
 struct Matrix matrix_scalar_mult(struct Matrix any_matrix,double scalar) {
+    struct Matrix new_matrix = matrix_create_empty_for_simple_calculus(any_matrix);
+
     if (any_matrix.data == NULL) {
         error_log(1);
-        return any_matrix;
+        return new_matrix;
     }
     if (any_matrix.cols * any_matrix.rows <= 0) {
         error_log(2);
-        return any_matrix;
+        return new_matrix;
     }
 
-    struct Matrix new_matrix = matrix_create_empty_for_simple_calculus(any_matrix);
     for (size_t index = 0; index < any_matrix.rows * any_matrix.cols; index++) {
         new_matrix.data[index] = any_matrix.data[index] * scalar;
     }
@@ -228,19 +233,20 @@ struct Matrix matrix_scalar_mult(struct Matrix any_matrix,double scalar) {
 
     
 struct Matrix matrix_mult(struct Matrix first_matrix, struct Matrix second_matrix) {
+    struct Matrix new_matrix = matrix_create_empty_for_mult(first_matrix, second_matrix);
+    
     if ((first_matrix.data == NULL) || (second_matrix.data == NULL)) {
         error_log(1);
-        return first_matrix;
+        return new_matrix;
     }
     if (first_matrix.rows != second_matrix.cols) {
         error_log(7);
-        return first_matrix;
+        return new_matrix;
     }
-    struct Matrix new_matrix = matrix_create_empty_for_mult(first_matrix, second_matrix);
     
     if (new_matrix.cols * new_matrix.rows<=0) {
         error_log(2);
-        return first_matrix;
+        return new_matrix;
     }
 
     for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
@@ -260,23 +266,24 @@ struct Matrix matrix_mult(struct Matrix first_matrix, struct Matrix second_matri
 
 
 struct Matrix matrix_power(struct Matrix any_matrix, const unsigned int power_number) {
+    struct Matrix new_matrix = matrix_create_empty_for_simple_calculus(any_matrix);
+    
     if (any_matrix.data == NULL) {
         error_log(1);
-        return any_matrix;
+        return new_matrix;
     }
     if (any_matrix.cols != any_matrix.rows) {
         error_log(8);
-        return any_matrix;
+        return new_matrix;
     }
     if (any_matrix.cols * any_matrix.rows<=0) {
         error_log(2);
-        return any_matrix;
+        return new_matrix;
     }
     
     if (power_number == 1) {
         return any_matrix;
     }
-    struct Matrix new_matrix;
     if (power_number == 0) {
         new_matrix = matrix_create_empty_for_mult(any_matrix, any_matrix);
         matrix_identity_fill(&new_matrix);
@@ -302,21 +309,21 @@ struct Matrix matrix_power(struct Matrix any_matrix, const unsigned int power_nu
 
 
 struct Matrix matrix_exp(struct Matrix any_matrix) {
+    struct Matrix new_matrix = matrix_create_empty_for_mult(any_matrix, any_matrix);
     if (any_matrix.data == NULL) {
         error_log(1);
-        return any_matrix;
+        return new_matrix;
     }
     if (any_matrix.cols != any_matrix.rows) {
         error_log(8);
-        return any_matrix;
+        return new_matrix;
     }
     if (any_matrix.cols * any_matrix.rows <= 0) {
         error_log(2);
-        return any_matrix;
+        return new_matrix;
     }
 
     const unsigned int accuracy = 50;
-    struct Matrix new_matrix = matrix_create_empty_for_mult(any_matrix, any_matrix);
     matrix_identity_fill(&new_matrix);
 
     struct Matrix submatrix;
@@ -351,24 +358,24 @@ struct Matrix matrix_exp(struct Matrix any_matrix) {
 
 
 struct Matrix matrix_create_for_minor(struct Matrix any_matrix, size_t col_number, size_t row_number) {
+    struct Matrix minor_matrix;
+    matrix_init(&minor_matrix, any_matrix.cols - 1, any_matrix.rows - 1);
+    
     if (any_matrix.data == NULL) {
         error_log(1);
-        return any_matrix;
+        return minor_matrix;
     }
     if (any_matrix.cols * any_matrix.rows <= 0) {
         error_log(2);
-        return any_matrix;
+        return minor_matrix;
     }
     if (!((col_number < any_matrix.cols) && (row_number < any_matrix.rows))) {
         error_log(9);
-        return any_matrix;
+        return minor_matrix;
     }
-
-    struct Matrix minor_matrix;
-    matrix_init(&minor_matrix, any_matrix.cols - 1, any_matrix.rows - 1);
     if (minor_matrix.cols * minor_matrix.rows<=0) {
         error_log(10);
-        return any_matrix;
+        return minor_matrix;
     }
 
     size_t origin_index = 0;
@@ -421,16 +428,16 @@ double matrix_determinant(struct Matrix any_matrix) {
 
 
 struct Matrix matrix_transposition(struct Matrix any_matrix) {
+    struct Matrix new_matrix = matrix_create_empty_for_simple_calculus(any_matrix);
+    
     if (any_matrix.data == NULL) {
         error_log(1);
-        return any_matrix;
+        return new_matrix;
     }
     if (any_matrix.cols * any_matrix.rows <= 0) {
         error_log(2);
-        return any_matrix;
+        return new_matrix;
     }
-    struct Matrix new_matrix;
-    matrix_init(&new_matrix, any_matrix.rows, any_matrix.cols);
 
     for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
         for (size_t current_row = 0; current_row < new_matrix.rows; current_row++) {
@@ -443,29 +450,29 @@ struct Matrix matrix_transposition(struct Matrix any_matrix) {
 
 
 struct Matrix inverse_matrix(struct Matrix any_matrix) {
+    struct Matrix inv_matrix = matrix_create_empty_for_simple_calculus(any_matrix);
     if (any_matrix.data == NULL) {
         error_log(1);
-        return any_matrix;
+        return inv_matrix;
     }
     if (any_matrix.cols != any_matrix.rows) {
         error_log(8);
-        return any_matrix;
+        return inv_matrix;
     }
     if (any_matrix.cols * any_matrix.rows <= 0) {
         error_log(2);
-        return any_matrix;
+        return inv_matrix;
     }
     double det = matrix_determinant(any_matrix);
     if (det == 0.0) {
         error_log(11);
-        return any_matrix;
+        return inv_matrix;
     }
     if (det == NAN) {
         error_log(12);
-        return any_matrix;
+        return inv_matrix;
     }
 
-    struct Matrix inv_matrix = matrix_create_empty_for_simple_calculus(any_matrix);
     void* inv_matrix_adresses[] = { inv_matrix.data,0 };
 
     for (size_t current_col = 0; current_col < inv_matrix.cols; current_col++) {
