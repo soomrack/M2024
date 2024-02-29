@@ -90,8 +90,8 @@ void how_much_flat_will_cost(){
 
 long entire_period_deposit_balance(Person person){
     long margin = (person.salary - person.expenses);
-    long balance = margin * 12 * recursive((1 + DEPOSIT_RATE),YEARS);
-    printf("On deposit for %d years: %ld\n", YEARS, balance);
+    long balance = margin * 12 * recursive((1 + DEPOSIT_RATE), YEARS);
+    printf("На балансе у %s за %d лет накопилось: %ld\n", person.name, YEARS, balance);
 
     return balance;
 }
