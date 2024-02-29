@@ -2,16 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 //функция которая проверяет вывели ли другие функции сообщения о коде ошибке
-//в степени и экспоненте память выделяется но не освобождается
 //проверить что выделенная память не превосходит size_t(size_max)
-//mem_set для заполнения нулей
 //return работает даже в void
-//записывать в массив адрес каждой выделенной памяти чтобы потом освободить все(мб сделать init не void чтоб без него нельзя было создать матрицу)
-// в цикле записывать адреса вплоть до n-1 элемента чтобы освободить весь массив не потеряв результат функции
-// или (лучше) функции операций должны не выделять память, а работать с одной и той же уже выделенной памятью
-//после очистки указатель приравнять к нулю, вернуть нулевую матрицу
 //определитель в случае ошибки пусть возвращает NaN
-//нужно сначала освободить массив через memset и только потом через free массив
 
 struct Matrix {
     size_t cols;
@@ -194,16 +187,23 @@ struct Matrix matrix_power(struct Matrix any_matrix, const unsigned int power_nu
         return any_matrix;
     }
 
-    struct Matrix new_matrix = matrix_create_empty_for_mult(any_matrix, any_matrix);
+    struct Matrix new_matrix;
     if (power_number == 0) {
+        new_matrix = matrix_create_empty_for_mult(any_matrix, any_matrix);
         matrix_identity_fill(&new_matrix);
         return new_matrix;
     }
     if (power_number > 1) {
         new_matrix = any_matrix;
-
+        void* new_matrix_adress = new_matrix.data;  // адрес памяти записан
 
         for (int current_power = 2; current_power <= power_number; current_power++) {
+
+            if (current_power > 2) {
+                memset(new_matrix_adress, 0.0, new_matrix.cols * new_matrix.rows * sizeof(double));
+                free(new_matrix_adress);
+                new_matrix_adress = new_matrix.data;  // память освобождена, адрес перезаписан
+            }
             new_matrix = matrix_mult(new_matrix, any_matrix);
             
         }
@@ -222,41 +222,36 @@ struct Matrix matrix_exp(struct Matrix any_matrix) {
         return any_matrix;
     }
     const unsigned int accuracy = 50;
-
     struct Matrix new_matrix = matrix_create_empty_for_mult(any_matrix, any_matrix);
-
     matrix_identity_fill(&new_matrix);
 
     struct Matrix submatrix;
     matrix_init(&submatrix, new_matrix.cols, new_matrix.rows);
     matrix_identity_fill(&submatrix);
 
-    void* submatrix_adresses[accuracy];
-    void* new_matrix_adresses[accuracy];
-    submatrix_adresses[0] = submatrix.data;
-    new_matrix_adresses[0] = new_matrix.data;
+    void* submatrix_adress = submatrix.data;  // адрес памяти записан
+    void* new_matrix_adress = new_matrix.data;  // адрес памяти записан
 
     for (int index = 1; index < accuracy; index++) {
+        if (index >1) {
+            memset(new_matrix_adress, 0.0, new_matrix.cols * new_matrix.rows * sizeof(double));
+            free(new_matrix_adress);
+            new_matrix_adress = new_matrix.data;  // память освобождена, адрес перезаписан
+        }
         submatrix = matrix_mult(submatrix, any_matrix);
+
+        memset(submatrix_adress, 0.0, submatrix.cols * submatrix.rows * sizeof(double));
+        free(submatrix_adress);
+        submatrix_adress = submatrix.data;  // память освобождена, адрес перезаписан
+
         submatrix = matrix_scalar_mult(submatrix, 1.0/index);
 
+        memset(submatrix_adress, 0.0, submatrix.cols * submatrix.rows * sizeof(double));
+        free(submatrix_adress);
+        submatrix_adress = submatrix.data;  // память освобождена, адрес перезаписан
+
         new_matrix = matrix_summ(new_matrix, submatrix);
-
-        submatrix_adresses[index] = submatrix.data;
-        if (index < accuracy - 1) {
-            new_matrix_adresses[index] = new_matrix.data;
-        }
-    }
-
-    for (int index = 0; index <accuracy; index++) {
-        memset(submatrix_adresses[index], 0.0, submatrix.cols * submatrix.rows * sizeof(double));
-        free(submatrix_adresses[index]);
-        if (index != accuracy - 1) {
-            memset(new_matrix_adresses[index], 0.0, new_matrix.cols * new_matrix.rows * sizeof(double));
-            free(new_matrix_adresses[index]);
-        }
-    }
-    
+    }    
     return new_matrix;
 }
 
@@ -390,17 +385,14 @@ int main()
 
 
     struct Matrix matrix_C=matrix_mult(matrix_A, matrix_B);
-    //matrix_identity_fill(&matrix_C);
+    matrix_identity_fill(&matrix_C);
     matrix_print(matrix_C);
-
-    /*
-    matrix_free_memory(&matrix_C);
 
     matrix_C = matrix_exp(matrix_C);
     matrix_print(matrix_C);
     matrix_free_memory(&matrix_C);
-    */
     
+    /*
     struct Matrix matrix_inv = inverse_matrix(matrix_C);
     matrix_print(matrix_inv);
     //printf("\n%f", matrix_determinant(matrix_C));
@@ -409,7 +401,7 @@ int main()
 
     matrix_free_memory(&matrix_C);
     matrix_free_memory(&matrix_inv);
-    
+    */
 
     //void* A_coords = matrix_A.data;
     //free(A_coords);
