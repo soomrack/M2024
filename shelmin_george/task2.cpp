@@ -75,7 +75,7 @@ void matrix_identity_fill(struct Matrix* any_matrix) {
         printf("память не выделена");
         return;
     }
-    matrix_zeros_fill(any_matrix);
+    memset(any_matrix->data, 0.0, any_matrix->cols * any_matrix->rows * sizeof(double));
     for (size_t col = 0; col < any_matrix->cols; col++) {
         any_matrix->data[col * any_matrix->rows + col] = 1.0;
     }
@@ -164,7 +164,6 @@ struct Matrix matrix_mult(struct Matrix first_matrix, struct Matrix second_matri
         return first_matrix;
     }
 
-
     for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
         for (size_t current_row = 0; current_row < new_matrix.rows; current_row++) {
             new_matrix.data[new_matrix.rows * current_col + current_row] = 0;
@@ -187,21 +186,23 @@ struct Matrix matrix_power(struct Matrix any_matrix, const unsigned int power_nu
         printf("размер матрицы не подходит");
         return any_matrix;
     }
-
-    struct Matrix new_matrix = matrix_create_empty_for_mult(any_matrix, any_matrix);
-    if (new_matrix.cols * new_matrix.rows<=0) {
+    if (any_matrix.cols * any_matrix.rows<=0) {
         printf("подана нулевая матрица");
         return any_matrix;
-    }
-    if (power_number == 0) {
-        matrix_identity_fill(&new_matrix);
-        return new_matrix;
     }
     if (power_number == 1) {
         return any_matrix;
     }
+
+    struct Matrix new_matrix = matrix_create_empty_for_mult(any_matrix, any_matrix);
+    if (power_number == 0) {
+        matrix_identity_fill(&new_matrix);
+        return new_matrix;
+    }
     if (power_number > 1) {
         new_matrix = any_matrix;
+
+
         for (int current_power = 2; current_power <= power_number; current_power++) {
             new_matrix = matrix_mult(new_matrix, any_matrix);
             
@@ -345,9 +346,7 @@ struct Matrix inverse_matrix(struct Matrix any_matrix) {
         return any_matrix;
     }
 
-    //size_t * inv_matrix_adresses = (size_t *)malloc(inv_matrix.cols * inv_matrix.rows * sizeof(size_t*));
-    //void* inv_matrix_adresses[100];
-    //inv_matrix_adresses[0] = * inv_matrix.data;
+    void* inv_matrix_adresses[] = { inv_matrix.data,0 };
 
 
     for (size_t current_col = 0; current_col < inv_matrix.cols; current_col++) {
@@ -362,7 +361,14 @@ struct Matrix inverse_matrix(struct Matrix any_matrix) {
         }
     }
     inv_matrix = matrix_scalar_mult(inv_matrix, 1 / det);
+    inv_matrix_adresses[1] = inv_matrix.data;
     inv_matrix = matrix_transposition(inv_matrix);
+    
+    memset(inv_matrix_adresses[0], 0.0, inv_matrix.cols * inv_matrix.rows * sizeof(double));
+    free(inv_matrix_adresses[0]);
+    memset(inv_matrix_adresses[1], 0.0, inv_matrix.cols * inv_matrix.rows * sizeof(double));
+    free(inv_matrix_adresses[1]);
+
     return inv_matrix;
 }
 
