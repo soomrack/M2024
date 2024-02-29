@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef long long Cash;  // Один тип данных для копеек
+typedef long long Cash;
 
 struct Person {
     char* name;
@@ -55,12 +55,12 @@ void alice_person() {  // Алиса
 
 void common_inflation() {  // Инфляция
     if (CURRENT_MONTH == 1) {
-        alice.salary = alice.salary * (Cash)(1.0 + INFLATION / 100.0);
-        FLAT = FLAT * (Cash)(1.0 + INFLATION / 100.0);
-        bob.salary = bob.salary * (Cash)(1.0 + INFLATION / 100.0);
-        FOOD = FOOD * (Cash)(1.0 + INFLATION / 100.0);
-        HOUSE = HOUSE * (Cash)(1.0 + INFLATION / 100.0);
-        OTHER = OTHER * (Cash)(1.0 + INFLATION / 100.0);
+        alice.salary *= (1.0 + INFLATION / 100.0);
+        FLAT *= (1.0 + INFLATION / 100.0);
+        bob.salary *= (1.0 + INFLATION / 100.0);
+        FOOD *= (1.0 + INFLATION / 100.0);
+        HOUSE *= (1.0 + INFLATION / 100.0);
+        OTHER *= (1.0 + INFLATION / 100.0);
     }
 }
 
@@ -68,7 +68,7 @@ void alice_job_promotion(){ // Повышение Алисы на работе �
     if (CURRENT_MONTH == 1){
 
     if ( (CURRENT_YEAR % 10 == 4) || (CURRENT_YEAR % 10 == 9) ) {
-        alice.salary = alice.salary * (Cash)(1.0 + JOB_PROMOTION_PERCENT / 100.0);
+        alice.salary *= (1.0 + JOB_PROMOTION_PERCENT / 100.0);
     }
     
     }
@@ -84,9 +84,9 @@ void alice_dohod() {  // Доход Алисы
 
 void bob_dohod() {  // Доход БОба
     if (CURRENT_MONTH == 1) {
-        bob.bank_capital = bob.bank_capital * (Cash)(1.0 + bob.saving_account_rate / 100.0);
+        bob.bank_capital *= (1.0 + bob.saving_account_rate / 100.0);
     }
-    bob.bank_capital = bob.bank_capital + bob.salary;
+    bob.bank_capital += bob.salary;
 }
 
 void alice_month_expences() {  // Расходы Алисы
@@ -105,15 +105,18 @@ void bob_month_expences() {  // Расходы Боба
 void print_information() {
     if (CURRENT_MONTH == 1) {
         printf("[Year: %d ]\n", CURRENT_YEAR);
-        printf("Alice's capital: %lld\n", (Cash)((alice.bank_capital + FLAT)/100.));
-        printf("Bob's capital: %lld\n\n", (Cash)(bob.bank_capital / 100.));
+        printf("Alice's capital: %lld\n", (Cash)((alice.bank_capital + FLAT) / 100.));
+        printf("(Alice's FLAT: %lld)\n", (Cash)(FLAT / 100.));
+        printf("Alice's salary: %lld\n", (Cash)(alice.salary / 100.));
+        printf("Bob's capital: %lld\n", (Cash)(bob.bank_capital / 100.));
+        printf("Bob's salary: %lld\n\n", (Cash)(bob.salary / 100.));
     }    
 
 }
 
 Cash persons_difference() {  // Расчёт разницы в доходах через 30 лет
     if (CURRENT_YEAR * 12 + CURRENT_MONTH == END_YEAR * 12 + END_MONTH - 1) {
-       Cash difference = (Cash)((alice.bank_capital + FLAT - bob.bank_capital) / 100.);
+        Cash difference = ((alice.bank_capital + FLAT - bob.bank_capital) / 100.);
        return difference;
     }
 }
@@ -124,6 +127,7 @@ void print_final() {
         printf("Final!\n");
 
         Cash money_difference = persons_difference();
+        printf("DIFFERENCE: %lld", money_difference);
 
         if ( money_difference > 0) {
             printf("Alice's strategy is more profitable! She became richer than Bob by %lld money!\n\n", money_difference);
