@@ -22,19 +22,18 @@ typedef struct {
     char* name;
 } Matrix;
 
-Matrix matrixA = {2, 2, 
+Matrix matrixA = {3, 3, 
     {{-1, 2, 3},
     {4, 5, 6},
-    },
+    {7, 8, 9}},
     "Matrix A"
 };
-Matrix matrixB = {3, 3,
+Matrix matrixB = {2, 2,
     {{1, 2, 3},
     {4, 5, 6},
-    {7, 8, 9}},
+    },
     "Matrix B"
 };
-Matrix matrixResult;
 Matrix matrixResult = {
     0,
     0,
@@ -193,22 +192,23 @@ void multiplication(Matrix *p_frst, Matrix *p_scnd, Matrix *p_rslt){
 void determinant(Matrix *p_mtrx){
     int det;
     if (p_mtrx->rows == p_mtrx->cols){
-        if (p_mtrx->rows == 2){
+        if (p_mtrx->rows == 2)
             det = p_mtrx->data[0][0] * p_mtrx->data[1][1] - p_mtrx->data[0][1] * p_mtrx->data[1][0];
-        }
         else if (p_mtrx->rows == 3){
-            printf("Требует доработки.");
-            exit(0);
+            // printf("Требует доработки.")
+            det = \
+            p_mtrx->data[0][0] * p_mtrx->data[1][1] *p_mtrx->data[2][2] +\
+            p_mtrx->data[1][0] * p_mtrx->data[2][1] *p_mtrx->data[0][2] +\
+            p_mtrx->data[0][1] * p_mtrx->data[1][2] *p_mtrx->data[2][0] -\
+            p_mtrx->data[2][0] * p_mtrx->data[1][1] *p_mtrx->data[0][2] -\
+            p_mtrx->data[2][1] * p_mtrx->data[1][2] *p_mtrx->data[0][0] -\
+            p_mtrx->data[1][0] * p_mtrx->data[0][1] *p_mtrx->data[2][2];
         }
-        else{
+        else
             printf("Матрица больше, чем ожидалось.");
-            exit(0);
-        }
     }
-    else{
+    else
         printf("Матрица не квадратная.");
-        exit(0);
-    }
     printf("Определитель %s равен:%d\n", p_mtrx->name, det);
     exit(0);
 }
