@@ -10,6 +10,7 @@
 // Разница адресов необходима для корректного перемещения указателя. Просто pointer++; делать нельзя (почему - описано выше).
 // Для нахождения разницы адресов используется функция address_difference().
 // Или использовать линейный массив, к чему я скорее всего и приду :)
+// Или не придумывать проблемы и использовать указатели на матрицы
 
 #include <stdio.h>
 #include <stddef.h>
@@ -18,20 +19,32 @@ typedef struct {
     int rows;
     int cols;
     int data[50][50];  // Вы можете выбрать максимальный размер матрицы
+    char* name;
 } Matrix;
 
-Matrix matrixA = {3, 3, 
-    {{1, 2, 3},
+Matrix matrixA = {2, 2, 
+    {{-1, 2, 3},
     {4, 5, 6},
-    {7, 8, 9}}
+    },
+    "Matrix A"
 };
 Matrix matrixB = {3, 3,
     {{1, 2, 3},
     {4, 5, 6},
-    {7, 8, 9}}
+    {7, 8, 9}},
+    "Matrix B"
 };
 Matrix matrixResult;
-// Matrix matrixResult = {3, 3, {{0}}};
+Matrix matrixResult = {
+    0,
+    0,
+    {{0}},
+    "Matrix Result"};
+
+Matrix *p_mtrxA = &matrixA;
+Matrix *p_mtrxB = &matrixB;
+Matrix *p_mtrxRslt = &matrixResult;
+
 
 // Pre-действия: выбор операции
 void operation_choosing(){
@@ -57,22 +70,25 @@ void operation_choosing(){
     printf("------------\n");
 
     switch (task_number){
-    case 1: // TODO matrixA.data[0][3] универсальность кода
+    case 1:
         printf("Вы выбрали %s.\n", task_name_multiplication_by_number);
-        multiplication_by_number(&matrixA.data[0][0], &matrixResult.data[0][0], matrixA.rows, matrixA.cols, \
-            address_difference(&matrixA.data[0][2], &matrixA.data[1][0]));
+        multiplication_by_number(&matrixA, &matrixResult);
         break;
     case 2:
-        printf("Вы выбрали %s.\n", task_name_summation);        
+        printf("Вы выбрали %s.\n", task_name_summation);
+        summation(&matrixA, &matrixB, &matrixResult);
         break;
     case 3:
-        printf("Вы выбрали %s.\n", task_name_subtraction);        
+        printf("Вы выбрали %s.\n", task_name_subtraction);
+        subtraction(&matrixA, &matrixB, &matrixResult);
         break;
     case 4:
-        printf("Вы выбрали %s.\n", task_name_multiplication);        
+        printf("Вы выбрали %s.\n", task_name_multiplication);
+        multiplication(&matrixA, &matrixB, &matrixResult); 
         break;
     case 5:
-        printf("Вы выбрали %s.\n", task_name_determinant);        
+        printf("Вы выбрали %s.\n", task_name_determinant);   
+        determinant(&matrixA);
         break;
     default:
         printf("Некорректный ввод.\n");
@@ -91,60 +107,114 @@ void matrix_fill(Matrix matrix){
     }
 }
 
-// Вывод копии матрицы на экран
-void copy_matrix_print(Matrix matrix){
-    int *p;
-    for (int i = 0; i < matrix.rows; ++i) {
-        for (int j = 0; j < matrix.cols; ++j) {
-            p = &matrix.data[i][j];
-            printf("address=%p \t value=%d \n", (void*)p, *p);
+// Вывод матрицы на экран
+void matrix_print(Matrix *p_mtrx){
+    printf("------%s------\n", p_mtrx->name);
+    for (int i = 0; i < p_mtrx->rows; ++i) {
+        for (int j = 0; j < p_mtrx->cols; ++j) {
+            // Пока матрица выводится будет в таком виде
+            printf("address=%p \t value=%d \n", &p_mtrx->data[i][j], p_mtrx->data[i][j]);
         // printf("\n");
         }
     }
 }
 
-// Вывод оригинальной матрицы
-void original_matrix_print(int *mtrx, int rows, int cols){
-
-}
-
-// Нахождение разницы адресов
-ptrdiff_t address_difference(int *p_first_arr_element, int *p_second_arr_element){
-        printf("ptrdiff_t: %lld\n", p_first_arr_element - p_second_arr_element);
-        return p_first_arr_element - p_second_arr_element;
-}
-
 // Умножение матрицы на число
-void multiplication_by_number(int *pold, int *pnew, int rows, int cols, ptrdiff_t p_addr_dif){
+void multiplication_by_number(Matrix *p_old, Matrix *p_new){
+    p_new->rows = p_old->rows;
+    p_new->cols = p_old->cols;
+
     printf("Пожалуйста, введите ЦЕЛОЕ число, на которое нужно умножить матрицу.\n");
     int number;
     scanf("%d", &number);
 
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            *pnew = *pold * number;
-            pnew++;
-            pold++;
+    for (int i = 0; i < p_new->rows; ++i) {
+        for (int j = 0; j < p_new->cols; ++j) {
+            p_new->data[i][j] = p_old->data[i][j] * number;
         }
-        printf("pold: address=%p \t value=%d \n", (void*)pold, *pold);
-        pold = pold + p_addr_dif;
-        printf("pold: address=%p \t value=%d \n", (void*)pold, *pold);
     }
 }
 
+// Сложение матриц
+void summation(Matrix *p_frst, Matrix *p_scnd, Matrix *p_rslt){
+    if (p_frst->rows == p_scnd->rows && p_frst->cols == p_scnd->cols){
+        p_rslt->rows = p_frst->rows;
+        p_rslt->cols = p_frst->cols;
+
+        for (int i = 0; i < p_rslt->rows; ++i) {
+            for (int j = 0; j < p_rslt->cols; ++j) {
+                p_rslt->data[i][j] = p_frst->data[i][j] + p_scnd->data[i][j];
+            }
+        }
+    }
+    else {
+        printf("Размеры матриц не равны.\n");
+        exit(0);
+    }
+}
+
+// Вычитание матриц
+void subtraction(Matrix *p_frst, Matrix *p_scnd, Matrix *p_rslt){
+    if (p_frst->rows == p_scnd->rows && p_frst->cols == p_scnd->cols){
+        p_rslt->rows = p_frst->rows;
+        p_rslt->cols = p_frst->cols;
+
+        for (int i = 0; i < p_rslt->rows; ++i) {
+            for (int j = 0; j < p_rslt->cols; ++j) {
+                p_rslt->data[i][j] = p_frst->data[i][j] - p_scnd->data[i][j];
+            }
+        }
+    }
+    else {
+        printf("Размеры матриц не равны.\n");
+        exit(0);
+    }
+}
+
+// Умножение матриц
+void multiplication(Matrix *p_frst, Matrix *p_scnd, Matrix *p_rslt){
+    if (p_frst->cols == p_scnd->rows){
+        p_rslt->rows = p_frst->rows;
+        p_rslt->cols = p_frst->cols;
+
+        for (int i = 0; i < p_rslt->rows; ++i) {
+            for (int j = 0; j < p_rslt->cols; ++j) {
+                p_rslt->data[i][j] = p_frst->data[i][j] * p_scnd->data[i][j];
+            }
+        }
+    }
+    else {
+        printf("Количество стобцов первой матрицы не равно количеству строк второй матрицы.\n");
+        exit(0);
+    }
+}
+
+// Нахождение определителя
+void determinant(Matrix *p_mtrx){
+    int det;
+    if (p_mtrx->rows == p_mtrx->cols){
+        if (p_mtrx->rows == 2){
+            det = p_mtrx->data[0][0] * p_mtrx->data[1][1] - p_mtrx->data[0][1] * p_mtrx->data[1][0];
+        }
+        else if (p_mtrx->rows == 3){
+            printf("Требует доработки.");
+            exit(0);
+        }
+        else{
+            printf("Матрица больше, чем ожидалось.");
+            exit(0);
+        }
+    }
+    else{
+        printf("Матрица не квадратная.");
+        exit(0);
+    }
+    printf("Определитель %s равен:%d\n", p_mtrx->name, det);
+    exit(0);
+}
+
 int main(){
-
-    operation_choosing();
-
-    int a = 10;
-    int b = 23;
-    int *pa = &a;
-    int *pb = &b;
-    ptrdiff_t c = pa - pb;  // разница между адресами
-     
-    printf("pa=%p \n", (void*)pa);
-    printf("pb=%p \n", (void*)pb);
-    printf("c=%lld \n", c);
-
+    operation_choosing();    
+    matrix_print(&matrixResult);
     return 0;
 }
