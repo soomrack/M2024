@@ -53,6 +53,7 @@ void alice_print() {
     printf("Алиса тратит %lld \n", A.expenses);
     printf("Алиса накопит %lld \n", A.deposit);
     printf("Алиса платит за ипотеку %lld \n", A.flat_payment);
+    printf("Алиса зарабатывает %lld \n", A.salary);
     printf("\n");
 }
 
@@ -67,6 +68,7 @@ void bob_print() {
     else {
         printf("Боб купил квартиру в %d году\n", TIME_OF_BUYING_FLAT);
     }
+    printf("Боб зарабатывает %lld \n", B.salary);
 }
 
 
@@ -108,6 +110,17 @@ void bob_buy_flat(int year, int month) {
     }
 }
 
+void alice_force_majeure(int year, int month) {
+    if (year == NOW_YEAR + 3) {
+        if (month < 3){
+            A.salary = 0;
+        }
+        else {
+            A.salary = 1.5 * SALARY;
+        }
+    }   
+}
+
 
 void inflation(int year, int month) {
     if (month % 12 == 0) {
@@ -124,6 +137,8 @@ void simulation() {
     int month = NOW_MONTH;
     int year = NOW_YEAR;
     while (!(year == NOW_YEAR + YEARS && month == NOW_MONTH)) {
+        alice_force_majeure(year, month);
+        
         alice_bank(year, month);
         bob_bank(year, month);
 
@@ -134,7 +149,7 @@ void simulation() {
                
         alice_flat_payment(year, month);
         bob_flat_payment(year, month);
-    
+            
         inflation(year, month);
         
         month += 1;
