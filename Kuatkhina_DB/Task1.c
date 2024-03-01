@@ -127,13 +127,12 @@ void print_final() {
         printf("Final!\n");
 
         Cash money_difference = persons_difference();
-        printf("DIFFERENCE: %lld", money_difference);
 
         if ( money_difference > 0) {
-            printf("Alice's strategy is more profitable! She became richer than Bob by %lld money!\n\n", money_difference);
+            printf("Alice's strategy is more profitable! She became richer than Bob by %lld rubles!\n\n", money_difference);
         } 
         else {
-            printf("Bob's strategy is more profitable! He became richer than Alice by %lld money!\n\n", llabs( money_difference ));
+            printf("Bob's strategy is more profitable! He became richer than Alice by %lld rubles!\n\n", llabs( money_difference ));
         }
 
     }
