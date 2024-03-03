@@ -84,6 +84,7 @@ void simulate_financial_operations(struct apartment_and_finance data, double mon
 
     // Вычисление капитала Alice с учетом стоимости квартиры в итоге
     *alice_final_capital = total_alice_earnings - total_alice_payments + data.apartment_price;
+
     // Вычисление капитала Bob с учетом стоимости квартиры в итоге
     *bob_final_capital = total_bob_savings_with_interest - total_bob_payments + data.apartment_price;
 }
