@@ -2,15 +2,14 @@
 #include <math.h>
 #include <locale.h>
 #include <stdlib.h>
-#include <time.h>
 
 
-typedef long long int Money; // kopeiki
-double inflation = 12 * 0.01;
-double deposit_rate = 16 * 0.01;
-double mortgage_percentage = 18 * 0.01;
-int loan_years = 30;
-Money Alice_payment;
+typedef long long int Money; // rub
+double INFLIATION = 12 * 0.01;
+double DEPOSIT_RATE = 16 * 0.01;
+double MORTGAGE_PERCENTAGE = 18 * 0.01;
+int LOAN_YEARS = 30;
+Money ALICE_PAYMENT;
 
 struct Person
 {
@@ -23,162 +22,238 @@ struct Person
     int loan_years;
     Money contribution;
     Money appartment_repair;
+    Money deposit;
 };
 
 
 struct Person Alice
 {
-    Alice.salary = 300 * 1000 * 100,
-    Alice.food_spending = 15 * 1000 * 100,
-    Alice.home_price = 20 * 1000 * 1000 * 100,
+    Alice.salary = 300 * 1000,
+    Alice.food_spending = 15 * 1000,
+    Alice.home_price = 20 * 1000 * 1000,
     Alice.rent = 0,
-    Alice.additional_spendings = 50 * 1000 * 100,
-    Alice.savings = 2 * 1000 * 1000 * 100,
+    Alice.additional_spendings = 50 * 1000,
+    Alice.savings = 2 * 1000 * 1000,
     Alice.loan_years = 30,
-    Alice.contribution = 2 * 1000 * 1000 * 100,
-    Alice.appartment_repair = 150 * 1000 * 100
+    Alice.contribution = 2 * 1000 * 1000,
+    Alice.appartment_repair = 150 * 1000,
+    Alice.deposit = 0
 };
 
 
 struct Person Bob
 {
-    Bob.salary = 300 * 1000 * 100,
-    Bob.food_spending = 15 * 1000 * 100,
+    Bob.salary = 300 * 1000,
+    Bob.food_spending = 15 * 1000,
     Bob.home_price = 0,
-    Bob.rent = 25 * 1000 * 100,
-    Bob.additional_spendings = 50 * 1000 * 100,
-    Bob.savings = 2 * 1000 * 1000 * 100,
+    Bob.rent = 25 * 1000,
+    Bob.additional_spendings = 50 * 1000,
+    Bob.savings = 2 * 1000 * 1000,
     Alice.loan_years = 30,
     Bob.contribution = 0,
-    Bob.appartment_repair = 0
+    Bob.appartment_repair = 0,
+    Bob.deposit = 0
 };
 
 
-void Bob_indexation(const int month, const int year) // indexacia
+void Alice_indexation() 
 {
-    Bob.salary += Bob.salary * inflation;
-    Bob.food_spending += Bob.food_spending * inflation;
-    Bob.home_price += Bob.home_price * inflation;
-}
-
-
-void Alice_indexation() // indexacia
-{
-    Alice.salary += Alice.salary * inflation;
-    Alice.food_spending += Alice.food_spending * inflation;
-    Alice.home_price += Alice.home_price * inflation;
-    Alice.additional_spendings += Alice.additional_spendings * inflation;
+    Alice.salary += Alice.salary * INFLIATION;
+    Alice.food_spending += Alice.food_spending * INFLIATION;
+    Alice.home_price += Alice.home_price * INFLIATION;
+    Alice.additional_spendings += Alice.additional_spendings * INFLIATION;
 }
 
 
 void Alice_mortgage() // raschet plati za ipoteku
 {
-    double monthly_rate = mortgage_percentage / 12; //ЕЖЕМЕСЯЧНАЯ_СТАВКА = ПРОЦЕНТНАЯ_СТАВКА_ГОДОВЫХ / 12
-    double total_rate = pow(1 + monthly_rate, loan_years * 12); // ОБЩАЯ_СТАВКА = (1 + ЕЖЕМЕСЯЧНАЯ_СТАВКА) ^ СРОК_ИПОТЕКИ_МЕСЯЦЕВ
-    Alice_payment = (Alice.home_price - Alice.savings) * monthly_rate * total_rate / (total_rate - 1);// ЕЖЕМЕСЯЧНЫЙ_ПЛАТЕЖ = СУММА_КРЕДИТА * ЕЖЕМЕСЯЧНАЯ_СТАВКА * ОБЩАЯ_СТАВКА / (ОБЩАЯ_СТАВКА - 1)
+    double monthly_rate = MORTGAGE_PERCENTAGE / 12; //ЕЖЕМЕСЯЧНАЯ_СТАВКА = ПРОЦЕНТНАЯ_СТАВКА_ГОДОВЫХ / 12
+    double total_rate = pow(1 + monthly_rate, LOAN_YEARS * 12); // ОБЩАЯ_СТАВКА = (1 + ЕЖЕМЕСЯЧНАЯ_СТАВКА) ^ СРОК_ИПОТЕКИ_МЕСЯЦЕВ
+    ALICE_PAYMENT = (Alice.home_price - Alice.savings) * monthly_rate * total_rate / (total_rate - 1);// ЕЖЕМЕСЯЧНЫЙ_ПЛАТЕЖ = СУММА_КРЕДИТА * ЕЖЕМЕСЯЧНАЯ_СТАВКА * ОБЩАЯ_СТАВКА / (ОБЩАЯ_СТАВКА - 1)
 }
 
 
-void Alice_get_salary() //zp
+void Alice_get_salary() 
 {
     Alice.savings += Alice.salary;
 }
 
 
-void Bob_get_salary() //zp
-{
-    Bob.savings += Bob.salary;
-}
-
-
-void Alice_get_food() //eda
+void Alice_get_food() 
 {
     Alice.savings -= Alice.food_spending;
 }
 
 
-void Bob_get_food() //eda
-{
-    Bob.savings -= Bob.food_spending;
-}
-
-void Alice_buy_home() //pokupka hati
+void Alice_buy_home() 
 {
     Alice.savings -= Alice.contribution;
 }
 
 
-void Alice_mortgage_payment() //platej po ipoteke
+void Alice_mortgage_payment() 
 {
-    Alice.savings -= Alice_payment;
+    Alice.savings -= ALICE_PAYMENT;
 }
 
 
-void Alice_additional_spendings() //dop rashodi
+void Alice_additional_spendings() 
 {
     Alice.savings -= Alice.additional_spendings;
 }
 
 
-void Alice_deposit() // deposit 
+void Alice_rand_spendings()
 {
-    ;
+   int rand_spendings = rand() % 10;
+
+    if (rand_spendings == 5)
+    {
+        Alice_additional_spendings();
+    }
 }
-void Alice_savings() // sberejenia 
+
+
+void Alice_appartment_repair()
+{
+    Alice.savings -= Alice.appartment_repair;
+}
+
+
+void Alice_deposit() 
+{
+    int Alice_deposit_profit;
+    Alice.savings -= ALICE_PAYMENT;
+    Alice.deposit += ALICE_PAYMENT;
+    Alice_deposit_profit = Alice.deposit * DEPOSIT_RATE / 365 * 30;
+    Alice.deposit += Alice_deposit_profit;
+}
+
+
+void Bob_indexation()
+{
+    Bob.salary += Bob.salary * INFLIATION;
+    Bob.food_spending += Bob.food_spending * INFLIATION;
+    Bob.rent += Bob.rent * INFLIATION;
+}
+
+
+void Bob_get_salary()
+{
+    Bob.savings += Bob.salary;
+}
+
+
+void Bob_get_food()
+{
+    Bob.savings -= Bob.food_spending;
+}
+
+
+void Bob_additional_spendings()
+{
+    Bob.savings -= Bob.additional_spendings;
+}
+
+
+void Bob_rand_spendings()
+{
+    int rand_spendings = rand() % 10;
+
+    if (rand_spendings == 5)
+    {
+        Bob_additional_spendings();
+    }
+}
+
+
+void Bob_deposit()
+{
+    int Bob_deposit_profit;
+    Bob.deposit += (Bob.salary - Bob.home_price - Bob.additional_spendings - Bob.rent);
+    Bob_deposit_profit = Bob.deposit * DEPOSIT_RATE / 365 * 30;
+    Bob.deposit += Bob_deposit_profit;
+}
+
+
+void Alice_simulation()  
 { 
     int month = 2;
-    int rand_spendings;
+    int year = 2024;
     Alice_mortgage();
     Alice_buy_home();
-    for (int year = 2024; year <= year + 30; year++)
-    {
-        
-        for (; month <= 12; month++)
+    while(year <= (year + LOAN_YEARS))
         {
             Alice_get_salary();
             Alice_get_food();
             Alice_mortgage_payment();
-            rand_spendings = rand() % 10;
-
-            if (rand_spendings == 5)
-            {
-                Alice_additional_spendings();
-            }
+            Alice_rand_spendings();
 
             if (year == 2024 && (month == 2 || month == 3))
             {
-                Alice.savings -= Alice.appartment_repair;
+                Alice_appartment_repair();
             }
 
-            if (month == 12)
+            if (Alice.savings >= (ALICE_PAYMENT * 2))
+            {
+                Alice_deposit();
+            }
+
+            if (year == 2024 + LOAN_YEARS && month == 2) 
             {
                 break;
             }
 
-            if (year == 2024 + 30 && month == 2) 
-            {
-                goto exit_loop;
-            }
+            month++;
 
-            if (Alice.savings > 0)
+            if (month == 13)
             {
-                ;
+                month = 1;
+                year++;
+                Alice_indexation();
             }
-
         }
-        Alice_indexation();
-        month = 1;
-        //printf("month= %d, year= %d, AS=%lld\n", month, year, Alice.salary / 100);
-    }
-exit_loop: 
-    //printf("month= %d, year= %d, AS=%lld\n", month, year1, Alice.salary / 100);
     Alice.savings += Alice.home_price;
+    Alice.savings += Alice.deposit;
 }
 
 
+void Bob_simulation()
+{
+    int month = 2;
+    int year = 2024;
+    while (year <= (year + LOAN_YEARS))
+    {
+        Bob_get_salary();
+        Bob_get_food();
+        Bob_rand_spendings();
+        Bob_deposit();
+
+        if (year == 2024 + LOAN_YEARS && month == 2)
+        {
+            break;
+        }
+
+        month++;
+
+        if (month == 13)
+        {
+            month = 1;
+            year++;
+            Bob_indexation();
+        }
+    }
+    Bob.savings += Bob.deposit;
+}
 int main()
 {
-    Alice_savings();
-    printf("AS=%lld\n", Alice.savings / 100);
+    Alice_simulation();
+    Bob_simulation();
+    setlocale(LC_ALL, "Rus");
+    printf("Сбережения Элис = %lld руб\nСбережения Боба = %lld руб\n", Alice.savings, Bob.savings);
+    if (Alice.savings > Bob.savings)
+        printf("У Элис вышло больше денег");
+    else
+        printf("У Боба вышло больше денег");
     return 1;
 }
