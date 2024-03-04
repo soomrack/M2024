@@ -44,24 +44,26 @@ void Alice_initially() {
 
 cents Alice_month_pay() {
 	double month_per = BANK_PERCENT / 12;
-	cents bob_month_payment = (FLAT_COST - START_SUM) * (month_per + (month_per / (pow(1 + month_per, YEARS_COUNT * 12) - 1)));
+	cents bob_month_payment = (FLAT_COST - START_SUM) *
+ (month_per + (month_per / (pow(1 + month_per, YEARS_COUNT * 12) - 1)));
 	return bob_month_payment;
 }
-
+	
 void Alice_add_salary(const int year, const int month) {
 
 
-	if (month == 7 && (year == 2040 || year == 2041)) {
+	if (month == 40 || month == 52) {
 		Alice.bank_account += 0;
 	}
-	else	if (month == 3 && year == 2030) {
-		for (int month = 3; month <= 6; month++) {
-			Alice.bank_account += 0;
-		}
+
+	if (month >= 25 && month <= 29) {
+		Alice.bank_account += 0;
 	}
-	else  if (month == 7 && year == 2030) {
+
+	if (month == 30) {
 		Alice.salary *= 2;
 	}
+
 	else {
 		Alice.bank_account += Alice.salary;
 	}
@@ -110,12 +112,13 @@ void Bob_bank_percent(const int year, const int month)
 void Alice_bank_percent(const int year, const int month) {
 	Alice.bank_account *= (1 + BANK_PERCENT / 12);
 }
+		
 
 void Alice_inflation(const int year, const int month) {
 	flat_cost *= (1 + INFLATION / 12);
 }
 
-void result() {
+void print_result() {
 	double alice_sum = flat_cost + Alice.bank_account;
 	double bob_sum = Bob.bank_account;
 	alice_sum /= 100;
@@ -125,31 +128,30 @@ void result() {
 }
 
 void simulation(const cents alice_month_payment) {
-	for (int year = YEAR; year <= YEAR + YEARS_COUNT; year++) {
-		for (int month = MONTH; month <= 12; month++) {
+	int year = YEAR;
+	int years_count = YEARS_COUNT;
+	int month = MONTH;
 
-			if (year == YEAR + YEARS_COUNT && month == MONTH + 1) {
-				break;
-			}
+	while (month != MONTH + 12 * years_count) {
 
+
+			Bob_bank_percent(year, month);
 			Bob_add_salary(month);
 			Bob_rent(year, month);
 			Bob_spend_for_life(year, month);
-			Bob_bank_percent(year, month);
-
+			
 			Alice_add_salary(year, month);
 			Alice_payment(alice_month_payment);
 			Alice_spend_for_life(year, month);
 			Alice_bank_percent(year, month);
 			Alice_inflation(year, month);
 
+			++month;
+
 			if (month == 12) {
-				month = 0;
-				break;
+				++year;
 			}
 		}
-
-	}
 }
 
 
@@ -157,9 +159,12 @@ int main() {
 	
 	Bob_initially();
 	Alice_initially();
+
 	cents alice_month_payment = Alice_month_pay();
+
 	simulation(alice_month_payment);
-	result();
+	print_result();
 
 	return 0;
 }
+
