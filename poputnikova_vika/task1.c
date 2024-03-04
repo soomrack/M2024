@@ -148,8 +148,10 @@ void simulation() {
 
 
 void print() {
-    printf("\nБаланс Боба: %lld\n", bob.balance);
-    printf("\nБаланс Алисы: %lld\n", alice.balance);
+    printf("\nБаланс Боба: %lld %s", bob.balance/100, "рублей");
+    printf(" %02d %s\n", bob.balance % 100, "копеек");
+    printf("\nБаланс Алисы: %lld %s", alice.balance/100, "рублей");
+    printf(" %02d %s\n", alice.balance % 100, "копеек");
 }
 
 
