@@ -2,5 +2,5 @@ task1/a.out
 .vscode/
 Unity/
 copy_repo.sh
-task2/main*
+task*/main.exe
 task2/test*

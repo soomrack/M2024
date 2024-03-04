@@ -24,9 +24,7 @@ typedef struct{
     int flat_renovation_years;
     bool hasCredit;
 } Person;
-
 Person alice = {"Alice", 150 * 1000, 30 * 1000, 2, true};
-
 Person bob = { "Bob", 150 * 1000, 30 * 1000 + 20 * 1000, 0, false};
 
 // Считает степень
@@ -82,10 +80,11 @@ void how_much_person_will_pay_for_YEARS(Person person, long value, long time_uni
     }
 }
 
-void how_much_flat_will_cost(){
+long how_much_flat_will_cost(){
     // стоимость * на 30летнию инфляцию
     long flat_will_cost = FLAT_PRICE * (recursive((1 + INFLATION), YEARS));
     printf("Через %d лет квартира будет стоит: %ld\n", YEARS, flat_will_cost);
+    return flat_will_cost;
 }
 
 long entire_period_deposit_balance(Person person){
@@ -101,41 +100,10 @@ long main() {
     annuity_monthly_payment(&monthly_payment);
     how_much_person_will_pay_for_YEARS(alice, alice.expenses, YEARS, &monthly_payment);
     how_much_person_will_pay_for_YEARS(bob, bob.expenses, YEARS, &monthly_payment);
-    how_much_flat_will_cost();
-    entire_period_deposit_balance(bob);
-    // double alice_payment_for_credit_for_YEARS = annuity_monthly_payment()* MONTHS;
-    // double alice_wastes_for_YEARS = \
-    // how_much_person_will_pay_for_YEARS(WASTES, YEARS) + how_much_person_will_pay_for_YEARS(FLAT_RENOVATION, FLAT_RENOVATION_YEARS);
-    // double alice_all_payments_for_YEARS = annuity_monthly_payment()* MONTHS \
-    // + how_much_person_will_pay_for_YEARS(WASTES, YEARS) + how_much_person_will_pay_for_YEARS(FLAT_RENOVATION, FLAT_RENOVATION_YEARS);
-// 
-    // double bob_wastes_for_YEARS = how_much_person_will_pay_for_YEARS((WASTES + FLAT_RENT), YEARS);
-    // double flat_price_after_YEARS = FLAT_PRICE * recursive((1 + INFLATION), YEARS);
-// 
-    // printf("---------ALICE---------\n");
-    // printf("Alice payment for credit for %d years: %.0f\n", YEARS, alice_payment_for_credit_for_YEARS);
-    // printf("Alice wastes for %d years without credit: %.0f\n", YEARS, alice_wastes_for_YEARS);
-    // printf("Alice payment for credit and wastes for 30 %d years: %.0f\n", YEARS, alice_all_payments_for_YEARS);
-// 
-    // printf("---------BOB---------\n");
-    // printf("Bob has spent money for %d years: %.0f\n", YEARS, bob_wastes_for_YEARS);
-    // printf("After %d years flat will cost: %.0f\n", YEARS, flat_price_after_YEARS);
-    // double bob_deposit_balance = entire_period_deposit_balance();
-// 
-    // printf("---------FINALLY---------\n");
-    // if (alice_all_payments_for_YEARS != bob_wastes_for_YEARS){
-        // if (alice_all_payments_for_YEARS < bob_wastes_for_YEARS)
-            // printf("Alice spent less money.\n");
-        // else
-            // printf("Bob spent less money.\n");
-    // }
-    // else
-        // printf("Strangely, they spent the same amount\n");
-// 
-    // if (bob_deposit_balance < flat_price_after_YEARS)
-        // printf("Unfortunately Bob didn't save enough money up for an apartment:(\n");
-    // else
-        // printf("Bob can buy a flat!\n");
+    if (entire_period_deposit_balance(bob) < how_much_flat_will_cost())
+        printf("Боб не сможет купить квартиру.\n");
+    else
+        printf("Боб может купить  квартиру.\n");
 
     return 0;    
 }
