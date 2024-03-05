@@ -61,12 +61,17 @@ void error_log(const unsigned int number) {
 
 
 void matrix_init(struct Matrix* any_matrix, size_t cols, size_t rows) {
+    any_matrix->cols = 0;
+    any_matrix->rows = 0;
+    
     if (cols * rows <= 0) {
+        any_matrix->data = NULL;
         error_log(2);
         return;
     }
     long double size_check = SIZE_MAX / (cols * rows * sizeof(double));
     if (size_check < 1.0) {
+        any_matrix->data = NULL;     
         error_log(3);
         return;
     }
@@ -75,8 +80,6 @@ void matrix_init(struct Matrix* any_matrix, size_t cols, size_t rows) {
     any_matrix->data = (double*)malloc(any_matrix->cols * any_matrix->rows * sizeof(double));
 
     if (any_matrix->data == NULL) {
-    any_matrix->cols = 0;
-    any_matrix->rows = 0;
         error_log(4);
         return;
     }
@@ -177,7 +180,7 @@ struct Matrix matrix_summ(struct Matrix first_matrix, struct Matrix second_matri
         return new_matrix;
     }
 
-    for (int index = 0; index < first_matrix.rows * first_matrix.cols; index++) {
+    for (size_t index = 0; index < first_matrix.rows * first_matrix.cols; index++) {
         new_matrix.data[index] = first_matrix.data[index] + second_matrix.data[index];
     }
     return new_matrix;
