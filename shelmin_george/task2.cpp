@@ -73,9 +73,10 @@ void matrix_init(struct Matrix* any_matrix, size_t cols, size_t rows) {
     any_matrix->cols = cols;
     any_matrix->rows = rows;
     any_matrix->data = (double*)malloc(any_matrix->cols * any_matrix->rows * sizeof(double));
-    memset(any_matrix->data, 0.0, any_matrix->cols * any_matrix->rows * sizeof(double));
 
     if (any_matrix->data == NULL) {
+    any_matrix->cols = 0;
+    any_matrix->rows = 0;
         error_log(4);
         return;
     }
@@ -101,10 +102,6 @@ struct Matrix matrix_create_empty_for_mult(struct Matrix first_matrix, struct Ma
 
 
 void matrix_random_fill(struct Matrix *any_matrix) {
-    if (any_matrix->data == NULL) {
-        error_log(1);
-        return;
-    }
     for (size_t index = 0; index < any_matrix->cols * any_matrix->rows; index++) {
         any_matrix->data[index] = double(rand() % 1000000) / 10000;
     }
@@ -112,10 +109,6 @@ void matrix_random_fill(struct Matrix *any_matrix) {
 
 
 void matrix_zeros_fill(struct Matrix* any_matrix) {
-    if (any_matrix->data == NULL) {
-        error_log(1);
-        return;
-    }
     memset(any_matrix->data, 0.0, any_matrix->cols * any_matrix->rows * sizeof(double));
 }
 
@@ -125,7 +118,7 @@ void matrix_identity_fill(struct Matrix* any_matrix) {
         error_log(1);
         return;
     }
-    memset(any_matrix->data, 0.0, any_matrix->cols * any_matrix->rows * sizeof(double));
+    matrix_zeros_fill(&any_matrix);
     for (size_t col = 0; col < any_matrix->cols; col++) {
         any_matrix->data[col * any_matrix->rows + col] = 1.0;
     }
@@ -161,7 +154,8 @@ void matrix_free_memory(struct Matrix *any_matrix) {
         error_log(6);
         return;
     }
-    memset(any_matrix->data, 0.0, any_matrix->cols * any_matrix->rows * sizeof(double));
+    any_matrix->cols = 0;
+    any_matrix->rows = 0;
     free(any_matrix->data);   
 }
 
@@ -335,19 +329,16 @@ struct Matrix matrix_exp(struct Matrix any_matrix) {
 
     for (int index = 1; index < accuracy; index++) {
         if (index >1) {
-            memset(new_matrix_adress, 0.0, new_matrix.cols * new_matrix.rows * sizeof(double));
             free(new_matrix_adress);
             new_matrix_adress = new_matrix.data;  // память освобождена, адрес перезаписан
         }
         submatrix = matrix_mult(submatrix, any_matrix);
 
-        memset(submatrix_adress, 0.0, submatrix.cols * submatrix.rows * sizeof(double));
         free(submatrix_adress);
         submatrix_adress = submatrix.data;  // память освобождена, адрес перезаписан
 
         submatrix = matrix_scalar_mult(submatrix, 1.0/index);
 
-        memset(submatrix_adress, 0.0, submatrix.cols * submatrix.rows * sizeof(double));
         free(submatrix_adress);
         submatrix_adress = submatrix.data;  // память освобождена, адрес перезаписан
 
@@ -490,9 +481,7 @@ struct Matrix inverse_matrix(struct Matrix any_matrix) {
     inv_matrix_adresses[1] = inv_matrix.data;
     inv_matrix = matrix_transposition(inv_matrix);
     
-    memset(inv_matrix_adresses[0], 0.0, inv_matrix.cols * inv_matrix.rows * sizeof(double));
     free(inv_matrix_adresses[0]);
-    memset(inv_matrix_adresses[1], 0.0, inv_matrix.cols * inv_matrix.rows * sizeof(double));
     free(inv_matrix_adresses[1]);
 
     return inv_matrix;
