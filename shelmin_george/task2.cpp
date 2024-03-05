@@ -457,7 +457,7 @@ struct Matrix inverse_matrix(struct Matrix any_matrix) {
         return inv_matrix;
     }
     double det = matrix_determinant(any_matrix);
-    if (det == 0.0) {
+    if (fabs(det) <= 0.001*0.001) {
         error_log(11);
         return inv_matrix;
     }
