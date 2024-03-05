@@ -32,12 +32,9 @@ Matrix::Matrix(const Matrix& A)
 
     items = new MatrixItem[rows * cols];
 
-    // TODO заменить на memcpy
-    // std::copy(A.begin(), A.end(), begin());
     memcpy(ptr_start(), A.ptr_start(), rows * cols * sizeof(MatrixItem));
 }
 
-// TODO Надо удалить в A items
 Matrix::Matrix(Matrix&& A) : rows{ A.rows }, cols{ A.cols }, items{ A.items }
 {
     A.set_null();
@@ -66,8 +63,6 @@ Matrix& Matrix::operator=(std::initializer_list<MatrixItem> lst)
 Matrix& Matrix::operator=(const Matrix& A)
 {
     if (this == &A) return *this;
-
-    // TODO в отдельные if construction
 
     if (items == nullptr) {
         items = new MatrixItem[A.rows * A.cols];
@@ -103,7 +98,6 @@ Matrix& Matrix::operator=(Matrix&& A)
     cols = A.cols;
     items = A.items;
 
-    // TODO delete A
     A.set_null();
 
     return *this;
@@ -112,8 +106,6 @@ Matrix& Matrix::operator=(Matrix&& A)
 
 void Matrix::set_all_zero()
 {
-    // TODO mem
-    // std::fill(begin(), end(), 0);
     memset(items, 0, sizeof(MatrixItem) * cols * rows);
 }
 
@@ -127,16 +119,11 @@ void Matrix::set_all_one()
 }
 
 
-size_t Matrix::get_rows() const
-{
-    return rows;
-}
+size_t Matrix::get_rows() const { return rows; }
 
 
-size_t Matrix::get_cols() const
-{
-    return cols;
-}
+size_t Matrix::get_cols() const { return cols; }
+
 
 Matrix& Matrix::operator+=(const Matrix& A)
 {
@@ -149,12 +136,14 @@ Matrix& Matrix::operator+=(const Matrix& A)
     return *this;
 }
 
+
 Matrix operator+(const Matrix& A, const Matrix& B)
 {
     Matrix sum = A;
     sum += B;
     return sum;
 }
+
 
 Matrix operator+(const Matrix& A, Matrix&& B)
 {
@@ -175,12 +164,14 @@ Matrix& Matrix::operator-=(const Matrix& A)
     return *this;
 }
 
+
 Matrix operator-(const Matrix& A, const Matrix& B)
 {
     Matrix sub = A;
     sub -= B;
     return sub;
 }
+
 
 Matrix operator-(const Matrix& A, Matrix&& B)
 {
@@ -325,7 +316,7 @@ Matrix Matrix::exponential(const MatrixItem& accuracy) const
 
         sum += term;
 
-        // TODO вернуть свою функцию
+        // TODO return old mine func
         if (term.get_maximum() < accuracy)
             return sum;
     }
@@ -354,6 +345,24 @@ const MatrixItem* Matrix::ptr_start() const { return items; }
 const MatrixItem* Matrix::ptr_end() const { return items + rows * cols; }
 
 
+void Matrix::set(size_t row, size_t col, MatrixItem value)
+{
+    if (row >= rows || col >= cols)
+        throw OUT_OF_RANGE;
+
+    items[row * cols + col] = value;
+}
+
+
+MatrixItem Matrix::get(size_t row, size_t col) const
+{
+    if (row >= rows || col >= cols)
+        throw OUT_OF_RANGE;
+
+    return items[row * cols + col];
+}
+
+
 bool Matrix::operator==(const Matrix& A) const
 {
     if ((cols != A.cols) || (rows != A.rows))
@@ -372,8 +381,7 @@ std::ostream& operator<<(std::ostream& os, const Matrix& A)
 {
     for (size_t row = 0; row < A.get_rows(); row++) {
         for (size_t col = 0; col < A.get_cols(); col++) {
-            // TODO
-            //os << A[row, col] << "\t";
+            os << A.get(row, col) << "\t";
         }
         os << std::endl;
     }

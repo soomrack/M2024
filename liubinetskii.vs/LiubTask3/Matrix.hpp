@@ -47,6 +47,11 @@ public:
     Matrix operator*(const MatrixItem& factor);
     Matrix& operator*=(const MatrixItem& factor);
 
+
+    void set(size_t row, size_t col, MatrixItem value);
+    MatrixItem get(size_t row, size_t col) const;
+
+
     Matrix transposed();
     double determinant() const;
     Matrix exponential(const MatrixItem& accuracy) const;
