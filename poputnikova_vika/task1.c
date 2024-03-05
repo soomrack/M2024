@@ -127,14 +127,14 @@ void simulation() {
         bob_income(year, month);
         bob_expenses_index(year, month);
         bob_promotion(year, month);
-        // buy_horse(year, month);
+        // bob_buy_horse(year, month);
 
         alice_deposite(year, month);
         alice_income(year, month);
         alice_expenses_index(year, month);
         alice_promotion(year, month);
         alice_mortgage(year, month);
-        buy_car(year, month);
+        alice_buy_car(year, month);
 
         inflation(year, month);
 
