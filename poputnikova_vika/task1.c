@@ -70,9 +70,9 @@ void alice_expenses_index(int year, int month) {
     alice.balance -= alice.expenses;
 }
 
-void alice_mortgage() {
+void alice_mortgage(int year, int month) {
     int years = LAST_YEAR - FIRST_YEAR;
-    alice.balance -=
+    alice.expenses -=
         (FLAT_PRICE - BUDGET) * MORTGAGE_RATE * pow(1 + MORTGAGE_RATE, years * 12) / (pow(1 + MORTGAGE_RATE, years * 12) - 1);
     //  https://mortgage-calculator.ru/формула-расчета-ипотеки/
 }
@@ -133,7 +133,7 @@ void simulation() {
         alice_income(year, month);
         alice_expenses_index(year, month);
         alice_promotion(year, month);
-        alice_mortgage();
+        alice_mortgage(year, month);
         buy_car(year, month);
 
         inflation(year, month);
