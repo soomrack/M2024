@@ -290,7 +290,6 @@ struct Matrix matrix_power(struct Matrix any_matrix, const unsigned int power_nu
         for (int current_power = 2; current_power <= power_number; current_power++) {
 
             if (current_power > 2) {
-                memset(new_matrix_adress, 0.0, new_matrix.cols * new_matrix.rows * sizeof(double));
                 free(new_matrix_adress);
                 new_matrix_adress = new_matrix.data;  // память освобождена, адрес перезаписан
             }
