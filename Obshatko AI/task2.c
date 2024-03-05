@@ -121,6 +121,11 @@ struct Matrix matrix_sum(struct Matrix A, struct Matrix B)
         return result_matrix;
     }
 
+    if(A.data == NULL || B.data == NULL) {
+        struct Matrix result_matrix = matrix_init_zeros(0, 0);
+        return result_matrix;
+    }
+
     struct Matrix result_matrix = matrix_init_zeros(A.cols, A.rows);
     size_t cols = result_matrix.cols;
     size_t rows = result_matrix.rows;
@@ -141,6 +146,11 @@ struct Matrix matrix_substract(struct Matrix A, struct Matrix B)
         return result_matrix;
     }
 
+    if(A.data == NULL || B.data == NULL) {
+        struct Matrix result_matrix = matrix_init_zeros(0, 0);
+        return result_matrix;
+    }
+
     struct Matrix result_matrix = matrix_init_zeros(A.cols, A.rows);
     size_t cols = result_matrix.cols;
     size_t rows = result_matrix.rows;
@@ -157,6 +167,11 @@ struct Matrix matrix_multiplication(struct Matrix A, struct Matrix B)
     // проверка согласованности размерности матриц
     if(A.cols != B.rows) {
         matrix_log(ERROR, "Для выполнения операции умножения матрицы должны иметь согласованные размерности");
+        struct Matrix result_matrix = matrix_init_zeros(0, 0);
+        return result_matrix;
+    }
+
+    if(A.data == NULL || B.data == NULL) {
         struct Matrix result_matrix = matrix_init_zeros(0, 0);
         return result_matrix;
     }
@@ -189,6 +204,11 @@ struct Matrix matrix_scalar_multiplication(struct Matrix matrix, double multipli
     size_t cols = result_matrix.cols;
     size_t rows = result_matrix.rows;
 
+    if(matrix.data == NULL) {
+        struct Matrix result_matrix = matrix_init_zeros(0, 0);
+        return result_matrix;
+    }
+
     for(size_t index = 0; index < rows * cols; index++) {
         result_matrix.data[index] = matrix.data[index] * multiplier;
     }
@@ -201,6 +221,11 @@ struct Matrix matrix_power(struct Matrix matrix, const int power)
     // проверка что матрица квадратная
     if(matrix.cols != matrix.rows) {
         matrix_log(ERROR, "Для выполнения операции возведения в степень матрица должна быть квадратной");
+        struct Matrix result_matrix = matrix_init_zeros(0, 0);
+        return result_matrix;
+    }
+
+    if(matrix.data == NULL) {
         struct Matrix result_matrix = matrix_init_zeros(0, 0);
         return result_matrix;
     }
@@ -221,6 +246,11 @@ struct Matrix matrix_exponential(struct Matrix matrix)
     // проверка что матрица квадратная
     if(matrix.cols != matrix.rows) {
         matrix_log(ERROR, "Для выполнения операции возведения в степень матрица должна быть квадратной");
+        struct Matrix result_matrix = matrix_init_zeros(0, 0);
+        return result_matrix;
+    }
+
+    if(matrix.data == NULL) {
         struct Matrix result_matrix = matrix_init_zeros(0, 0);
         return result_matrix;
     }
@@ -247,6 +277,12 @@ double matrix_det(struct Matrix initial_matrix)
     // проверка что матрица квадратная
     if(initial_matrix.cols != initial_matrix.rows) {
         matrix_log(ERROR, "Для вычисления определителя матрица должна быть квадратной");
+        return NAN;
+    }
+
+    if(initial_matrix.data == NULL) {
+        struct Matrix result_matrix = matrix_init_zeros(0, 0);
+        matrix_log(ERROR, "Для вычисления определителя матрица не должна быть пустой");
         return NAN;
     }
 
