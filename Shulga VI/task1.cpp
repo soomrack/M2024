@@ -23,6 +23,9 @@ struct Person
     Money contribution;
     Money appartment_repair;
     Money deposit;
+    Money carprice;
+    Money caradds;
+    Money TO;
 };
 
 
@@ -37,7 +40,10 @@ struct Person Alice
     Alice.loan_years = 30,
     Alice.contribution = 2 * 1000 * 1000,
     Alice.appartment_repair = 150 * 1000,
-    Alice.deposit = 0
+    Alice.deposit = 0,
+    Alice.carprice = 0,
+    Alice.caradds = 0,
+    Alice.TO = 0
 };
 
 
@@ -52,7 +58,10 @@ struct Person Bob
     Alice.loan_years = 30,
     Bob.contribution = 0,
     Bob.appartment_repair = 0,
-    Bob.deposit = 0
+    Bob.deposit = 0,
+    Bob.carprice = 2 * 1000 * 1000,
+    Bob.caradds = 20 * 1000,
+    Bob.TO = 50 * 1000
 };
 
 
@@ -135,6 +144,9 @@ void Bob_indexation()
     Bob.salary += Bob.salary * INFLIATION;
     Bob.food_spending += Bob.food_spending * INFLIATION;
     Bob.rent += Bob.rent * INFLIATION;
+    Bob.carprice += Bob.carprice * INFLIATION;
+    Bob.caradds += Bob.caradds * INFLIATION;
+    Bob.TO += Bob.TO * INFLIATION;
 }
 
 
@@ -176,6 +188,24 @@ void Bob_deposit()
 }
 
 
+void Bob_buyCar()
+{
+    Bob.savings -= Bob.carprice;
+}
+
+
+void CarTO()
+{
+    Bob.savings -= Bob.TO;
+}
+
+
+void Bob_caradds()
+{
+    Bob.savings -= Bob.caradds;
+}
+
+
 void Alice_simulation()  
 { 
     int month = 2;
@@ -190,24 +220,17 @@ void Alice_simulation()
             Alice_rand_spendings();
 
             if (year == 2024 && (month == 2 || month == 3))
-            {
                 Alice_appartment_repair();
-            }
 
             if (Alice.savings >= (ALICE_PAYMENT * 2))
-            {
                 Alice_deposit();
-            }
 
             if (year == 2024 + LOAN_YEARS && month == 2) 
-            {
                 break;
-            }
 
             month++;
 
-            if (month == 13)
-            {
+            if (month == 13){
                 month = 1;
                 year++;
                 Alice_indexation();
@@ -222,29 +245,42 @@ void Bob_simulation()
 {
     int month = 2;
     int year = 2024;
+    int f = 0;
     while (year <= (year + LOAN_YEARS))
     {
         Bob_get_salary();
         Bob_get_food();
         Bob_rand_spendings();
         Bob_deposit();
+        if (year == (year + 10)) {
+            Bob_buyCar();
+            f = 1;
+        }
 
-        if (year == 2024 + LOAN_YEARS && month == 2)
-        {
+        if (f != 0)
+            Bob_caradds();
+
+        if (year == 2024 + LOAN_YEARS && month == 2) {
             break;
+
         }
 
         month++;
 
-        if (month == 13)
-        {
+        if (month == 13){
+            if (f != 0)
+                CarTO();
+
             month = 1;
             year++;
             Bob_indexation();
         }
     }
     Bob.savings += Bob.deposit;
+    Bob.savings += Bob.carprice;
 }
+
+
 int main()
 {
     Alice_simulation();
