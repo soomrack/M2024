@@ -10,6 +10,7 @@ double DEPOSIT_RATE = 16 * 0.01;
 double MORTGAGE_PERCENTAGE = 18 * 0.01;
 int LOAN_YEARS = 30;
 Money ALICE_PAYMENT;
+int DOES_BOB_BUY_CAR = 0;
 
 struct Person
 {
@@ -206,6 +207,17 @@ void Bob_caradds()
 }
 
 
+void Bob_car()
+{
+    if (DOES_BOB_BUY_CAR == 0) {
+        Bob_buyCar();
+        DOES_BOB_BUY_CAR = 1;
+    }
+    Bob_caradds();
+
+}
+
+
 void Alice_simulation()  
 { 
     int month = 2;
@@ -245,30 +257,23 @@ void Bob_simulation()
 {
     int month = 2;
     int year = 2024;
-    int f = 0;
     while (year <= (year + LOAN_YEARS))
     {
         Bob_get_salary();
         Bob_get_food();
         Bob_rand_spendings();
         Bob_deposit();
-        if (year == (year + 10)) {
-            Bob_buyCar();
-            f = 1;
-        }
 
-        if (f != 0)
-            Bob_caradds();
+        if (year >= (year + 10))
+            Bob_car();
 
-        if (year == 2024 + LOAN_YEARS && month == 2) {
+        if (year == 2024 + LOAN_YEARS && month == 2) 
             break;
 
-        }
-
         month++;
-
+      
         if (month == 13){
-            if (f != 0)
+            if(year >= (year + 10))
                 CarTO();
 
             month = 1;
