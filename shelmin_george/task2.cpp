@@ -200,7 +200,7 @@ struct Matrix matrix_sub(struct Matrix first_matrix, struct Matrix second_matrix
         return new_matrix;
     }
 
-    for (int index = 0; index < first_matrix.rows * first_matrix.cols; index++) {
+    for (size_t index = 0; index < first_matrix.rows * first_matrix.cols; index++) {
         new_matrix.data[index] = first_matrix.data[index] - second_matrix.data[index];
     }
     return new_matrix;
