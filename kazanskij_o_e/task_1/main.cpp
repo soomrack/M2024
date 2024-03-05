@@ -2,17 +2,16 @@
 #include <cstdlib>
 #include <math.h>
 
-using namespace std;
-
-const uint8_t COUNT_YEARS = 30; // Кол-во симулируемых лет
-const uint8_t CREDIT_PERIOD = 30; // период кредитования
-const int START_YEAR = 2024; // Текущий год в симуляции
+const uint8_t COUNT_YEARS = 30;     // Кол-во симулируемых лет
+const uint8_t CREDIT_PERIOD = 30;   // период кредитования
 const float INFLATION = 12; // Инфляция 
 const float BANK_PROCENT = 16; // Процентная ставка банка по вкладу
 const float CREDIT_PROCENT = 18; // Процентная ставка банка по кредиту
 //Все денежные средства будут указаны в копейках
 const uint64_t START_BANK = 2*1000*1000*100; // Стартовый капитал
 const uint64_t MONTH_SALARY = 500*1000*10; // Ежемесячная зарплата
+int current_year = 2024;    // текущий год в симуляции
+uint8_t current_month = 2;  // текущий месяц в симуляции
 uint64_t flat_cost = 20*1000*1000*100; // Стоимость квартиры
 uint64_t home_pay = 15*1000*10; // Бытовые расходы
 uint64_t home_repain = 150*1000*10; // стоймость ремонта 
@@ -21,7 +20,7 @@ struct Person{
     int64_t count_money = 0; // капитал человека
     uint64_t salary = 0; // зарплата человека
     uint64_t credit_payment = 0; // платёж кредита (если есть)
-    bool have_home = false; // наличие дома
+    int have_home = 0; // наличие дома
     uint64_t rent = 0; // аренда квартиры
     uint64_t vklad = 0; // счёт по вкладу
 };
@@ -46,7 +45,7 @@ uint64_t credit_add(uint64_t credit, float procent, uint8_t period, uint64_t vzn
 void alice_init(){
     alice.salary = MONTH_SALARY;
     alice.credit_payment = credit_add(flat_cost, CREDIT_PROCENT, CREDIT_PERIOD, START_BANK);
-    alice.have_home = true;
+    alice.have_home = 1;
 }
 
 void bob_init(){
@@ -56,9 +55,13 @@ void bob_init(){
 }
 //</info>
 
-//зачисление зарплаты за месяц
-void salary_payment(){
+//зачисление зарплаты за месяц (bob)
+void bob_salary_payment(){
     bob.count_money += bob.salary;
+}
+
+//зачисление зарплаты за месяц (alice)
+void alice_salary_payment(){
     alice.count_money += alice.salary;
 }
 
@@ -70,20 +73,24 @@ void start_inflation(){
     home_pay *= koef;
     flat_cost *= koef;
     home_repain *= koef;
-    if(!alice.have_home){alice.rent *= koef;}
-    if(!bob.have_home){bob.rent *= koef;}
+    if(alice.have_home == 0){alice.rent *= koef;}
+    if(bob.have_home == 0){bob.rent *= koef;}
 }
 
-// оплата бытовых расходов
-void home_payment(){
+// оплата бытовых расходов (bob)
+void bob_home_payment(){
     bob.count_money -= home_pay;
+}
+
+// оплата бытовых расходов (alice)
+void alice_home_payment(){
     alice.count_money -= home_pay;
 }
 
 // ежемесячное выплата кредита
-void alice_credit_payment(int current_year, uint8_t current_month){
+void alice_credit_payment(int end_year){
     // Вычисление пройденных месяцев выплат без учёта текущего месяца
-    int current_count_month = ((current_year - START_YEAR) * 12) + current_month - 1;
+    int current_count_month = ((end_year - current_year) * 12) + current_month - 1;
     // Проверка выплаченных месяцев
     if(current_count_month >= CREDIT_PERIOD * 12){return;} 
     alice.count_money -= alice.credit_payment;
@@ -95,15 +102,14 @@ void home_repain_payment(){
     // проверка на то, что прошло два года с момента последнего ремонта
     if(!is_repain){is_repain = !is_repain; return;} 
     //проверка испытуемых на наличие дома
-    if(alice.have_home){alice.count_money -= home_repain;} 
-    if(bob.have_home){bob.count_money -= home_repain;}
+    if(alice.have_home == 1){alice.count_money -= home_repain;} 
+    if(bob.have_home == 1){bob.count_money -= home_repain;}
     is_repain = !is_repain; // говорим, что прошло один год с момента последнего ремонта
 }
 
-//оплата аренды квартиры
-void rent_payment(){
-    if(!bob.have_home){bob.count_money -= bob.rent;}
-    if(!alice.have_home){alice.count_money -= alice.rent;}
+//оплата аренды квартиры (bob)
+void bob_rent_payment(){
+    if(bob.have_home == 0){bob.count_money -= bob.rent;}
 }
 
 /*
@@ -117,35 +123,46 @@ uint64_t up_vklad(uint64_t sum, float procent){
     return sum * (1 + procent / 12); 
 }
 
+void bob_up_vklad(){
+    bob.vklad = up_vklad(bob.vklad, BANK_PROCENT);
+}
+
+void bob_pay_home(){
+    if(bob.vklad >= flat_cost){
+        bob.vklad -= flat_cost;
+        bob.have_home = 1;
+        bob.rent = 0;
+    };
+}
+
 // вывод общего капитала
 void rezult(){
-    cout << "капитал:" << endl;
+    printf("капитал:\n");
     printf("\tAlice: %d\n", alice.count_money);
     printf("\tBob: %d\n", bob.count_money);
 }
 
 // Симуляция жизни испытуемых
 void simulation(){
-    // инициализация цикла по годам
-    for(int current_year = START_YEAR; current_year <= START_YEAR + COUNT_YEARS; current_year++){
-        // инициализация цикла по месяцам
-        for(uint8_t current_month = 1; current_month <= 12; current_month++){
-            salary_payment();
-            home_payment();
-            rent_payment();
+    int end_year = current_year + COUNT_YEARS;  //Последний год симуляции
+    uint8_t end_month = current_month; // последний месяц в симуляции
+    while(current_year != end_year || current_month != end_month){
+        alice_salary_payment();
+        alice_home_payment();
+        alice_credit_payment(end_year);
 
-            alice_credit_payment(current_year, current_month);
+        bob_salary_payment();
+        bob_home_payment();
+        bob_rent_payment();
+        bob_up_vklad();
+        bob_pay_home();
 
-            bob.vklad = up_vklad(bob.vklad, BANK_PROCENT);
-
-            if(bob.vklad >= flat_cost){
-                bob.vklad -= flat_cost;
-                bob.have_home = true;
-                bob.rent = 0;
-            };
+        current_month++;
+        if(current_month == 12){
+            ++current_year;
+            home_repain_payment();
+            start_inflation();
         }
-        home_repain_payment();
-        start_inflation();
     }
     bob.count_money += bob.vklad;
     bob.vklad = 0;
