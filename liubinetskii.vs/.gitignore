@@ -3,3 +3,6 @@
 x64/
 *.filters
 *.user
+*.rar
+*.zip
+*.bin
