@@ -44,18 +44,11 @@ void matrix_print(struct Matrix matrix)
 }
 
 
-struct Matrix matrix_init_zeros(const size_t cols, const size_t rows)
+struct Matrix matrix_init(const size_t cols, const size_t rows)
 {
     struct Matrix matrix;
     matrix.cols = cols;
     matrix.rows = rows;
-
-    if(cols * rows == 0) {
-        matrix.cols = 0;
-        matrix.rows = 0;
-        matrix.data = NULL;
-        return matrix;
-    }
 
     if(SIZE_MAX / cols / rows < sizeof(double)) {
         matrix_log(ERROR, "Матрица слишком большая");
@@ -71,10 +64,18 @@ struct Matrix matrix_init_zeros(const size_t cols, const size_t rows)
         matrix_log(ERROR, "Ошибка выделения памяти");
         matrix.cols = 0;
         matrix.rows = 0;
-        return matrix;
     }
+    return matrix;
+}
 
-    memset(matrix.data, 0, sizeof(double));
+
+struct Matrix matrix_init_zeros(const size_t cols, const size_t rows)
+{
+    struct Matrix matrix = matrix_init(cols, rows);
+    //memset(matrix.data, 0.0, sizeof(double));
+    for(size_t index = 0; index < matrix.rows * matrix.cols; index++) {
+        matrix.data[index] = 0.0;
+    }
     return matrix;
 }
 
@@ -82,10 +83,10 @@ struct Matrix matrix_init_zeros(const size_t cols, const size_t rows)
 // инициализация матрицы, заполненной случайными числами от 0 до max_value
 struct Matrix matrix_init_random(const size_t cols, const size_t rows, size_t max_value)
 {
-    struct Matrix matrix = matrix_init_zeros(cols, rows);
+    struct Matrix matrix = matrix_init(cols, rows);
 
     for(size_t index = 0; index < matrix.rows * matrix.cols; index++) {
-        double random_number = round(((float)rand()/RAND_MAX)*(float)(max_value * 10)) / 10;
+        double random_number = round(((float)rand()/RAND_MAX)*(float)(max_value * 10)) / 10.0;
         matrix.data[index] = random_number;
     }
     return matrix;
@@ -93,12 +94,12 @@ struct Matrix matrix_init_random(const size_t cols, const size_t rows, size_t ma
 
 
 // инициализация единичной матрицы
-struct Matrix matrix_init_unit(const size_t size)
+struct Matrix matrix_init_unit(const size_t cols, const size_t rows)
 {
-    struct Matrix matrix = matrix_init_zeros(size, size);
+    struct Matrix matrix = matrix_init_zeros(cols, rows);
 
-    for(size_t index = 0; index < matrix.rows; index++) {
-        matrix.data[index * (matrix.rows + 1)] = 1;
+    for(size_t index = 0; index < matrix.rows * matrix.cols; index += matrix.cols + 1) {
+        matrix.data[index] = 1.;
     }
     return matrix;
 }
@@ -109,6 +110,25 @@ void matrix_free(struct Matrix matrix)
     matrix.cols = 0;
     matrix.rows = 0;
     free(matrix.data);
+    matrix.data = NULL;
+}
+
+
+void matrix_row_add(struct Matrix matrix, size_t result_row, size_t adding_row, double multiplyer)
+{
+    size_t cols = matrix.cols;
+    for(int col = 0; col < cols; col++) {
+        matrix.data[result_row * cols + col] += matrix.data[adding_row * cols + col] * multiplyer;
+    }
+}
+
+
+void matrix_row_substract(struct Matrix matrix, size_t result_row, size_t substracting_row, double multiplyer)
+{
+    size_t cols = matrix.cols;
+    for(int col = 0; col < cols; col++) {
+        matrix.data[result_row * cols + col] -= matrix.data[substracting_row * cols + col] * multiplyer;
+    }
 }
 
 
@@ -117,12 +137,7 @@ struct Matrix matrix_sum(struct Matrix A, struct Matrix B)
     // проверка равности размерноти матриц
     if(A.cols != B.cols || A.rows != B.rows) {
         matrix_log(ERROR, "Для выполнения операции вычитания матрицы должны иметь одинаковые размерности");
-        struct Matrix result_matrix = matrix_init_zeros(0, 0);
-        return result_matrix;
-    }
-
-    if(A.data == NULL || B.data == NULL) {
-        struct Matrix result_matrix = matrix_init_zeros(0, 0);
+        struct Matrix result_matrix = {0, 0, NULL};
         return result_matrix;
     }
 
@@ -142,12 +157,7 @@ struct Matrix matrix_substract(struct Matrix A, struct Matrix B)
     // проверка равности размерноти матриц
     if(A.cols != B.cols || A.rows != B.rows) {
         matrix_log(ERROR, "Для выполнения операции вычитания матрицы должны иметь одинаковые размерности");
-        struct Matrix result_matrix = matrix_init_zeros(0, 0);
-        return result_matrix;
-    }
-
-    if(A.data == NULL || B.data == NULL) {
-        struct Matrix result_matrix = matrix_init_zeros(0, 0);
+        struct Matrix result_matrix = {0, 0, NULL};
         return result_matrix;
     }
 
@@ -167,12 +177,7 @@ struct Matrix matrix_multiplication(struct Matrix A, struct Matrix B)
     // проверка согласованности размерности матриц
     if(A.cols != B.rows) {
         matrix_log(ERROR, "Для выполнения операции умножения матрицы должны иметь согласованные размерности");
-        struct Matrix result_matrix = matrix_init_zeros(0, 0);
-        return result_matrix;
-    }
-
-    if(A.data == NULL || B.data == NULL) {
-        struct Matrix result_matrix = matrix_init_zeros(0, 0);
+        struct Matrix result_matrix = {0, 0, NULL};
         return result_matrix;
     }
 
@@ -204,11 +209,6 @@ struct Matrix matrix_scalar_multiplication(struct Matrix matrix, double multipli
     size_t cols = result_matrix.cols;
     size_t rows = result_matrix.rows;
 
-    if(matrix.data == NULL) {
-        struct Matrix result_matrix = matrix_init_zeros(0, 0);
-        return result_matrix;
-    }
-
     for(size_t index = 0; index < rows * cols; index++) {
         result_matrix.data[index] = matrix.data[index] * multiplier;
     }
@@ -221,16 +221,11 @@ struct Matrix matrix_power(struct Matrix matrix, const int power)
     // проверка что матрица квадратная
     if(matrix.cols != matrix.rows) {
         matrix_log(ERROR, "Для выполнения операции возведения в степень матрица должна быть квадратной");
-        struct Matrix result_matrix = matrix_init_zeros(0, 0);
+        struct Matrix result_matrix = {0, 0, NULL};
         return result_matrix;
     }
 
-    if(matrix.data == NULL) {
-        struct Matrix result_matrix = matrix_init_zeros(0, 0);
-        return result_matrix;
-    }
-
-    struct Matrix result_matrix = matrix_init_unit(matrix.cols);  // результирующая матрица инициализируется как единичная
+    struct Matrix result_matrix = matrix_init_unit(matrix.cols, matrix.rows);  // результирующая матрица инициализируется как единичная
 
     for(int iteration = 0; iteration < power; iteration++) {
         struct Matrix intermediate_matrix = matrix_multiplication(result_matrix, matrix);
@@ -241,38 +236,36 @@ struct Matrix matrix_power(struct Matrix matrix, const int power)
 }
 
 
-struct Matrix matrix_exponential(struct Matrix matrix) 
+struct Matrix matrix_exponential(struct Matrix matrix, size_t total_iterations) 
 {
     // проверка что матрица квадратная
     if(matrix.cols != matrix.rows) {
         matrix_log(ERROR, "Для выполнения операции возведения в степень матрица должна быть квадратной");
-        struct Matrix result_matrix = matrix_init_zeros(0, 0);
-        return result_matrix;
-    }
-
-    if(matrix.data == NULL) {
-        struct Matrix result_matrix = matrix_init_zeros(0, 0);
+        struct Matrix result_matrix = {0, 0, NULL};
         return result_matrix;
     }
     
-    struct Matrix result_matrix = matrix_init_unit(matrix.cols);  // результирующая матрица инициализируется как единичная
-    struct Matrix prev_iteration_matrix = matrix_init_unit(matrix.cols);  // матрица для хранения предыдущего слагаемого
+    struct Matrix result_matrix = matrix_init_unit(matrix.cols, matrix.rows);  // результирующая матрица инициализируется как единичная
+    struct Matrix prev_iteration_matrix = matrix_init_unit(matrix.cols, matrix.rows);  // матрица для хранения предыдущего слагаемого
 
-    for(int iteration = 1; iteration < 30; iteration++) {
-        struct Matrix intermediate_matrix_1 = matrix_multiplication(prev_iteration_matrix, matrix);
+    for(int iteration = 1; iteration < total_iterations; iteration++) {
+        struct Matrix intermediate_matrix = matrix_multiplication(prev_iteration_matrix, matrix);
+
         matrix_free(prev_iteration_matrix);
-        prev_iteration_matrix = matrix_scalar_multiplication(intermediate_matrix_1, (1/(float)iteration));
-        matrix_free(intermediate_matrix_1);
-        intermediate_matrix_1 = matrix_sum(result_matrix, prev_iteration_matrix);
+        prev_iteration_matrix = matrix_scalar_multiplication(intermediate_matrix, (1/(float)iteration));
+
+        matrix_free(intermediate_matrix);
+        intermediate_matrix = matrix_sum(result_matrix, prev_iteration_matrix);
+
         matrix_free(result_matrix);
-        result_matrix = intermediate_matrix_1;
+        result_matrix = intermediate_matrix;
     }
     matrix_free(prev_iteration_matrix);
     return result_matrix;
 }
 
 
-double matrix_det(struct Matrix initial_matrix) 
+double matrix_det(struct Matrix initial_matrix, double accuracy) 
 {
     // проверка что матрица квадратная
     if(initial_matrix.cols != initial_matrix.rows) {
@@ -281,7 +274,6 @@ double matrix_det(struct Matrix initial_matrix)
     }
 
     if(initial_matrix.data == NULL) {
-        struct Matrix result_matrix = matrix_init_zeros(0, 0);
         matrix_log(ERROR, "Для вычисления определителя матрица не должна быть пустой");
         return NAN;
     }
@@ -289,22 +281,17 @@ double matrix_det(struct Matrix initial_matrix)
     struct Matrix matrix = matrix_init_zeros(initial_matrix.cols, initial_matrix.rows);
     size_t matrix_size = matrix.cols;
 
-    for(int index = 0; index < matrix_size * matrix_size; index++) {  // создание копии исходной матрицы
+    for(size_t index = 0; index < matrix_size * matrix_size; index++) {  // создание копии исходной матрицы
         matrix.data[index] = initial_matrix.data[index];
     }
 
-    double det = 1;
+    double det = 1.;
 
-    for(int diagonal_index = 0; diagonal_index < matrix_size; diagonal_index++) {  // смена местами строк, чтобы на диагонали не было нулей
-        if(matrix.data[(matrix_size + 1) * diagonal_index] == 0) {
-            for(int row = 0; row < matrix_size; row++) {
+    for(size_t diagonal_index = 0; diagonal_index < matrix_size; diagonal_index++) {  // прибавление к одним строкам других, чтобы на главной диагонали не было нулей
+        if(fabs(matrix.data[(matrix_size + 1) * diagonal_index]) < accuracy) {
+            for(size_t row = 0; row < matrix_size; row++) {
                 if(matrix.data[diagonal_index + row * matrix_size] != 0) {
-                    for(int col = 0; col < matrix_size; col++) {
-                        double value_holder = matrix.data[diagonal_index * matrix_size + col];
-                        matrix.data[diagonal_index * matrix_size + col] = matrix.data[row * matrix_size + col];
-                        matrix.data[row * matrix_size + col] = value_holder;
-                    }
-                    det *= -1;
+                    matrix_row_add(matrix, diagonal_index, row, 1);
                     break;
                 }
                 if(row == matrix_size - 1) {  // если в столбце все элементы равны 0, то определитель равен 0
@@ -315,18 +302,21 @@ double matrix_det(struct Matrix initial_matrix)
         }
     }
 
-    for(int col = 0; col < matrix_size - 1; col++) {  // преобразование матрицы к треугольнику
-        for(int row = col + 1; row < matrix_size; row++) {
+    for(size_t col = 0; col < matrix_size - 1; col++) {  // преобразование матрицы к треугольнику
+        for(size_t row = col + 1; row < matrix_size; row++) {
             double multiplyer = matrix.data[row * matrix_size + col] / matrix.data[col * matrix_size + col];
-            for(int row_element = 0; row_element < matrix_size - col; row_element++) {
-                matrix.data[row * matrix_size + col + row_element] -= matrix.data[col * matrix_size + col + row_element] * multiplyer;
-            }
+            matrix_row_substract(matrix, row, col, multiplyer);
         }
     }
 
     for(size_t index = 0; index < matrix.rows; index++) {  // вычисление определителя
         det *= matrix.data[index * (matrix.rows + 1)];
     }
+
+    if(fabs(det) < accuracy) {
+        det = 0.0;
+    }
+
     matrix_free(matrix);
     return det;
 }
@@ -337,18 +327,18 @@ int main()
     setlocale(LC_CTYPE, "");
 
     struct Matrix matrix_A = matrix_init_random(4, 4, 10);
-    struct Matrix matrix_B = matrix_init_random(3, 3, 10);
+    struct Matrix matrix_B = matrix_init_unit(6, 3);
 
     //struct Matrix matrix_C = matrix_sum(matrix_A, matrix_B, matrix_C);
     //struct Matrix matrix_C = matrix_substract(matrix_A, matrix_B);
     //struct Matrix matrix_C = matrix_multiplication(matrix_A, matrix_B);
     //struct Matrix matrix_C = matrix_scalar_multiplication(matrix_A, 2);
     //struct Matrix matrix_C = matrix_power(matrix_A, 3);
-    //struct Matrix matrix_C = matrix_exponential(matrix_A);
-    double det = matrix_det(matrix_A);
+    //struct Matrix matrix_C = matrix_exponential(matrix_A, 30);
+    double det = matrix_det(matrix_A, 0.00001);
 
     matrix_print(matrix_A);
-    //matrix_print(matrix_B);
+    matrix_print(matrix_B);
     //matrix_print(matrix_C);
     printf("%g\n", det);
 
