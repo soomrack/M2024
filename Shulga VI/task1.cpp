@@ -4,13 +4,12 @@
 #include <stdlib.h>
 
 
-typedef long long int Money; // rub
+typedef long long int Money; // tisach rub
 double INFLIATION = 12 * 0.01;
 double DEPOSIT_RATE = 16 * 0.01;
 double MORTGAGE_PERCENTAGE = 18 * 0.01;
 int LOAN_YEARS = 30;
 Money ALICE_PAYMENT;
-int DOES_BOB_BUY_CAR = 0;
 
 struct Person
 {
@@ -32,15 +31,15 @@ struct Person
 
 struct Person Alice
 {
-    Alice.salary = 300 * 1000,
-    Alice.food_spending = 15 * 1000,
-    Alice.home_price = 20 * 1000 * 1000,
+    Alice.salary = 300,
+    Alice.food_spending = 15,
+    Alice.home_price = 20 * 1000,
     Alice.rent = 0,
-    Alice.additional_spendings = 50 * 1000,
-    Alice.savings = 2 * 1000 * 1000,
+    Alice.additional_spendings = 50,
+    Alice.savings = 2,
     Alice.loan_years = 30,
-    Alice.contribution = 2 * 1000 * 1000,
-    Alice.appartment_repair = 150 * 1000,
+    Alice.contribution = 2 * 1000,
+    Alice.appartment_repair = 150,
     Alice.deposit = 0,
     Alice.carprice = 0,
     Alice.caradds = 0,
@@ -50,19 +49,19 @@ struct Person Alice
 
 struct Person Bob
 {
-    Bob.salary = 300 * 1000,
-    Bob.food_spending = 15 * 1000,
+    Bob.salary = 300,
+    Bob.food_spending = 15,
     Bob.home_price = 0,
-    Bob.rent = 25 * 1000,
-    Bob.additional_spendings = 50 * 1000,
-    Bob.savings = 2 * 1000 * 1000,
+    Bob.rent = 25,
+    Bob.additional_spendings = 50,
+    Bob.savings = 2 * 1000,
     Alice.loan_years = 30,
     Bob.contribution = 0,
     Bob.appartment_repair = 0,
     Bob.deposit = 0,
-    Bob.carprice = 2 * 1000 * 1000,
-    Bob.caradds = 20 * 1000,
-    Bob.TO = 50 * 1000
+    Bob.carprice = 2 * 1000,
+    Bob.caradds = 20,
+    Bob.TO = 50
 };
 
 
@@ -124,19 +123,29 @@ void Alice_rand_spendings()
 }
 
 
-void Alice_appartment_repair()
+void Alice_appartment_repair(int year, int month)
 {
+    if (year == 2024 && (month == 2 || month == 3))
     Alice.savings -= Alice.appartment_repair;
 }
 
 
 void Alice_deposit() 
 {
-    int Alice_deposit_profit;
-    Alice.savings -= ALICE_PAYMENT;
-    Alice.deposit += ALICE_PAYMENT;
-    Alice_deposit_profit = Alice.deposit * DEPOSIT_RATE / 365 * 30;
-    Alice.deposit += Alice_deposit_profit;
+    if (Alice.savings >= (ALICE_PAYMENT * 2)) {
+        int Alice_deposit_profit;
+        Alice.savings -= ALICE_PAYMENT;
+        Alice.deposit += ALICE_PAYMENT;
+        Alice_deposit_profit = Alice.deposit * DEPOSIT_RATE / 365 * 30;
+        Alice.deposit += Alice_deposit_profit;
+    }
+}
+
+
+void Alice_savings()
+{
+    Alice.savings += Alice.home_price;
+    Alice.savings += Alice.deposit;
 }
 
 
@@ -207,14 +216,23 @@ void Bob_caradds()
 }
 
 
-void Bob_car()
+void Bob_car(int year, int month)
 {
-    if (DOES_BOB_BUY_CAR == 0) {
+    if (year == (year + 10))
         Bob_buyCar();
-        DOES_BOB_BUY_CAR = 1;
-    }
-    Bob_caradds();
 
+    if (year >= (year + 10) && month == 12)
+        CarTO();
+
+    if (year >= (year + 10))
+        Bob_caradds();
+}
+
+
+void Bob_savings()
+{
+    Bob.savings += Bob.deposit;
+    Bob.savings += Bob.carprice;
 }
 
 
@@ -230,12 +248,8 @@ void Alice_simulation()
             Alice_get_food();
             Alice_mortgage_payment();
             Alice_rand_spendings();
-
-            if (year == 2024 && (month == 2 || month == 3))
-                Alice_appartment_repair();
-
-            if (Alice.savings >= (ALICE_PAYMENT * 2))
-                Alice_deposit();
+            Alice_appartment_repair(year, month);
+            Alice_deposit();
 
             if (year == 2024 + LOAN_YEARS && month == 2) 
                 break;
@@ -248,8 +262,7 @@ void Alice_simulation()
                 Alice_indexation();
             }
         }
-    Alice.savings += Alice.home_price;
-    Alice.savings += Alice.deposit;
+    Alice_savings();
 }
 
 
@@ -263,9 +276,7 @@ void Bob_simulation()
         Bob_get_food();
         Bob_rand_spendings();
         Bob_deposit();
-
-        if (year >= (year + 10))
-            Bob_car();
+        Bob_car(year, month);
 
         if (year == 2024 + LOAN_YEARS && month == 2) 
             break;
@@ -273,16 +284,12 @@ void Bob_simulation()
         month++;
       
         if (month == 13){
-            if(year >= (year + 10))
-                CarTO();
-
             month = 1;
             year++;
             Bob_indexation();
         }
     }
-    Bob.savings += Bob.deposit;
-    Bob.savings += Bob.carprice;
+    Bob_savings();
 }
 
 
@@ -291,7 +298,7 @@ int main()
     Alice_simulation();
     Bob_simulation();
     setlocale(LC_ALL, "Rus");
-    printf("Сбережения Элис = %lld руб\nСбережения Боба = %lld руб\n", Alice.savings, Bob.savings);
+    printf("Сбережения Элис = %lld тыс руб\nСбережения Боба = %lld тыс руб\n", Alice.savings, Bob.savings);
     if (Alice.savings > Bob.savings)
         printf("У Элис вышло больше денег");
     else
