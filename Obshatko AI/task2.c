@@ -72,10 +72,7 @@ struct Matrix matrix_init(const size_t cols, const size_t rows)
 struct Matrix matrix_init_zeros(const size_t cols, const size_t rows)
 {
     struct Matrix matrix = matrix_init(cols, rows);
-    //memset(matrix.data, 0.0, sizeof(double));
-    for(size_t index = 0; index < matrix.rows * matrix.cols; index++) {
-        matrix.data[index] = 0.0;
-    }
+    memset(matrix.data, 0, sizeof(double) * cols * rows);
     return matrix;
 }
 
@@ -281,28 +278,23 @@ double matrix_det(struct Matrix initial_matrix, double accuracy)
     struct Matrix matrix = matrix_init_zeros(initial_matrix.cols, initial_matrix.rows);
     size_t matrix_size = matrix.cols;
 
-    for(size_t index = 0; index < matrix_size * matrix_size; index++) {  // создание копии исходной матрицы
-        matrix.data[index] = initial_matrix.data[index];
-    }
+    memcpy(matrix.data, initial_matrix.data, sizeof(double) * initial_matrix.cols * initial_matrix.rows);
 
     double det = 1.;
 
-    for(size_t diagonal_index = 0; diagonal_index < matrix_size; diagonal_index++) {  // прибавление к одним строкам других, чтобы на главной диагонали не было нулей
-        if(fabs(matrix.data[(matrix_size + 1) * diagonal_index]) < accuracy) {
-            for(size_t row = 0; row < matrix_size; row++) {
-                if(matrix.data[diagonal_index + row * matrix_size] != 0) {
-                    matrix_row_add(matrix, diagonal_index, row, 1);
+    for(size_t col = 0; col < matrix_size - 1; col++) {  // преобразование матрицы к треугольнику
+        if(fabs(matrix.data[col * matrix_size + col]) < accuracy) {
+            for(size_t row_to_add = col + 1; row_to_add < matrix_size; row_to_add++) {
+                if(fabs(matrix.data[row_to_add * matrix_size + col])  > accuracy) {
+                    matrix_row_add(matrix, col, row_to_add, 1);
                     break;
                 }
-                if(row == matrix_size - 1) {  // если в столбце все элементы равны 0, то определитель равен 0
+                if(row_to_add == matrix_size - 1) {  // если в столбце все элементы равны 0, то определитель равен 0
                     matrix_free(matrix);
                     return 0;
                 }
             }
         }
-    }
-
-    for(size_t col = 0; col < matrix_size - 1; col++) {  // преобразование матрицы к треугольнику
         for(size_t row = col + 1; row < matrix_size; row++) {
             double multiplyer = matrix.data[row * matrix_size + col] / matrix.data[col * matrix_size + col];
             matrix_row_substract(matrix, row, col, multiplyer);
