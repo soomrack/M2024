@@ -2,27 +2,27 @@
 #include <math.h>
 
 
-typedef long long int money;
+typedef long long int Money;
 
 
 struct Person
 {
-    money capital;
-    money income;
-    money life_spendings; 
-    money monthly_spendings;
-    money overpayment;
+    Money capital;
+    Money income;
+    Money life_spendings; 
+    Money monthly_spendings;
+    Money overpayment;
 } Alice, Bob;
 
  
-const money FLAT_PRICE = 20 * 1000 * 1000 * 100;
-const money SALARY = 200 * 1000 * 100;
-const money START_CAPITAL = 2000 * 1000 * 100;
+const Money FLAT_PRICE = 20 * 1000 * 1000 * 100;
+const Money SALARY = 200 * 1000 * 100;
+const Money START_CAPITAL = 2000 * 1000 * 100;
 const int YEARS = 25;
 const double INFLATION = 0.09;
 double BANK_RATE = 0.08;
-const money LIFE_SPENDINGS = 30 * 1000 * 100;
-const int START_MONTH = 2;
+const Money LIFE_SPENDINGS = 30 * 1000 * 100;
+const int START_MONTH = 3;
 const int START_YEAR = 2024;
 
 
@@ -40,7 +40,7 @@ void Alice_salary_income(int year, int month)
 {
    if (month == 12) 
    {
-       Alice.capital += (money)(Alice.income * 1.2);
+       Alice.capital += (Money)(Alice.income * 1.2);
    } 
    Alice.capital += Alice.income;
 }
@@ -62,7 +62,7 @@ void Alice_usual_spendings (int years, int month)
     {
         Alice.capital -= Alice.life_spendings * 1.5;
     }
-    Alice.capital -= Alice.life_spendings - Alice.monthly_spendings;
+    Alice.capital -= Alice.life_spendings + Alice.monthly_spendings;
 }
 
 
@@ -71,7 +71,7 @@ void Bob_initiation()
     Bob.income = SALARY;
     Bob.capital = START_CAPITAL;
     Bob.life_spendings = LIFE_SPENDINGS;
-    Bob.monthly_spendings = 45 * 1000 * 100;
+    Bob.monthly_spendings = 40 * 1000 * 100;
     Bob.overpayment = FLAT_PRICE * powf((1.0 + INFLATION), YEARS) - FLAT_PRICE;
 }
 
@@ -102,7 +102,7 @@ void Bob_usual_spendings (int years, int month)
     {
         Bob.capital -= Bob.life_spendings * 1.5;
     }
-    Bob.capital -=  Bob.life_spendings - Bob.monthly_spendings;
+    Bob.capital -=  Bob.life_spendings + Bob.monthly_spendings;
 }
 
 
@@ -127,12 +127,12 @@ void simulation()
     int month = START_MONTH;
     int year = START_YEAR;
 
-    while(year != START_YEAR + YEARS && month != 1) 
+    while(year != START_YEAR + YEARS || month != START_MONTH ) 
     {
         Alice_deposite_income(year, month);
         Alice_salary_income(year, month);
         Alice_usual_spendings(year, month);
-
+                
         Bob_deposite_income(year, month);
         Bob_salary_income(year, month);
         Bob_usual_spendings(year, month);
@@ -140,7 +140,8 @@ void simulation()
         inflation(year, month);
 
         month++;
-        if (month > 12) {
+        if (month > 12) 
+        {
             year++;
             month -= 12;
         }
@@ -150,19 +151,19 @@ void simulation()
 
 void print_result()
 {
-    printf("Alice Capital: %lld\n",Alice.capital /= 100);
-    printf("Alice Income: %lld\n", Alice.income /= 100); 
-    printf("Alice Life spendings: %lld\n", Alice.life_spendings /= 100); 
-    printf("Alice Monthly spendings: %lld\n", Alice.monthly_spendings /= 100);
-    printf("Alice Overpayment: %lld\n", Alice.overpayment /= 100);
+    printf("Alice Capital: %lld\n",Alice.capital / 100);
+    printf("Alice Income: %lld\n", Alice.income / 100); 
+    printf("Alice Life spendings: %lld\n", Alice.life_spendings / 100); 
+    printf("Alice Monthly spendings: %lld\n", Alice.monthly_spendings / 100);
+    printf("Alice Overpayment: %lld\n", Alice.overpayment / 100);
 
-    printf("Bob Capital: %lld\n", Bob.capital /= 100);
-    printf("Bob Income: %lld\n", Bob.income /= 100);
-    printf("Bob Life spendings: %lld\n", Bob.life_spendings /= 100);
-    printf("Bob Monthly spendings: %lld\n", Bob.monthly_spendings /= 100);
-    printf("Bob Overpayment: %lld\n", Bob.overpayment /= 100);
+    printf("Bob Capital: %lld\n", Bob.capital / 100);
+    printf("Bob Income: %lld\n", Bob.income / 100);
+    printf("Bob Life spendings: %lld\n", Bob.life_spendings / 100);
+    printf("Bob Monthly spendings: %lld\n", Bob.monthly_spendings / 100);
+    printf("Bob Overpayment: %lld\n", Bob.overpayment / 100);
 
-    printf("* all values presented above are in rubles");
+    printf("* all values presented above are in rubles \n");
 }
 
 
