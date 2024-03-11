@@ -36,7 +36,8 @@ void Alice_init()
     Alice.salary = SALARY;
     Alice.outlay = SPENDINGS;
     Alice.flat_payment = (FLAT_COST - START_CAPITAL) / discount_factor;
-}
+};
+
 void Bob_init()
 {
     Bob.savings = START_CAPITAL;
