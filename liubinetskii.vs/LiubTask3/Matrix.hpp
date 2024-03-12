@@ -12,13 +12,8 @@ private:
     size_t cols;
     MatrixItem* items;
 
-    MatrixItem* ptr_start();
-    MatrixItem* ptr_end();
-    const MatrixItem* ptr_start() const;
-    const MatrixItem* ptr_end() const;
-
     Matrix& multiply(Matrix& trg, const Matrix& A) const;
-
+    
     void set_null();
 
 public:
@@ -27,11 +22,13 @@ public:
     Matrix(const Matrix& A);
     Matrix(Matrix&& A);
 
-    void set_all_zero();
-    void set_all_one();
+    void clear_items_to_zero();
+    void set_as_identity();
 
     size_t get_rows() const;
     size_t get_cols() const;
+
+    MatrixItem& operator[](const size_t idx);
 
     Matrix& operator=(std::initializer_list<MatrixItem> lst);
     Matrix& operator=(const Matrix& A);
@@ -54,7 +51,7 @@ public:
 
     Matrix transposed();
     double determinant() const;
-    Matrix exponential(const MatrixItem& accuracy) const;
+    Matrix exponential(const int iterations = 100) const;
 
     MatrixItem get_maximum();
 

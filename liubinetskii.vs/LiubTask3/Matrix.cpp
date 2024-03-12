@@ -5,8 +5,18 @@
 #include <cstring>
 #include "matrix.hpp"
 
-const char* BAD_REQUEST = "bad_request";
-const char* OUT_OF_RANGE = "out_of_range";
+class MatrixException : public std::exception {
+private:
+    const char* message;
+
+public:
+    MatrixException(std::string msg) : message(msg.c_str()) {}
+    const char* what() { return message; }
+};
+MatrixException BAD_REQUEST("bad_request");
+MatrixException OUT_OF_RANGE("out_of_range");
+MatrixException NO_MEMORY_ALLOCATED("no_memory_allocated");
+MatrixException NULL_POINTER_REFERENCE("null_pointer_reference");
 
 Matrix::Matrix() : rows{ 0 }, cols{ 0 }, items{ nullptr } {}
 
@@ -19,7 +29,10 @@ Matrix::Matrix(const size_t a, const size_t b)
         return;
 
     if (rows == 0 || cols == 0)
-        throw std::exception(BAD_REQUEST);
+        throw BAD_REQUEST;
+
+    if (rows >= _CRT_SIZE_MAX / cols / sizeof(MatrixItem))
+        throw NO_MEMORY_ALLOCATED;
 
     items = new MatrixItem[rows * cols];
 }
@@ -30,9 +43,15 @@ Matrix::Matrix(const Matrix& A)
 {
     if (A.items == nullptr) return;
 
+    if (rows >= _CRT_SIZE_MAX / cols / sizeof(MatrixItem))
+        throw NO_MEMORY_ALLOCATED;
+
     items = new MatrixItem[rows * cols];
 
-    memcpy(ptr_start(), A.ptr_start(), rows * cols * sizeof(MatrixItem));
+    if (A.items == nullptr)
+        throw NULL_POINTER_REFERENCE;
+
+    memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
 }
 
 Matrix::Matrix(Matrix&& A) : rows{ A.rows }, cols{ A.cols }, items{ A.items }
@@ -52,9 +71,9 @@ void Matrix::set_null()
 Matrix& Matrix::operator=(std::initializer_list<MatrixItem> lst)
 {
     if (lst.size() != rows * cols)
-        throw std::exception(OUT_OF_RANGE);
+        throw OUT_OF_RANGE;
 
-    std::copy(lst.begin(), lst.end(), ptr_start());
+    std::copy(lst.begin(), lst.end(), items);
 
     return *this;
 }
@@ -68,22 +87,33 @@ Matrix& Matrix::operator=(const Matrix& A)
         items = new MatrixItem[A.rows * A.cols];
         rows = A.rows;
         cols = A.cols;
-        memcpy(ptr_start(), A.ptr_start(), rows * cols * sizeof(MatrixItem));
+
+        if (A.items == nullptr)
+            throw NULL_POINTER_REFERENCE;
+
+        memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
         return *this;
     }
 
     if (rows * cols == A.cols * A.rows) {
-        memcpy(ptr_start(), A.ptr_start(), rows * cols * sizeof(MatrixItem));
+        if (A.items == nullptr)
+            throw NULL_POINTER_REFERENCE;
+
+        memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
         return *this;
     }
 
     delete[] items;
+
     items = new MatrixItem[A.rows * A.cols];
 
     rows = A.rows;
     cols = A.cols;
 
-    memcpy(ptr_start(), A.ptr_start(), rows * cols * sizeof(MatrixItem));
+    if (A.items == nullptr)
+        throw NULL_POINTER_REFERENCE;
+
+    memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
 
     return *this;
 }
@@ -104,18 +134,20 @@ Matrix& Matrix::operator=(Matrix&& A)
 }
 
 
-void Matrix::set_all_zero()
+void Matrix::clear_items_to_zero()
 {
     memset(items, 0, sizeof(MatrixItem) * cols * rows);
 }
 
 
-void Matrix::set_all_one()
+void Matrix::set_as_identity()
 {
-    set_all_zero();
+    clear_items_to_zero();
 
-    for (size_t idx = 0; idx < cols; idx++)
-        items[idx + idx * cols] = 1.0;
+    size_t min_size = std::min(rows, cols);
+
+    for (size_t idx = 0; idx < min_size; idx++)
+        items[idx * cols + idx] = 1.;
 }
 
 
@@ -125,10 +157,19 @@ size_t Matrix::get_rows() const { return rows; }
 size_t Matrix::get_cols() const { return cols; }
 
 
+MatrixItem& Matrix::operator[](const size_t idx)
+{
+    if (idx >= rows * cols)
+        throw OUT_OF_RANGE;
+
+    return items[idx];
+}
+
+
 Matrix& Matrix::operator+=(const Matrix& A)
 {
     if ((rows != A.rows) || (cols != A.cols))
-        throw std::exception(BAD_REQUEST);
+        throw BAD_REQUEST;
 
     for (size_t idx = 0; idx < (rows * cols); idx++)
         items[idx] += A.items[idx];
@@ -153,10 +194,27 @@ Matrix operator+(const Matrix& A, Matrix&& B)
 }
 
 
+Matrix operator+(const Matrix& A, const MatrixItem number)
+{
+    Matrix sum = A;
+
+    size_t rows = A.get_rows();
+    size_t cols = A.get_cols();
+
+    for (size_t num_row = 0; num_row < rows; num_row++) {
+        for (size_t num_col = 0; num_col < cols; num_col++) {
+            sum[num_row * cols + num_col] += number;
+        }
+    }
+
+    return sum;
+}
+
+
 Matrix& Matrix::operator-=(const Matrix& A)
 {
     if ((rows != A.rows) || (cols != A.cols))
-        throw std::exception(BAD_REQUEST);
+        throw BAD_REQUEST;
 
     for (size_t idx = 0; idx < (rows * cols); idx++)
         items[idx] -= A.items[idx];
@@ -202,7 +260,7 @@ Matrix& Matrix::multiply(Matrix& trg, const Matrix& A) const
 Matrix Matrix::operator*(const Matrix& A) const
 {
     if (cols != A.rows)
-        throw std::exception(BAD_REQUEST);
+        throw BAD_REQUEST;
 
     Matrix mult(rows, A.cols);
     multiply(mult, A);
@@ -249,10 +307,10 @@ Matrix Matrix::transposed()
 double Matrix::determinant() const
 {
     if (cols != rows)
-        throw std::exception(BAD_REQUEST);
+        throw BAD_REQUEST;
 
     if (items == nullptr)
-        throw std::exception(BAD_REQUEST);
+        throw BAD_REQUEST;
 
     Matrix mat = *this;
 
@@ -294,31 +352,26 @@ double Matrix::determinant() const
 }
 
 
-Matrix Matrix::exponential(const MatrixItem& accuracy) const
+Matrix Matrix::exponential(const int iterations) const
 {
     if (cols != rows)
-        throw std::exception(BAD_REQUEST);
+        throw BAD_REQUEST;
 
     if (items == nullptr)
-        throw std::exception(BAD_REQUEST);
+        throw BAD_REQUEST;
 
     Matrix sum(rows, cols);
     Matrix term(rows, cols);
     Matrix temp(rows, cols);
 
-    term.set_all_one();
-    sum.set_all_one();
+    term.set_as_identity();
+    sum.set_as_identity();
 
-    for (size_t count = 1; count < 200; count++) {
-        term *= (1.0 / count);
-        multiply(temp, term);
-        std::swap(term.items, temp.items);
+    for (size_t count = 1; count < iterations; count++) {
+        term *= *this;
+        term *= (1. / count);
 
         sum += term;
-
-        // TODO return old mine func
-        if (term.get_maximum() < accuracy)
-            return sum;
     }
 
     return sum;
@@ -337,12 +390,6 @@ MatrixItem Matrix::get_maximum()
 
     return max;
 }
-
-
-MatrixItem* Matrix::ptr_start() { return items; }
-MatrixItem* Matrix::ptr_end() { return items + rows * cols; }
-const MatrixItem* Matrix::ptr_start() const { return items; }
-const MatrixItem* Matrix::ptr_end() const { return items + rows * cols; }
 
 
 void Matrix::set(size_t row, size_t col, MatrixItem value)
@@ -369,7 +416,7 @@ bool Matrix::operator==(const Matrix& A) const
         return false;
 
     for (size_t idx = 0; idx < (rows * cols); idx++) {
-        if ((int)(items[idx] * 10) != (int)(A.items[idx] * 10))
+        if ((int)(items[idx]) != (int)(A.items[idx]))
             return false;
     }
 
