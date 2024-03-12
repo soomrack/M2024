@@ -18,6 +18,7 @@ const int YEARS = 30;
 //const float annuity_coef = (MORTGAGE_RATE / 12 * pow(1 + MORTGAGE_RATE, YEARS * 12) / (pow(1 + MORTGAGE_RATE, YEARS * 12) - 1);
 
 int month;
+int year;
 double ap_cost;
 
 float annuity_coef()
@@ -72,54 +73,132 @@ float inflation(double param, float rate)
 }
 
 
-float deposit(double param, float rate)
+void alice_savings()
 {
-	return(param *= 1 + rate/12);
+	Alice.savings += Alice.salary - mortgage() - Alice.expenses;
+}
+
+
+void alice_add_expenses()
+{
+	Alice.expenses *= 1 + INFLATION_RATE / 12;
+}
+
+
+void alice_add_salary(int m)
+{
+	if (m == 12) {
+		Alice.salary *= 1 + INFLATION_RATE;
+	}
+}
+
+
+void apart_cost(int m)
+{
+	if (m == 12) {
+		ap_cost *= 1 + INFLATION_RATE;
+	}
+}
+
+
+void bob_deposit()
+{
+	Bob.savings *= 1 + DEPOSIT_RATE / 12;
+}
+
+
+void bob_add_salary(int m)
+{
+	if (m == 12) {
+		Bob.salary *= 1 + INFLATION_RATE;
+	}
+}
+
+
+void bob_add_rent(int m)
+{
+	if (m == 12) {
+		Bob.rent *= 1 + INFLATION_RATE;
+	}
+}
+
+
+void bob_savings(int m, int y)
+{
+	static Kopeyka new_salary;
+	if ((m == 2) && (y == 2028)) {
+		new_salary = Bob.salary;
+		Bob.salary = 0;
+	}
+	if ((m == 4) && (y == 2028)) {
+		Bob.salary = 1.5 * new_salary;
+	}
+	Bob.savings += Bob.salary - Bob.expenses - Bob.rent;
+}
+
+
+void bob_add_expenses()
+{
+	Bob.expenses *= 1 + INFLATION_RATE / 12;	
+}
+
+
+void print_alice()
+{
+	printf("Alice: %.0llf \n", rubel(Alice.savings + ap_cost));
+}
+
+
+void print_bob()
+{
+	printf("Bob: %.0llf", rubel(Bob.savings));
 }
 
 
 void alice()
 {
 	month = START_MONTH;
+	year = START_YEAR;
 	ap_cost = APARTMENT_COST;
-	for (int year = START_YEAR; year < START_YEAR + YEARS + 1; year++) {
-		while (month <= 12) {
-			Alice.savings += Alice.salary - mortgage() - Alice.expenses;
-			Alice.expenses = inflation(Alice.expenses, INFLATION_RATE / 12);
-			if (month == 12)
-			{
-				Alice.salary = inflation(Alice.salary, INFLATION_RATE);
-				ap_cost = inflation(ap_cost, INFLATION_RATE);
-			}
+	while ((year != START_YEAR + YEARS) || (month != START_MONTH)) {
+		alice_savings();
+		alice_add_expenses();
+		alice_add_salary(month);
+		apart_cost(month);
+		if (month == 12) {
+			month = 1;
+			year++;
+		}
+		else
+		{
 			month++;
 		}
-		month = 1;
 	}
-	printf("Alice: %llf \n", rubel(Alice.savings + ap_cost));
+	print_alice();
 }
 
 
 void bob()
 {
 	month = START_MONTH;
-	for (int year = START_YEAR; year < START_YEAR + YEARS + 1; year++) {
-		while (month <= 12) {
-			Bob.savings += Bob.salary - Bob.expenses - Bob.rent;
-			Bob.savings = deposit(Bob.savings, DEPOSIT_RATE);
-			Bob.expenses = inflation(Bob.expenses, INFLATION_RATE / 12);
-			if (month == 12)
-			{
-				Bob.salary = inflation(Bob.salary, INFLATION_RATE);
-				if (year % 2 != 0)
-				{
-					Bob.rent = inflation(Bob.rent, INFLATION_RATE);
-				}
-			}
+	year = START_YEAR;
+	while ((year != START_YEAR + YEARS) || (month!= START_MONTH)) {
+		bob_savings(month, year);
+		bob_add_expenses();
+		bob_deposit();
+		bob_add_salary(month);
+		bob_add_rent(month);
+		if (month == 12)
+		{
+			month = 1;
+			year++;
+		}
+		else
+		{
 			month++;
 		}
-		month = 1;
 	}
-	printf("Bob: %llf", rubel(Bob.savings));
+	print_bob();
 }
 
 
