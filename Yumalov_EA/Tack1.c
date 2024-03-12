@@ -44,6 +44,7 @@ void init_bob() {  // Боб
     bob.salary = 150 * 1000 * 100;
     bob.bank_account = 2 * 1000 * 1000 * 100;
     bob.saving_account_rate = 10;
+    return bob.salary;
 }
 
 
@@ -54,7 +55,7 @@ void init_alice() {  // Алиса
 }
 
 
-void inflation_common() {  // Инфляция
+void common_inflation() {  // Инфляция
     if (CURRENT_MONTH == 1) {
         alice.salary *= (1.0 + INFLATION / 100.0);
         kvartira *= (1.0 + INFLATION / 100.0);
@@ -66,53 +67,69 @@ void inflation_common() {  // Инфляция
 }
 
 
-void zp_alice() {
+void alice_zp() {
     alice.bank_account += alice.salary;
 }
 
 
-void zp_bob() {
+void bob_zp() {
     bob.bank_account += bob.salary;
+    static Money salary = 0;
+    if ((CURRENT_YEAR == 2026 &&  CURRENT_MONTH == 12) || (CURRENT_YEAR == 2026 && CURRENT_MONTH == 1)){
+        salary = 0;
+    }
+   // if (CURRENT_YEAR == 2027 && CURRENT_MONTH == 2) {
+    salary = bob.salary * 1.5;
+    } 
 }
 
 
-void vklad_bob() {
+void bob_vklad() {
     if (CURRENT_MONTH == 1) {
         bob.bank_account *= (1.0 + bob.saving_account_rate / 100.0);
     }
 }
 
 
-void eda_common() {
+void common_eda() {
     alice.bank_account -= EDA;
     bob.bank_account -= EDA;
 }
 
 
-void odezda_common() {
+void alice_odezda() {
     alice.bank_account -= ODEZDA;
+    }
+
+
+void bob_odezda() {
+     if (CURRENT_YEAR == 2026 && CURRENT_MONTH == 2){
+        Money kostuym = 200*1000*100;
+        bob.bank_account -= kostuym;
+    }
     bob.bank_account -= ODEZDA;
 }
 
-void intertaiments_common() {
+
+void common_intertaiments() {
     alice.bank_account -= INTERTAIMENTS;
     bob.bank_account -= INTERTAIMENTS;
 }
 
 
-void ipoteka_alice() {
+void alice_ipoteka() {
   alice.bank_account -= alice.credit_monthly_payment;
 }
 
 
-void remont_alice() {
+void alice_remont() {
      if (CURRENT_YEAR < 2027) {
         alice.bank_account -= REMONT;
     }
 }
 
 
-void rent_bob() {
+void bob_rent() {
     bob.bank_account -= RENT;
 }
 
@@ -127,16 +144,17 @@ void print_common() {
 
 void processing() {
     while (CURRENT_YEAR* 12 + CURRENT_MONTH != END_YEAR * 12 + END_MONTH) {
-        zp_alice();
-        zp_bob();
-        vklad_bob();
-        eda_common();
-        odezda_common();
-        intertaiments_common();
-        ipoteka_alice();
-        remont_alice();
-        rent_bob();
-        inflation_common();
+        alice_zp();
+        bob_zp();
+        bob_vklad();
+        common_eda();
+        bob_odezda();
+        alice_odezda();
+        common_intertaiments();
+        alice_ipoteka();
+        alice_remont();
+        bob_rent();
+        common_inflation();
         print_common();
         CURRENT_MONTH++;
         if (CURRENT_MONTH % 13 == 0) {
@@ -155,6 +173,7 @@ void result() {
     }
 }
 
+
 int main() {
     init_alice();
     init_bob();
@@ -162,3 +181,5 @@ int main() {
     result();
        return 0;
 }
+
+// боб в 2026 в феврале покупает сбе костюм за 200 тыщ, потерял работу на 2 месяца (дек и янв), в феврале нашел работу с зп в 1.5 р больше
