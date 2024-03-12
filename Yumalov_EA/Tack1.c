@@ -75,11 +75,12 @@ void alice_zp() {
 void bob_zp() {
     bob.bank_account += bob.salary;
     static Money salary = 0;
-    if ((CURRENT_YEAR == 2026 &&  CURRENT_MONTH == 12) || (CURRENT_YEAR == 2026 && CURRENT_MONTH == 1)){
-        salary = 0;
+    if (CURRENT_YEAR == 2026 &&  CURRENT_MONTH == 12) {
+        salary = bob.salary;
+        bob.salary = 0;
     }
-   // if (CURRENT_YEAR == 2027 && CURRENT_MONTH == 2) {
-    salary = bob.salary * 1.5;
+   if (CURRENT_YEAR == 2027 && CURRENT_MONTH == 2) {
+    bob.salary = salary * 1.5;
     } 
 }
 
@@ -145,17 +146,18 @@ void print_common() {
 void processing() {
     while (CURRENT_YEAR* 12 + CURRENT_MONTH != END_YEAR * 12 + END_MONTH) {
         alice_zp();
-        bob_zp();
-        bob_vklad();
-        common_eda();
-        bob_odezda();
         alice_odezda();
-        common_intertaiments();
         alice_ipoteka();
         alice_remont();
+        bob_zp();
+        bob_odezda();
         bob_rent();
+        bob_vklad();
+        common_eda();
+        common_intertaiments();
         common_inflation();
         print_common();
+       
         CURRENT_MONTH++;
         if (CURRENT_MONTH % 13 == 0) {
             CURRENT_MONTH = 1;
