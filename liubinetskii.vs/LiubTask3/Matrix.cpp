@@ -19,7 +19,7 @@ MatrixException NO_MEMORY_ALLOCATED("no_memory_allocated");
 MatrixException NULL_POINTER_REFERENCE("null_pointer_reference");
 
 Matrix::Matrix() : rows{ 0 }, cols{ 0 }, items{ nullptr } {}
-
+const MatrixItem epsilon = 0.001;
 
 Matrix::Matrix(const size_t a, const size_t b)
     : rows{ a }, cols{ b }, items{ nullptr }
@@ -48,11 +48,9 @@ Matrix::Matrix(const Matrix& A)
 
     items = new MatrixItem[rows * cols];
 
-    if (A.items == nullptr)
-        throw NULL_POINTER_REFERENCE;
-
     memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
 }
+
 
 Matrix::Matrix(Matrix&& A) : rows{ A.rows }, cols{ A.cols }, items{ A.items }
 {
@@ -190,23 +188,6 @@ Matrix operator+(const Matrix& A, Matrix&& B)
 {
     Matrix sum = B;
     sum += A;
-    return sum;
-}
-
-
-Matrix operator+(const Matrix& A, const MatrixItem number)
-{
-    Matrix sum = A;
-
-    size_t rows = A.get_rows();
-    size_t cols = A.get_cols();
-
-    for (size_t num_row = 0; num_row < rows; num_row++) {
-        for (size_t num_col = 0; num_col < cols; num_col++) {
-            sum[num_row * cols + num_col] += number;
-        }
-    }
-
     return sum;
 }
 
@@ -362,7 +343,6 @@ Matrix Matrix::exponential(const int iterations) const
 
     Matrix sum(rows, cols);
     Matrix term(rows, cols);
-    Matrix temp(rows, cols);
 
     term.set_as_identity();
     sum.set_as_identity();
@@ -416,7 +396,7 @@ bool Matrix::operator==(const Matrix& A) const
         return false;
 
     for (size_t idx = 0; idx < (rows * cols); idx++) {
-        if ((int)(items[idx]) != (int)(A.items[idx]))
+        if (std::abs(items[idx] - A.items[idx]) > epsilon)
             return false;
     }
 
