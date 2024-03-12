@@ -1,8 +1,9 @@
 #include <iostream>
+#include <iomanip>
 #include <stdlib.h>
 #include <math.h>
 #include <locale.h>
-
+using namespace std;
 
 class Matrix {
     public:
@@ -33,6 +34,15 @@ class Matrix {
         }
 
 
+        ~Matrix()
+        {
+            delete data;
+            data = NULL;
+            cols = 0;
+            rows = 0;
+        }
+
+
         void fill_random(size_t max_value)
         {
             for(size_t index = 0; index < rows * cols; index++) {
@@ -42,7 +52,6 @@ class Matrix {
         }
 
 
-        //TODO перегрузить cout?
         void print()
         {
             for(size_t index_row = 0; index_row < rows; index_row++) {
@@ -72,9 +81,22 @@ class Matrix {
 };
 
 
+ostream& operator<<(ostream& os, const Matrix& matrix) {
+    for(size_t index_row = 0; index_row < matrix.rows; index_row++) {
+        for(size_t index_col = 0; index_col < matrix.cols; index_col++) {
+            os << matrix.data[index_row * matrix.cols + index_col] << "  ";
+        }
+        os << endl;
+    }
+    os << endl;
+    return os;
+}
+
+
 int main()
 {
     setlocale(LC_CTYPE, "");
+    cout << setprecision(2) << fixed;
 
     Matrix matrix_A(4, 4);
     Matrix matrix_B(4, 4);
@@ -84,9 +106,9 @@ int main()
 
     Matrix matrix_C = matrix_A + matrix_B;
 
-    matrix_A.print();
-    matrix_B.print();
-    matrix_C.print();
+    cout << matrix_A;
+    cout << matrix_B;
+    cout << matrix_C;
 
     return 0;
 }
