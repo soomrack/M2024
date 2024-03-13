@@ -2,6 +2,13 @@
 #include <stdlib.h>
 #include <time.h>
 
+//Убрать из функций заполнения проверку на null
+//Если память не выделилась объявить строки и столбцы нулями
+//Error log через enum
+//Matrix Init возвращает матрицу а не void
+//Если выдаёт ошибку возвращать null матрицу со строками и столбца и равными нулю
+//Убирать из некоторых операций проверки равенства null
+//Добавить проверки создаваемых внутри функций матриц
 
 struct Matrix {
     size_t cols;
@@ -61,17 +68,12 @@ void error_log(const unsigned int number) {
 
 
 void matrix_init(struct Matrix* any_matrix, size_t cols, size_t rows) {
-    any_matrix->cols = 0;
-    any_matrix->rows = 0;
-    
     if (cols * rows <= 0) {
-        any_matrix->data = NULL;
         error_log(2);
         return;
     }
     long double size_check = SIZE_MAX / (cols * rows * sizeof(double));
     if (size_check < 1.0) {
-        any_matrix->data = NULL;     
         error_log(3);
         return;
     }
@@ -80,26 +82,34 @@ void matrix_init(struct Matrix* any_matrix, size_t cols, size_t rows) {
     any_matrix->data = (double*)malloc(any_matrix->cols * any_matrix->rows * sizeof(double));
 
     if (any_matrix->data == NULL) {
+        any_matrix->cols = 0;
+        any_matrix->rows = 0;
         error_log(4);
         return;
     }
 }
 
 
+void matrix_zeros_fill(struct Matrix* any_matrix) {
+    memset(any_matrix->data, 0.0, any_matrix->cols * any_matrix->rows * sizeof(double));
+}
+
+
+struct Matrix matrix_empty_init(struct Matrix* any_matrix, size_t cols, size_t rows) {
+    matrix_init(any_matrix, cols, rows);
+    matrix_zeros_fill(any_matrix);
+    return *any_matrix;
+}
+
+
 struct Matrix matrix_create_empty_for_simple_calculus(struct Matrix any_matrix) {
-    struct Matrix new_matrix;
-    new_matrix.cols = any_matrix.cols;
-    new_matrix.rows = any_matrix.rows;
-    matrix_init(&new_matrix, new_matrix.cols, new_matrix.rows);
+    struct Matrix new_matrix = matrix_empty_init(&new_matrix, any_matrix.cols, any_matrix.rows);
     return new_matrix;
 }
 
 
 struct Matrix matrix_create_empty_for_mult(struct Matrix first_matrix, struct Matrix second_matrix) {
-    struct Matrix new_matrix;
-    new_matrix.cols = first_matrix.cols;
-    new_matrix.rows = second_matrix.rows;
-    matrix_init(&new_matrix, new_matrix.cols, new_matrix.rows);
+    struct Matrix new_matrix = matrix_empty_init(&new_matrix, first_matrix.cols, second_matrix.rows);
     return new_matrix;
 }
 
@@ -111,19 +121,17 @@ void matrix_random_fill(struct Matrix *any_matrix) {
 }
 
 
-void matrix_zeros_fill(struct Matrix* any_matrix) {
-    memset(any_matrix->data, 0.0, any_matrix->cols * any_matrix->rows * sizeof(double));
-}
-
-
 void matrix_identity_fill(struct Matrix* any_matrix) {
-    if (any_matrix->data == NULL) {
-        error_log(1);
-        return;
+    matrix_zeros_fill(any_matrix);
+    if (any_matrix->cols < any_matrix->rows) {
+        for (size_t col = 0; col < any_matrix->cols; col++) {
+            any_matrix->data[col * any_matrix->rows + col] = 1.0;
+        }
     }
-    matrix_zeros_fill(&any_matrix);
-    for (size_t col = 0; col < any_matrix->cols; col++) {
-        any_matrix->data[col * any_matrix->rows + col] = 1.0;
+    else {
+        for (size_t row = 0; row < any_matrix->rows; row++) {
+            any_matrix->data[row * any_matrix->cols + row] = 1.0;
+        }
     }
 }
 
@@ -157,8 +165,6 @@ void matrix_free_memory(struct Matrix *any_matrix) {
         error_log(6);
         return;
     }
-    any_matrix->cols = 0;
-    any_matrix->rows = 0;
     free(any_matrix->data);   
 }
 
@@ -166,10 +172,6 @@ void matrix_free_memory(struct Matrix *any_matrix) {
 struct Matrix matrix_summ(struct Matrix first_matrix, struct Matrix second_matrix) {
     struct Matrix new_matrix = matrix_create_empty_for_simple_calculus(first_matrix);
 
-    if ((first_matrix.data == NULL) || (second_matrix.data == NULL)) {
-        error_log(1);
-        return new_matrix;
-    }
     if ((first_matrix.rows != second_matrix.rows) || (first_matrix.cols != second_matrix.cols)) {
         error_log(7);
         return new_matrix;
@@ -190,10 +192,6 @@ struct Matrix matrix_summ(struct Matrix first_matrix, struct Matrix second_matri
 struct Matrix matrix_sub(struct Matrix first_matrix, struct Matrix second_matrix) {
     struct Matrix new_matrix = matrix_create_empty_for_simple_calculus(first_matrix);
 
-    if ((first_matrix.data == NULL) || (second_matrix.data == NULL)) {
-        error_log(1);
-        return new_matrix;
-    }
     if ((first_matrix.rows != second_matrix.rows) || (first_matrix.cols != second_matrix.cols)) {
         error_log(7);
         return new_matrix;
@@ -213,10 +211,6 @@ struct Matrix matrix_sub(struct Matrix first_matrix, struct Matrix second_matrix
 struct Matrix matrix_scalar_mult(struct Matrix any_matrix,double scalar) {
     struct Matrix new_matrix = matrix_create_empty_for_simple_calculus(any_matrix);
 
-    if (any_matrix.data == NULL) {
-        error_log(1);
-        return new_matrix;
-    }
     if (any_matrix.cols * any_matrix.rows <= 0) {
         error_log(2);
         return new_matrix;
@@ -457,7 +451,7 @@ struct Matrix inverse_matrix(struct Matrix any_matrix) {
         return inv_matrix;
     }
     double det = matrix_determinant(any_matrix);
-    if (fabs(det) <= 0.001*0.001) {
+    if (fabs(det) <= 0.001) {
         error_log(11);
         return inv_matrix;
     }
@@ -495,18 +489,16 @@ int main()
     srand(time(NULL));
     setlocale(LC_ALL, "rus");
 
-    struct Matrix matrix_A;
-    matrix_init(&matrix_A, 4, 4);
+    struct Matrix matrix_A = matrix_empty_init(&matrix_A, 6, 6);
     matrix_random_fill(&matrix_A);
     matrix_print(matrix_A);
 
-    struct Matrix matrix_B;
-    matrix_init(&matrix_B, 4, 4);
+    struct Matrix matrix_B = matrix_empty_init(&matrix_B, 6, 6);
     matrix_random_fill(&matrix_B);
     matrix_print(matrix_B);
 
 
-    struct Matrix matrix_C=matrix_mult(matrix_A, matrix_B);
+    struct Matrix matrix_C = matrix_mult(matrix_A, matrix_B);
     //matrix_identity_fill(&matrix_C);
     matrix_print(matrix_C);
     /*
