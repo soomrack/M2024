@@ -55,7 +55,7 @@ void error_log(const unsigned int number) {
         return;
 
     case 11:
-        printf("\nERROR: the matrix determinant is equal to zero");
+        printf("\nWARNING: the matrix determinant is equal to zero");
         return;
     case 12:
         printf("\nERROR: the inverse matrix cannot be caclulated");
@@ -120,6 +120,23 @@ struct Matrix matrix_create_empty_for_simple_calculus(struct Matrix any_matrix) 
 
 struct Matrix matrix_create_empty_for_mult(struct Matrix first_matrix, struct Matrix second_matrix) {
     struct Matrix new_matrix = matrix_empty_init(&new_matrix, first_matrix.cols, second_matrix.rows);
+    return new_matrix;
+}
+
+
+struct Matrix matrix_copy(struct Matrix any_matrix) {
+    struct Matrix new_matrix;
+
+    if (any_matrix.cols * any_matrix.rows <= 0) {
+        new_matrix.data = NULL;
+        error_log(2); 
+        return new_matrix;
+    }
+
+    new_matrix = matrix_create_empty_for_simple_calculus(any_matrix);
+    for (size_t index = 0; index < any_matrix.cols * any_matrix.rows; index++) {
+        new_matrix.data[index] = any_matrix.data[index];
+    }
     return new_matrix;
 }
 
