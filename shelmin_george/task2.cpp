@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-//Добавить проверки создаваемых внутри функций матриц
-
 struct Matrix {
     size_t cols;
     size_t rows;
