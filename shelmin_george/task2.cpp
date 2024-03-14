@@ -203,7 +203,7 @@ struct Matrix matrix_summ(struct Matrix first_matrix, struct Matrix second_matri
         error_log(7);
         return new_matrix;
     }
-    if (new_matrix.cols * new_matrix.rows<=0) {
+    if (first_matrix.cols * second_matrix.rows<=0) {
         new_matrix = matrix_null();
         error_log(2);
         return new_matrix;
@@ -225,7 +225,7 @@ struct Matrix matrix_sub(struct Matrix first_matrix, struct Matrix second_matrix
         error_log(7);
         return new_matrix;
     }
-    if (new_matrix.cols * new_matrix.rows <= 0) {
+    if (first_matrix.cols * first_matrix.rows <= 0) {
         new_matrix = matrix_null();
         error_log(2);
         return new_matrix;
@@ -290,7 +290,6 @@ struct Matrix matrix_mult(struct Matrix first_matrix, struct Matrix second_matri
     }
     return new_matrix;
 }
-
 
 
 struct Matrix matrix_exp(struct Matrix any_matrix) {
@@ -445,6 +444,7 @@ struct Matrix matrix_transposition(struct Matrix any_matrix) {
 
 struct Matrix inverse_matrix(struct Matrix any_matrix) {
     struct Matrix inv_matrix;
+
     if (any_matrix.data == NULL) {
         inv_matrix = matrix_null();
         error_log(1);
@@ -460,6 +460,7 @@ struct Matrix inverse_matrix(struct Matrix any_matrix) {
         error_log(2);
         return inv_matrix;
     }
+
     double det = matrix_determinant(any_matrix);
     if (det == NAN) {
         inv_matrix = matrix_null();
@@ -470,7 +471,7 @@ struct Matrix inverse_matrix(struct Matrix any_matrix) {
     inv_matrix = matrix_create_empty_for_simple_calculus(any_matrix);
     if (fabs(det) <= 0.001) {
         matrix_zeros_fill(&inv_matrix);
-        error_log(11);  // warning
+        error_log(11);
         return inv_matrix;
     }
 
