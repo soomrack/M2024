@@ -1,7 +1,5 @@
-#include <iostream>
 #include <stdlib.h>
 #include <time.h>
-
 
 struct Matrix {
     size_t cols;
@@ -294,17 +292,16 @@ struct Matrix matrix_mult(struct Matrix first_matrix, struct Matrix second_matri
         return new_matrix;
     }
 
-    new_matrix = matrix_init(first_matrix.cols, second_matrix.rows);
-
+    new_matrix = matrix_create_empty_for_mult(first_matrix, second_matrix);
+ 
     for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
         for (size_t current_row = 0; current_row < new_matrix.rows; current_row++) {
-            new_matrix.data[new_matrix.rows * current_col + current_row] = 0;
             
-            for (size_t summ_index = 0; summ_index < first_matrix.rows; summ_index++) {
+            for (size_t index = 0; index < first_matrix.rows; index++) {  //неверно работает
 
-                new_matrix.data[new_matrix.rows * current_col + current_row] +=
-                    first_matrix.data[current_col * new_matrix.cols + summ_index] *
-                    second_matrix.data[summ_index * new_matrix.rows + current_row];
+                new_matrix.data[new_matrix.rows * current_col + current_row] += 
+                    first_matrix.data[first_matrix.rows*current_col+index] *
+                    second_matrix.data[second_matrix.rows*index+current_row];
             }
         }
     }
@@ -524,11 +521,11 @@ int main()
     srand(time(NULL));
     // setlocale(LC_ALL, "rus");
 
-    struct Matrix matrix_A = matrix_empty_init(6, 5);
+    struct Matrix matrix_A = matrix_empty_init(5, 5);
     matrix_random_fill(&matrix_A);
     matrix_print(matrix_A);
 
-    struct Matrix matrix_B = matrix_empty_init(5, 6);
+    struct Matrix matrix_B = matrix_empty_init(5, 5);
     matrix_random_fill(&matrix_B);
     matrix_print(matrix_B);
 
@@ -557,4 +554,3 @@ int main()
 
 
 }
-
