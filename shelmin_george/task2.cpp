@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+
 struct Matrix {
     size_t cols;
     size_t rows;
@@ -87,7 +88,7 @@ struct Matrix matrix_null() {
 }
 
 
-struct Matrix matrix_init(struct Matrix* any_matrix, size_t cols, size_t rows) {
+struct Matrix matrix_init(size_t cols, size_t rows) {
     struct Matrix new_matrix;
 
     if (cols * rows <= 0) {
@@ -119,21 +120,21 @@ void matrix_zeros_fill(struct Matrix* any_matrix) {
 }
 
 
-struct Matrix matrix_empty_init(struct Matrix* any_matrix, size_t cols, size_t rows) {
-    struct Matrix new_matrix = matrix_init(any_matrix, cols, rows);
+struct Matrix matrix_empty_init(size_t cols, size_t rows) {
+    struct Matrix new_matrix = matrix_init(cols, rows);
     matrix_zeros_fill(&new_matrix);
     return new_matrix;
 }
 
 
 struct Matrix matrix_create_empty_for_simple_calculus(struct Matrix any_matrix) {
-    struct Matrix new_matrix = matrix_empty_init(&new_matrix, any_matrix.cols, any_matrix.rows);
+    struct Matrix new_matrix = matrix_empty_init(any_matrix.cols, any_matrix.rows);
     return new_matrix;
 }
 
 
 struct Matrix matrix_create_empty_for_mult(struct Matrix first_matrix, struct Matrix second_matrix) {
-    struct Matrix new_matrix = matrix_empty_init(&new_matrix, first_matrix.cols, second_matrix.rows);
+    struct Matrix new_matrix = matrix_empty_init(first_matrix.cols, second_matrix.rows);
     return new_matrix;
 }
 
@@ -293,11 +294,12 @@ struct Matrix matrix_mult(struct Matrix first_matrix, struct Matrix second_matri
         return new_matrix;
     }
 
-    new_matrix = matrix_create_empty_for_mult(first_matrix, second_matrix);
+    new_matrix = matrix_init(first_matrix.cols, second_matrix.rows);
 
     for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
         for (size_t current_row = 0; current_row < new_matrix.rows; current_row++) {
-
+            new_matrix.data[new_matrix.rows * current_col + current_row] = 0;
+            
             for (size_t summ_index = 0; summ_index < first_matrix.rows; summ_index++) {
 
                 new_matrix.data[new_matrix.rows * current_col + current_row] +=
@@ -334,7 +336,7 @@ struct Matrix matrix_exp(struct Matrix any_matrix) {
     matrix_identity_fill(&new_matrix);
 
     struct Matrix submatrix;
-    matrix_init(&submatrix, new_matrix.cols, new_matrix.rows);
+    matrix_init(new_matrix.cols, new_matrix.rows);
     matrix_identity_fill(&submatrix);
 
     void* submatrix_adress = submatrix.data;  // адрес памяти записан
@@ -385,7 +387,7 @@ struct Matrix matrix_create_for_minor(struct Matrix any_matrix, size_t col_numbe
         return minor_matrix;
     }
 
-    minor_matrix = matrix_init(&minor_matrix, any_matrix.cols - 1, any_matrix.rows - 1);
+    minor_matrix = matrix_init(any_matrix.cols - 1, any_matrix.rows - 1);
     size_t origin_index = 0;
     for (size_t current_col = 0; current_col < minor_matrix.cols; current_col++) {
         if (current_col == col_number) {
@@ -522,11 +524,11 @@ int main()
     srand(time(NULL));
     // setlocale(LC_ALL, "rus");
 
-    struct Matrix matrix_A = matrix_empty_init(&matrix_A, 10, 5);
+    struct Matrix matrix_A = matrix_empty_init(6, 5);
     matrix_random_fill(&matrix_A);
     matrix_print(matrix_A);
 
-    struct Matrix matrix_B = matrix_empty_init(&matrix_B, 5, 5);
+    struct Matrix matrix_B = matrix_empty_init(5, 6);
     matrix_random_fill(&matrix_B);
     matrix_print(matrix_B);
 
