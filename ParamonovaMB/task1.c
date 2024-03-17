@@ -44,7 +44,7 @@ void alice_initialization()
     Alice.capital = 0;
     Alice.monthly_spendings = 15 * 1000 + ((FLAT_COST - 2000000) * (0.18 / 12) * (pow((1 + 0.18 / 12), 
     (number_of_years * 12)))) / (pow((1 + 0.18 / 12), (number_of_years * 12)) - 1);
-Alice.salary = SALARY;
+    Alice.salary = SALARY;
 }
 
 
@@ -83,7 +83,7 @@ void alice_pay_for_life_and_flat_repair(int year, int month)
 
 void bob_salary_index(int year, int month)
 {
-    if(month == 12){
+    if(month == 12) {
         Bob.salary *= 1.05;
     }
 }
