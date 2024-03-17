@@ -21,9 +21,9 @@ float BANK_DEPOSIT = 0.16;
 typedef long long int Money;
 
 struct Person{
-	Money capital;
-	Money salary;
-	Money monthly_spendings;
+    Money capital;
+    Money salary;
+    Money monthly_spendings;
 };
 
 struct Person Alice;
@@ -32,19 +32,19 @@ struct Person Bob;
 
 void bob_initialization()
 {
-	Bob.capital = 2 * 1000 * 1000;
-	Bob.monthly_spendings = 15 * 1000 + FLAT_RENT;
-	Bob.salary = SALARY;
+    Bob.capital = 2 * 1000 * 1000;
+    Bob.monthly_spendings = 15 * 1000 + FLAT_RENT;
+    Bob.salary = SALARY;
 }
 
 
 void alice_initialization()
 {
-	int number_of_years = LAST_YEAR - FIRST_YEAR;
-	Alice.capital = 0;
+    int number_of_years = LAST_YEAR - FIRST_YEAR;
+    Alice.capital = 0;
     Alice.monthly_spendings = 15 * 1000 + ((FLAT_COST - 2000000) * (0.18 / 12) * (pow((1 + 0.18 / 12), 
     (number_of_years * 12)))) / (pow((1 + 0.18 / 12), (number_of_years * 12)) - 1);
-    Alice.salary = SALARY;
+Alice.salary = SALARY;
 }
 
 
@@ -74,18 +74,18 @@ void alice_pay_for_life_and_flat_repair(int year, int month)
     if (month == 12) {
         Alice.capital -= Alice.monthly_spendings * 1.2;
     }
-	if (year < 2) {
-		Alice.capital -= 100*1000;
-	}
+    if (year < 2) {
+        Alice.capital -= 100*1000;
+    }
     Alice.capital -= Alice.monthly_spendings;
 }
 
 
 void bob_salary_index(int year, int month)
 {
-	if(month == 12){
-		Bob.salary *= 1.05;
-	}
+    if(month == 12){
+        Bob.salary *= 1.05;
+    }
 }
 
 
@@ -103,26 +103,26 @@ void life_inflation(int year, int month)
         Alice.monthly_spendings += Alice.monthly_spendings * INFLATION / 2.0;
         Bob.monthly_spendings += Bob.monthly_spendings * INFLATION / 2.0;
     }
-	if (month == 12) {
-		Alice.salary *= (1+INFLATION);
-		Bob.salary *= (1+INFLATION);
-	}
+    if (month == 12) {
+        Alice.salary *= (1+INFLATION);
+        Bob.salary *= (1+INFLATION);
+    }
 }
 
 
 void teeth_repair(int year, int month)
 {
-	if((year - FIRST_YEAR) % 10 == 0 && year != FIRST_YEAR && month == 6){
-		Alice.capital -= TEETH;
-	}
+    if((year - FIRST_YEAR) % 10 == 0 && year != FIRST_YEAR && month == 6){
+        Alice.capital -= TEETH;
+    }
 }
 
 
 void vacation_turkey(int year, int month)
 {
-	if((year - FIRST_YEAR) % 2 == 0 && year != FIRST_YEAR && month == 6){
-		Alice.capital -= VACATION;
-	}
+    if((year - FIRST_YEAR) % 2 == 0 && year != FIRST_YEAR && month == 6){
+        Alice.capital -= VACATION;
+    }
 }
 
 
@@ -135,13 +135,13 @@ void simulation()
 
         alice_salary_income(year, month);
         alice_pay_for_life_and_flat_repair(year, month);
-		alice_salary_index(year, month);
-		vacation_turkey(year, month);
-		teeth_repair(year, month);
+        alice_salary_index(year, month);
+        vacation_turkey(year, month);
+        teeth_repair(year, month);
 
         bob_salary_income(year, month);
         bob_pay_for_life(year, month);
-		bob_salary_index(year, month);
+        bob_salary_index(year, month);
 
         life_inflation(year, month);
         
@@ -156,19 +156,19 @@ void simulation()
 
 void print()
 {
-	printf("\nAlice capital: %lld\n", Alice.capital);
-	printf("\nBob capital: %lld\n", Bob.capital);
+    printf("\nAlice capital: %lld\n", Alice.capital);
+    printf("\nBob capital: %lld\n", Bob.capital);
 }
 
 
 main()
 {
-	alice_initialization();
-	bob_initialization();
-	
-	simulation();
-	
-	print();
-	
-	return 0;
+    alice_initialization();
+    bob_initialization();
+    
+    simulation();
+    
+    print();
+    
+    return 0;
 }
