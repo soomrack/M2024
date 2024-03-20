@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+// создать свои конструкторы и деструкторы
 // переопределить математические операции, присваивание и оператор вывода <<
 // переопределить ^ как возведение числа в степень матрицы (a^matrix = e^(matrix*ln(a))
 enum Errors {
@@ -124,6 +125,7 @@ public:
     friend Matrix operator + (const Matrix& A, const Matrix& B);
     friend Matrix operator - (const Matrix& A, const Matrix& B);
     friend Matrix operator * (const Matrix& A, const Matrix& B);
+    friend Matrix operator ^ (const double number, const Matrix& B);
 
     Matrix& operator = (const Matrix& matrix) 
     {
@@ -232,6 +234,12 @@ public:
 
         return *this;
     }
+
+
+    Matrix& operator ^ (const unsigned int number)
+    {
+
+    }
 };
 
 std::ostream& operator<<(std::ostream& out, const Matrix& matrix)
@@ -299,6 +307,12 @@ Matrix operator * (const Matrix& A, const Matrix& B) {
         }
     }
     return new_matrix;
+}
+
+
+Matrix operator ^ (const double number, const Matrix& B)
+{
+
 }
 
 
