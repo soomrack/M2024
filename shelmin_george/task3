@@ -1,0 +1,209 @@
+#include <iostream>
+#include <stdlib.h>
+#include <time.h>
+
+// создать свои конструкторы и деструкторы
+// переопределить математические операции, присваивание и оператор вывода <<
+
+enum Errors {
+    ATTEMPT_TO_REINIT, SIZE_ZERO, SIZE_THRESHOLD_EXCEEDED,
+    WRONG_SIZES
+};
+
+void matrix_error_log(enum Errors code) {
+    switch (code) {
+    case ATTEMPT_TO_REINIT:
+        std::cout << "ERROR: the matrix has already been initialised\n";
+        return;
+    case SIZE_ZERO:
+        std::cout << "WARNING: the matrix size is zero\n";
+        return;
+    case SIZE_THRESHOLD_EXCEEDED:
+        std::cout << "ERROR: the matrix size too big\n";
+        return;
+    case WRONG_SIZES:
+        std::cout << "ERROR: the matrix sizes are incomparable\n";
+        return;
+    }
+
+};
+
+
+class Matrix {
+private:
+    size_t cols;
+    size_t rows;
+    double* data = nullptr;
+
+public:
+    // конструктор пустой матрицы
+    Matrix()
+    {
+        std::cout << "Вызван конструктор инициализации пустой матрицы\n";
+        cols = 0;
+        rows = 0;
+        data = nullptr;
+    }
+
+
+    // конструктор
+    Matrix(const size_t init_cols, const size_t init_rows)
+    {
+        std::cout << "Вызван конструктор инициализации матрицы\n";
+
+        if (init_cols * init_rows == 0) {
+            cols = 0;
+            rows = 0;
+            data = nullptr;
+            matrix_error_log(SIZE_ZERO);
+            return;
+        }
+
+        long double size_check = SIZE_MAX / init_cols / init_rows / sizeof(double);
+        if (size_check < 1.0) {
+            cols = 0;
+            rows = 0;
+            data = nullptr;
+            matrix_error_log(SIZE_THRESHOLD_EXCEEDED);
+            return;
+        }
+
+        cols = init_cols;
+        rows = init_rows;
+        data = new double[cols * rows];
+    }
+
+
+    void random_fill() {
+        for (size_t index = 0; index < cols * rows; index++) {
+            data[index] = double(rand() % 1000000) / 10000;
+        }
+    }
+
+
+    void zeros_fill() {
+        for (size_t index = 0; index < cols * rows; index++) {
+            data[index] = 0.0;
+        }
+    }
+
+
+    void identity_fill() {
+        zeros_fill();
+        for (size_t index = 0; index < rows * cols; index += cols + 1) {
+            data[index] = 1.0;
+        }
+    }
+
+
+
+// деструктор
+    ~Matrix()
+    {
+        if (data==nullptr){
+            std::cout << "Вызван деструктор пустой матрицы\n";
+            return;
+        }
+        std::cout << "Вызван деструктор матрицы\n";
+        cols = 0;
+        rows = 0;
+        delete[] data;
+        data = nullptr;
+    }
+    
+    friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix);
+
+    Matrix& operator = (const Matrix& matrix) 
+    {
+        if (matrix.cols * matrix.rows == 0) {
+            cols = 0;
+            rows = 0;
+            data = nullptr;
+            matrix_error_log(SIZE_ZERO);
+            return *this;
+        }
+
+        delete[] data;
+        data = nullptr;
+        cols = matrix.cols;
+        rows = matrix.rows;
+        data = new double[cols * rows];
+        for (size_t index = 0; index < cols * rows; index++) {
+            data[index] = matrix.data[index];
+        }
+        return *this;
+    };
+    Matrix& operator += (const Matrix& matrix)
+    {
+        if ((cols!=matrix.cols)||(rows!=matrix.rows)) {
+            matrix_error_log(WRONG_SIZES);
+            return *this;
+        }
+        for (size_t index = 0; index < cols * rows; index++) {
+            data[index] += matrix.data[index];
+        }
+        return *this;
+    }
+    Matrix& operator += (const double number) {
+        for (size_t index = 0; index < cols * rows; index++) {
+            data[index] += number;
+        }
+        return *this;
+    }
+    Matrix& operator -= (const Matrix& matrix)
+    {
+        if ((cols != matrix.cols) || (rows != matrix.rows)) {
+            matrix_error_log(WRONG_SIZES);
+            return *this;
+        }
+        for (size_t index = 0; index < cols * rows; index++) {
+            data[index] -= matrix.data[index];
+        }
+        return *this;
+    }
+    Matrix& operator -= (const double number) {
+        for (size_t index = 0; index < cols * rows; index++) {
+            data[index] -= number;
+        }
+        return *this;
+    }
+    Matrix& operator *= (const double number) {
+        for (size_t index = 0; index < cols * rows; index++) {
+            data[index] *= number;
+        }
+        return *this;
+    }
+    
+};
+
+std::ostream& operator<<(std::ostream& out, const Matrix& matrix)
+{
+    out << "\n";
+    for (size_t col = 0; col < matrix.cols; col++) {
+        for (size_t row = 0; row < matrix.rows; row++) {
+            out << matrix.data[col * matrix.rows + row];
+            out << " ";
+        }
+        out << "\n";
+    }
+    return out;
+}
+
+
+int main()
+{
+    srand(time(NULL));
+    setlocale(LC_ALL, "rus");
+
+    Matrix A(5, 6);
+    A.random_fill();
+    std::cout << A;
+
+    Matrix B(5, 6);
+    B.random_fill();
+    std::cout << B;
+
+    B *= 10;
+    std::cout << B;
+
+}
