@@ -106,6 +106,13 @@ public:
         }
     }
 
+
+    /*
+    Matrix minor()
+    {
+
+    }
+    */
     /*
     Matrix transposition()
     {
@@ -132,6 +139,7 @@ public:
     friend Matrix operator - (const Matrix& A, const Matrix& B);
     friend Matrix operator * (const Matrix& A, const Matrix& B);
     friend Matrix operator ^ (const double base, const Matrix& matrix);
+    friend Matrix operator ^ (const Matrix& matrix, const unsigned int exponent);
 
     Matrix& operator = (const Matrix& matrix) 
     {
@@ -320,7 +328,7 @@ Matrix operator * (const Matrix& A, const Matrix& B) {
 
 Matrix operator ^ (const double base, const Matrix& matrix)
 {
-    const unsigned int accuracy = 12;
+    const unsigned int accuracy = 15;
 
     if (matrix.rows != matrix.cols) {
         Matrix null_matrix;
@@ -347,6 +355,26 @@ Matrix operator ^ (const double base, const Matrix& matrix)
 }
 
 
+Matrix operator ^ (const Matrix& matrix, const unsigned int exponent)
+{
+    if (matrix.rows != matrix.cols) {
+        Matrix null_matrix;
+        matrix_error_log(NOT_SQUARE);
+        return null_matrix;
+    }
+
+    Matrix new_matrix(matrix.cols, matrix.rows); 
+    new_matrix.identity_fill(); 
+    if (exponent == 0) {
+        return new_matrix;
+    }
+    for (unsigned int index = 1; index <= exponent; index++) {
+        new_matrix *= matrix;
+    }
+    return new_matrix;
+}
+
+
 int main()
 {
     srand(time(NULL));
@@ -361,7 +389,7 @@ int main()
     std::cout << B;
 
     Matrix C;
-    C = 100^B;
-
+    C = exp(1) ^ B;
+    C = C ^ 5;
     std::cout << C;
 }
