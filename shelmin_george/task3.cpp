@@ -2,12 +2,10 @@
 #include <stdlib.h>
 #include <time.h>
 
-// создать свои конструкторы и деструкторы
-// переопределить математические операции, присваивание и оператор вывода <<
-// переопределить ^ как возведение числа в степень матрицы (a^matrix = e^(matrix*ln(a))
+//добавить минор, определитель, транспонирование и обратную матрицу
 enum Errors {
     ATTEMPT_TO_REINIT, SIZE_ZERO, SIZE_THRESHOLD_EXCEEDED, 
-    WRONG_SIZES, NOT_INIT
+    WRONG_SIZES, NOT_INIT, NOT_SQUARE
 };
 
 void matrix_error_log(enum Errors code) {
@@ -27,6 +25,9 @@ void matrix_error_log(enum Errors code) {
     case NOT_INIT:
         std::cout << "ERROR: the matrix wasn't initialised\n";
         return;
+    case NOT_SQUARE:
+        std::cout << "ERROR: the matrix size isn't square\n";
+        return;
     }
 
 };
@@ -42,7 +43,7 @@ public:
     // конструктор пустой матрицы
     Matrix()
     {
-        std::cout << "Вызван конструктор инициализации пустой матрицы\n";
+        //std::cout << "Вызван конструктор инициализации пустой матрицы\n";
         cols = 0;
         rows = 0;
         data = nullptr;
@@ -52,7 +53,7 @@ public:
     // конструктор
     Matrix(const size_t init_cols, const size_t init_rows)
     {
-        std::cout << "Вызван конструктор матрицы\n";
+        //std::cout << "Вызван конструктор матрицы\n";
 
         if (init_cols * init_rows == 0) {
             cols = 0;
@@ -105,12 +106,17 @@ public:
         }
     }
 
+    /*
+    Matrix transposition()
+    {
 
+    }
+    */
 
 // деструктор
     ~Matrix()
     {
-        std::cout << "Вызван деструктор матрицы\n";
+        //std::cout << "Вызван деструктор матрицы\n";
         if (data==nullptr){
             return;
         }
@@ -125,7 +131,7 @@ public:
     friend Matrix operator + (const Matrix& A, const Matrix& B);
     friend Matrix operator - (const Matrix& A, const Matrix& B);
     friend Matrix operator * (const Matrix& A, const Matrix& B);
-    friend Matrix operator ^ (const double number, const Matrix& B);
+    friend Matrix operator ^ (const double base, const Matrix& matrix);
 
     Matrix& operator = (const Matrix& matrix) 
     {
@@ -236,11 +242,13 @@ public:
     }
 
 
-    Matrix& operator ^ (const unsigned int number)
-    {
-
+    Matrix& operator /= (const double number) {
+        for (size_t index = 0; index < cols * rows; index++) {
+            data[index] /= number;
+        }
+        return *this;
     }
-};
+   };
 
 std::ostream& operator<<(std::ostream& out, const Matrix& matrix)
 {
@@ -259,9 +267,9 @@ std::ostream& operator<<(std::ostream& out, const Matrix& matrix)
 Matrix operator + (const Matrix& A, const Matrix& B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows)) {
-        Matrix new_matrix;
+        Matrix null_matrix;
         matrix_error_log(WRONG_SIZES);
-        return new_matrix;
+        return null_matrix;
     }
 
     Matrix new_matrix(A.cols, B.cols);
@@ -274,9 +282,9 @@ Matrix operator + (const Matrix& A, const Matrix& B)
 Matrix operator - (const Matrix& A, const Matrix& B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows)) {
-        Matrix new_matrix;
+        Matrix null_matrix;
         matrix_error_log(WRONG_SIZES);
-        return new_matrix;
+        return null_matrix;
     }
 
     Matrix new_matrix(A.cols, B.cols);
@@ -288,9 +296,9 @@ Matrix operator - (const Matrix& A, const Matrix& B)
 
 Matrix operator * (const Matrix& A, const Matrix& B) {
     if (A.rows != B.cols) {
-        Matrix new_matrix;
+        Matrix null_matrix;
         matrix_error_log(WRONG_SIZES);
-        return new_matrix;
+        return null_matrix;
     }
 
     Matrix new_matrix(A.cols, B.rows);
@@ -310,9 +318,32 @@ Matrix operator * (const Matrix& A, const Matrix& B) {
 }
 
 
-Matrix operator ^ (const double number, const Matrix& B)
+Matrix operator ^ (const double base, const Matrix& matrix)
 {
+    const unsigned int accuracy = 12;
 
+    if (matrix.rows != matrix.cols) {
+        Matrix null_matrix;
+        matrix_error_log(NOT_SQUARE);
+        return null_matrix;
+    }
+
+    Matrix log_matrix;
+    log_matrix = matrix;
+    log_matrix *= log(base);
+
+    Matrix new_matrix(matrix.cols, matrix.rows);
+    new_matrix.identity_fill();
+
+    Matrix submatrix(matrix.cols, matrix.rows);
+    submatrix.identity_fill();
+
+    for (unsigned int index = 1; index < accuracy; index++) {
+        submatrix *= log_matrix;
+        submatrix /= index;
+        new_matrix += submatrix;
+    }
+    return new_matrix;
 }
 
 
@@ -330,7 +361,7 @@ int main()
     std::cout << B;
 
     Matrix C;
-    C = A * B;
+    C = 100^B;
 
     std::cout << C;
 }
