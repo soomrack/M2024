@@ -163,7 +163,7 @@ void matrix_random_fill(struct Matrix *any_matrix) {
 
 void matrix_identity_fill(struct Matrix* any_matrix) {
     matrix_zeros_fill(any_matrix);
-    for (size_t index = 0; index < any_matrix->rows*any_matrix->cols; index+=any_matrix->cols+1) {
+    for (size_t index = 0; index < any_matrix->rows*any_matrix->cols; index+=any_matrix->rows+1) {
         any_matrix->data[index] = 1.0;
     }
 }
