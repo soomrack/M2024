@@ -4,9 +4,9 @@
 
 // создать свои конструкторы и деструкторы
 // переопределить математические операции, присваивание и оператор вывода <<
-
+// переопределить ^ как возведение числа в степень матрицы (a^matrix = e^(matrix*ln(a))
 enum Errors {
-    ATTEMPT_TO_REINIT, SIZE_ZERO, SIZE_THRESHOLD_EXCEEDED,
+    ATTEMPT_TO_REINIT, SIZE_ZERO, SIZE_THRESHOLD_EXCEEDED, NOT_INIT,
     WRONG_SIZES
 };
 
@@ -23,6 +23,9 @@ void matrix_error_log(enum Errors code) {
         return;
     case WRONG_SIZES:
         std::cout << "ERROR: the matrix sizes are incomparable\n";
+        return;
+    case NOT_INIT:
+        std::cout << "ERROR: the matrix wasn't initialised\n";
         return;
     }
 
@@ -49,7 +52,7 @@ public:
     // конструктор
     Matrix(const size_t init_cols, const size_t init_rows)
     {
-        std::cout << "Вызван конструктор инициализации матрицы\n";
+        std::cout << "Вызван конструктор матрицы\n";
 
         if (init_cols * init_rows == 0) {
             cols = 0;
@@ -90,7 +93,7 @@ public:
 
     void identity_fill() {
         zeros_fill();
-        for (size_t index = 0; index < rows * cols; index += cols + 1) {
+        for (size_t index = 0; index < rows * cols; index += rows + 1) {
             data[index] = 1.0;
         }
     }
@@ -100,11 +103,10 @@ public:
 // деструктор
     ~Matrix()
     {
+        std::cout << "Вызван деструктор матрицы\n";
         if (data==nullptr){
-            std::cout << "Вызван деструктор пустой матрицы\n";
             return;
         }
-        std::cout << "Вызван деструктор матрицы\n";
         cols = 0;
         rows = 0;
         delete[] data;
@@ -115,6 +117,7 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix);
     friend Matrix operator + (const Matrix& A, const Matrix& B);
     friend Matrix operator - (const Matrix& A, const Matrix& B);
+    friend Matrix operator * (const Matrix& A, const Matrix& B);
 
     Matrix& operator = (const Matrix& matrix) 
     {
@@ -235,21 +238,44 @@ Matrix operator - (const Matrix& A, const Matrix& B)
 }
 
 
+Matrix operator * (const Matrix& A, const Matrix& B) {
+    if (A.rows != B.cols) {
+        Matrix new_matrix(0, 0);
+        matrix_error_log(WRONG_SIZES);
+        return new_matrix;
+    }
+    Matrix new_matrix(A.cols, B.rows);
+    new_matrix.zeros_fill();
+    for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
+        for (size_t current_row = 0; current_row < new_matrix.rows; current_row++) {
+
+            for (size_t index = 0; index < A.rows; index++) {
+
+                new_matrix.data[new_matrix.rows * current_col + current_row] +=
+                    A.data[A.rows * current_col + index] *
+                    B.data[B.rows * index + current_row];
+            }
+        }
+    }
+    return new_matrix;
+}
+
+
 int main()
 {
     srand(time(NULL));
     setlocale(LC_ALL, "rus");
 
-    Matrix A(5, 6);
+    Matrix A(6, 6);
     A.random_fill();
     std::cout << A;
 
-    Matrix B(5, 6);
-    B.random_fill();
+    Matrix B(6, 8);
+    B.identity_fill();
     std::cout << B;
 
     Matrix C(5, 6);
-    C = A + B;
+    C = A * B;
 
     std::cout << C;
 }
