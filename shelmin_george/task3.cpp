@@ -2,12 +2,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-// создать свои конструкторы и деструкторы
 // переопределить математические операции, присваивание и оператор вывода <<
 // переопределить ^ как возведение числа в степень матрицы (a^matrix = e^(matrix*ln(a))
 enum Errors {
-    ATTEMPT_TO_REINIT, SIZE_ZERO, SIZE_THRESHOLD_EXCEEDED, NOT_INIT,
-    WRONG_SIZES
+    ATTEMPT_TO_REINIT, SIZE_ZERO, SIZE_THRESHOLD_EXCEEDED, 
+    WRONG_SIZES, NOT_INIT
 };
 
 void matrix_error_log(enum Errors code) {
@@ -74,6 +73,13 @@ public:
         cols = init_cols;
         rows = init_rows;
         data = new double[cols * rows];
+
+        if (data == nullptr) {
+            cols = 0;
+            rows = 0;
+            matrix_error_log(NOT_INIT);
+            return;
+        }
     }
 
 
@@ -191,7 +197,41 @@ public:
     }
     
 
+    Matrix& operator *= (const Matrix& matrix) 
+    {
+        if (rows != matrix.cols) {
+            matrix_error_log(WRONG_SIZES);
+            return *this;
+        }
+        size_t new_cols = cols;
+        size_t new_rows = matrix.rows;
+        double* new_data = new double[new_cols * new_rows];
+        if (new_data == nullptr) {
+            cols = 0;
+            rows = 0;
+            matrix_error_log(NOT_INIT);
+            return *this;
+        }
 
+        for (size_t current_col = 0; current_col < new_cols; current_col++) {
+            for (size_t current_row = 0; current_row < new_rows; current_row++) {
+                new_data[new_rows * current_col + current_row] = 0.0;
+                
+                for (size_t index = 0; index < rows; index++) {
+
+                    new_data[rows * current_col + current_row] +=
+                        data[rows * current_col + index] *
+                        matrix.data[matrix.rows * index + current_row];
+                }
+            }
+        }
+        cols = new_cols;
+        rows = new_rows;
+        delete[] data;
+        data = new_data;
+
+        return *this;
+    }
 };
 
 std::ostream& operator<<(std::ostream& out, const Matrix& matrix)
@@ -211,7 +251,7 @@ std::ostream& operator<<(std::ostream& out, const Matrix& matrix)
 Matrix operator + (const Matrix& A, const Matrix& B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows)) {
-        Matrix new_matrix(0, 0);
+        Matrix new_matrix;
         matrix_error_log(WRONG_SIZES);
         return new_matrix;
     }
@@ -226,7 +266,7 @@ Matrix operator + (const Matrix& A, const Matrix& B)
 Matrix operator - (const Matrix& A, const Matrix& B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows)) {
-        Matrix new_matrix(0, 0);
+        Matrix new_matrix;
         matrix_error_log(WRONG_SIZES);
         return new_matrix;
     }
@@ -240,10 +280,11 @@ Matrix operator - (const Matrix& A, const Matrix& B)
 
 Matrix operator * (const Matrix& A, const Matrix& B) {
     if (A.rows != B.cols) {
-        Matrix new_matrix(0, 0);
+        Matrix new_matrix;
         matrix_error_log(WRONG_SIZES);
         return new_matrix;
     }
+
     Matrix new_matrix(A.cols, B.rows);
     new_matrix.zeros_fill();
     for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
@@ -270,11 +311,11 @@ int main()
     A.random_fill();
     std::cout << A;
 
-    Matrix B(6, 8);
+    Matrix B(6, 6);
     B.identity_fill();
     std::cout << B;
 
-    Matrix C(5, 6);
+    Matrix C;
     C = A * B;
 
     std::cout << C;
