@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-//через ^ и текстовую строку сделать операции V, T, -1
-
 enum Errors {
     ATTEMPT_TO_REINIT, SIZE_ZERO, SIZE_THRESHOLD_EXCEEDED, 
     WRONG_SIZES, NOT_INIT, NOT_SQUARE,
