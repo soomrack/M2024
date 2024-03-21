@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <time.h>
 
-//добавить минор, определитель, транспонирование и обратную матрицу
+//добавить определитель, транспонирование и обратную матрицу
+
 enum Errors {
     ATTEMPT_TO_REINIT, SIZE_ZERO, SIZE_THRESHOLD_EXCEEDED, 
-    WRONG_SIZES, NOT_INIT, NOT_SQUARE
+    WRONG_SIZES, NOT_INIT, NOT_SQUARE,
+    WRONG_MINOR_INDEX, MINOR_SIZE_ZERO,
 };
 
 void matrix_error_log(enum Errors code) {
@@ -14,7 +16,7 @@ void matrix_error_log(enum Errors code) {
         std::cout << "ERROR: the matrix has already been initialised\n";
         return;
     case SIZE_ZERO:
-        std::cout << "WARNING: the matrix size is zero\n";
+        std::cout << "WARNING: the matrix size equal to zero\n";
         return;
     case SIZE_THRESHOLD_EXCEEDED:
         std::cout << "ERROR: the matrix size too big\n";
@@ -27,6 +29,12 @@ void matrix_error_log(enum Errors code) {
         return;
     case NOT_SQUARE:
         std::cout << "ERROR: the matrix size isn't square\n";
+        return;
+    case WRONG_MINOR_INDEX:
+        std::cout << "ERROR: the minor index is incorrect\n";
+        return;
+    case MINOR_SIZE_ZERO:
+        std::cout << "ERROR: the minor size equal to zero\n";
         return;
     }
 
@@ -107,12 +115,61 @@ public:
     }
 
 
-    /*
-    Matrix minor()
+    Matrix minor(const size_t minor_col, const size_t minor_row)
     {
-
+        if ((cols<=1)||(rows<=1)) {
+            Matrix null_matrix;
+            matrix_error_log(MINOR_SIZE_ZERO);
+            return null_matrix;
+        }
+        if ((minor_col>=cols)||(minor_row>=rows)) {
+            Matrix null_matrix;
+            matrix_error_log(WRONG_MINOR_INDEX);
+            return null_matrix;
+        }
+        Matrix minor(cols - 1, rows - 1);
+        size_t origin_index = 0;
+        for (size_t current_col = 0; current_col < minor.cols; current_col++) {
+            if (current_col == minor_col) {
+                origin_index += cols;
+            }
+            for (size_t current_row = 0; current_row < minor.rows; current_row++) {
+                if (current_row == minor_row) {
+                    origin_index += 1;
+                }
+                minor.data[current_col * minor.rows + current_row] = data[origin_index];
+                origin_index += 1;
+            }
+            if (minor_row == minor.rows) {  // иначе не обрабатывается последний столбец
+                origin_index += 1;
+            }
+        }
+        return minor;
     }
-    */
+    
+    
+    double determinant()
+    {
+        if (cols != rows) {
+            matrix_error_log(NOT_SQUARE);
+            return NAN;
+        }
+        if ((cols == 0) || (rows == 0)) {
+            matrix_error_log(SIZE_ZERO);
+            return NAN;
+        }
+
+        double determinant = 0.0;
+        if (cols == 1) {
+            determinant = data[0];
+            return determinant;
+        }
+
+
+        return 0.0;
+    }
+
+
     /*
     Matrix transposition()
     {
@@ -136,8 +193,11 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix);
     friend Matrix operator + (const Matrix& A, const Matrix& B);
+    friend Matrix operator + (const Matrix& matrix, const double number);
     friend Matrix operator - (const Matrix& A, const Matrix& B);
+    friend Matrix operator - (const Matrix& matrix, const double number);
     friend Matrix operator * (const Matrix& A, const Matrix& B);
+    friend Matrix operator * (const Matrix& matrix, const double number);
     friend Matrix operator ^ (const double base, const Matrix& matrix);
     friend Matrix operator ^ (const Matrix& matrix, const unsigned int exponent);
 
@@ -287,6 +347,32 @@ Matrix operator + (const Matrix& A, const Matrix& B)
 }
 
 
+Matrix operator + (const Matrix& matrix, const double number)
+{
+    Matrix new_matrix;
+    new_matrix = matrix;
+    Matrix identity_matrix(matrix.cols, matrix.rows);
+    identity_matrix.identity_fill();
+
+    identity_matrix *= number;
+    new_matrix += identity_matrix;
+    return new_matrix;
+}
+
+
+Matrix operator - (const Matrix& matrix, const double number)
+{
+    Matrix new_matrix;
+    new_matrix = matrix;
+    Matrix identity_matrix(matrix.cols, matrix.rows);
+    identity_matrix.identity_fill();
+
+    identity_matrix *= number;
+    new_matrix -= identity_matrix;
+    return new_matrix;
+}
+
+
 Matrix operator - (const Matrix& A, const Matrix& B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows)) {
@@ -322,6 +408,15 @@ Matrix operator * (const Matrix& A, const Matrix& B) {
             }
         }
     }
+    return new_matrix;
+}
+
+
+Matrix operator * (const Matrix& matrix, const double number)
+{
+    Matrix new_matrix;
+    new_matrix = matrix;
+    new_matrix *= number;
     return new_matrix;
 }
 
@@ -383,6 +478,7 @@ int main()
     Matrix A(6, 6);
     A.random_fill();
     std::cout << A;
+
 
     Matrix B(6, 6);
     B.identity_fill();
