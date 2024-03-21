@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include <time.h>
 
-//добавить обратную матрицу
+//через ^ и текстовую строку сделать операции V, T, -1
 
 enum Errors {
     ATTEMPT_TO_REINIT, SIZE_ZERO, SIZE_THRESHOLD_EXCEEDED, 
     WRONG_SIZES, NOT_INIT, NOT_SQUARE,
     WRONG_MINOR_INDEX, MINOR_SIZE_ZERO,
+    INV_MAT_CALC_ERROR, DET_EQUAL_ZERO
 };
 
 void matrix_error_log(enum Errors code) {
@@ -35,6 +36,12 @@ void matrix_error_log(enum Errors code) {
         return;
     case MINOR_SIZE_ZERO:
         std::cout << "ERROR: the minor size equal to zero\n";
+        return;
+    case INV_MAT_CALC_ERROR:
+        std::cout << "ERROR: the inverse matrix can't be caclulated\n";
+        return;
+    case DET_EQUAL_ZERO:
+        std::cout << "WARNING: the matrix determinant is equal to zero\n";
         return;
     }
 
@@ -180,11 +187,11 @@ public:
                 determinant -= data[summ_index] * minor.determinant();
             }
         }
+
         return determinant;
     }
 
 
-    
     Matrix transposition()
     {
         if (cols*rows==0) {
@@ -203,6 +210,57 @@ public:
         return new_matrix;
     }
     
+
+    Matrix inverse()
+    {
+        if (cols != rows) {
+            Matrix matrix_null;
+            matrix_error_log(NOT_SQUARE);
+            return matrix_null;
+        }
+        if (cols * rows == 0) {
+            Matrix matrix_null;
+            matrix_error_log(NOT_SQUARE);
+            return matrix_null;
+        }
+
+        Matrix matrix_copy(cols, rows);
+        for (size_t index = 0; index < cols * rows; index++) {
+            matrix_copy.data[index] = data[index];
+        }
+
+        double det = matrix_copy.determinant();
+        if (det == NAN) {
+            Matrix matrix_null;
+            matrix_error_log(INV_MAT_CALC_ERROR);
+            return matrix_null;
+        }
+        Matrix inv_matrix(cols, rows);
+
+        if (fabs(det) < 0.00001) {
+            inv_matrix.zeros_fill();
+            matrix_error_log(DET_EQUAL_ZERO);
+            return inv_matrix;
+        }
+        Matrix minor;
+        for (size_t current_col = 0; current_col < inv_matrix.cols; current_col++) {
+            for (size_t current_row = 0; current_row < inv_matrix.rows; current_row++) {
+                
+                minor=matrix_copy.minor(current_col, current_row);
+
+                if ((current_col + current_row) % 2 == 0) {
+                    inv_matrix.data[current_col * inv_matrix.cols + current_row] = minor.determinant();
+                }
+                else {
+                    inv_matrix.data[current_col * inv_matrix.cols + current_row] = (-1) * minor.determinant();
+                }
+            }
+        }
+        inv_matrix /= det;
+        inv_matrix = inv_matrix.transposition();
+        return inv_matrix;
+    }
+
 
 // деструктор
     ~Matrix()
@@ -350,7 +408,12 @@ std::ostream& operator<<(std::ostream& out, const Matrix& matrix)
     out << "\n";
     for (size_t col = 0; col < matrix.cols; col++) {
         for (size_t row = 0; row < matrix.rows; row++) {
-            out << matrix.data[col * matrix.rows + row];
+            if (fabs(matrix.data[col * matrix.rows + row] <= 0.00001)) {
+                out << 0;
+            }
+            else {
+                out << matrix.data[col * matrix.rows + row];
+            }
             out << " ";
         }
         out << "\n";
@@ -507,12 +570,15 @@ int main()
     std::cout << A;
 
     Matrix B(6, 6);
-    B.identity_fill();
+    B.random_fill();
     std::cout << B;
 
     Matrix C;
-    C = exp(1) ^ B;
-    C = C ^ 5;
+    C = A+B;
+    C = C ^ 2;
+    std::cout << C;
+
+    C = C * C.inverse();
 
     std::cout << C;
 
