@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-//добавить определитель, транспонирование и обратную матрицу
+//добавить обратную матрицу
+//через ^ и текстовую строку сделать операции V, T, -1
 
 enum Errors {
     ATTEMPT_TO_REINIT, SIZE_ZERO, SIZE_THRESHOLD_EXCEEDED, 
@@ -164,18 +165,45 @@ public:
             determinant = data[0];
             return determinant;
         }
+        Matrix matrix_copy(cols,rows);
+        for (size_t index = 0; index < cols * rows; index++) {
+            matrix_copy.data[index] = data[index];
+        }
 
+        Matrix minor;
+        for (size_t summ_index = 0; summ_index < rows; summ_index++) {
+            minor = matrix_copy.minor(0, summ_index);
 
-        return 0.0;
+            if (summ_index % 2 == 0) {
+                determinant += data[summ_index] * minor.determinant();
+            }
+            else {
+                determinant -= data[summ_index] * minor.determinant();
+            }
+        }
+        return determinant;
     }
 
 
-    /*
+    
     Matrix transposition()
     {
+        if (cols*rows==0) {
+            Matrix null_matrix;
+            matrix_error_log(SIZE_ZERO);
+            return null_matrix;
+        }
+        Matrix new_matrix(rows, cols);
+        for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
+            for (size_t current_row = 0; current_row < new_matrix.rows; current_row++) {
 
+                new_matrix.data[new_matrix.rows * current_col + current_row] =
+                    data[new_matrix.cols * current_row + current_col];
+            }
+        }
+        return new_matrix;
     }
-    */
+    
 
 // деструктор
     ~Matrix()
@@ -479,7 +507,6 @@ int main()
     A.random_fill();
     std::cout << A;
 
-
     Matrix B(6, 6);
     B.identity_fill();
     std::cout << B;
@@ -487,5 +514,7 @@ int main()
     Matrix C;
     C = exp(1) ^ B;
     C = C ^ 5;
+
     std::cout << C;
+
 }
