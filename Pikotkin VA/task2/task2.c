@@ -7,34 +7,47 @@
 typedef double MatrixItem;
 
 struct Matrix {
-    size_t cols;// столбец
-    size_t rows; // строка
+    size_t cols;  // столбец
+    size_t rows;  // строка
     MatrixItem* data;
 };
 
 const struct Matrix MATRIX_NULL = { .cols = 0, .rows = 0, .data = NULL };
 
 
-void matrix_error_message()  // Ошибка
+void matrix_error_message(size_t error_type)  // Ошибка
 {
-    printf("Error! Check your actions!\n");
+    if (error_type == 1) {
+        printf("Error! Check your actions!\n");
+    }else if (error_type == 2){
+        printf("Error 2! Check your actions!\n");
+    }else if (error_type == 3) {
+        printf("Error_3.Column inequality of two matrices!\n");
+    }
+    else if (error_type == 4) {
+        printf("Error_4.Inequality of rows of two matrices!\n");
+    }
 }
 
 
 struct Matrix matrix_init(const size_t rows, const size_t cols)  // Инициализация матрицы заданным числом строк и столбцов
 {
     if (rows == 0 || cols == 0) {
+        matrix_error_message(1);
         return MATRIX_NULL;
     }
 
-    if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols) return MATRIX_NULL;  // rows * cols < MAX_SIZE / sizeof(MatrixItem)
+    if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols) { // rows * cols < MAX_SIZE / sizeof(MatrixItem)
+        matrix_error_message(1);
+        return MATRIX_NULL;  
+    }
 
     struct Matrix A = { .cols = cols, .rows = rows, .data = NULL };
-    A.data = (double*)malloc(A.cols * A.rows * sizeof(double));
+    A.data = (MatrixItem*)malloc(A.cols * A.rows * sizeof(MatrixItem));
 
     if (A.data == NULL) {
+        matrix_error_message(1);
         return MATRIX_NULL;
-        matrix_error_message();
     }
     return A;
 }
@@ -44,25 +57,27 @@ struct Matrix matrix_make_ident(size_t rows, size_t cols) // Cоздание и 
 {
     struct Matrix I = matrix_init(rows, cols);
     if (I.data == NULL) {
+        matrix_error_message(1);
         return MATRIX_NULL;
     }
+    memset(I.data, 0, sizeof(I.data));
     for (size_t idx = 0; idx < rows * cols; idx++) {
         if (idx % (rows + 1) == 0) {
-            I.data[idx] = 1.0;
-        }
-        else {
-            I.data[idx] = 0;
+            I.data[idx] = 1.;
         }
     }
     return I;
 }
 
 
-struct Matrix matrix_create(const size_t rows, const size_t cols, const double* values)
+struct Matrix matrix_create(const size_t rows, const size_t cols, const MatrixItem* values)
 {
     struct Matrix A = matrix_init(rows, cols);
-    if (A.data == NULL) return MATRIX_NULL;
-    memcpy(A.data, values, rows * cols * sizeof(double));
+    if (A.data == NULL) {
+        matrix_error_message(1);
+        return MATRIX_NULL;
+    }
+    memcpy(A.data, values, rows * cols * sizeof(MatrixItem));
     return A;
 }
 
@@ -75,9 +90,7 @@ void matrix_free(struct Matrix* A)  // Освобождение памяти
         A->rows = 0;
         free(A->data);
         A->data = NULL;
-
     }
-
 }
 
 
@@ -93,7 +106,7 @@ void matrix_print(const struct Matrix A)  // Вывод матрицы на эк
         }
         printf("\n");
     }else {
-        matrix_error_message();
+        matrix_error_message(1);
     }
 }
 
@@ -110,20 +123,29 @@ void matrix_add(const struct Matrix A, const struct Matrix B)  // Сложени
 
 struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)  // Сложение без перезаписи
 {
-    if (A.cols != B.cols || A.rows != B.rows) return MATRIX_NULL;
-
+    if (A.cols != B.cols) {
+        matrix_error_message(3);
+        return MATRIX_NULL;
+    }
+    if (A.rows != B.rows) {
+        matrix_error_message(4);
+        return MATRIX_NULL;
+    }
     struct Matrix C = matrix_init(A.cols, A.rows);
     for (size_t idx = 0; idx < C.cols * C.rows; ++idx) {
         C.data[idx] = A.data[idx] + B.data[idx];
     }
+    printf("Exit code 0\n");
     return C;
 }
 
 
 struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B)  // Вычитание без перезаписи
 {
-    if (A.cols != B.cols || A.rows != B.rows) return MATRIX_NULL;
-
+    if (A.cols != B.cols || A.rows != B.rows) {
+        matrix_error_message(1);
+        return MATRIX_NULL;
+    }
     struct Matrix C = matrix_init(A.cols, A.rows);
     for (size_t idx = 0; idx < C.cols * C.rows; ++idx) {
         C.data[idx] = A.data[idx] - B.data[idx];
@@ -134,10 +156,14 @@ struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B)  // Вы�
 
 struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)  // Умножение без перезаписи
 {
-    if (A.cols != B.rows) return MATRIX_NULL;
+    if (A.cols != B.rows) {
+        matrix_error_message(1);
+        return MATRIX_NULL;
+    }
     struct Matrix C = matrix_init(A.cols, B.rows);
 
     if (C.data == NULL) {
+        matrix_error_message(1);
         return MATRIX_NULL;
     }
 
@@ -152,12 +178,18 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)  // Ум
 
     return C;
 }
-
+struct Matrix matrix_mult_scalar(const double scalar, struct Matrix B)  // Умножение на скаляр
+{
+    for (size_t idx = 0; idx < B.cols * B.rows; ++idx) {
+        B.data[idx] *= scalar;
+    }
+    return B;
+}
 
 double matrix_det(struct Matrix* A)  // Определитель
 {
     if (A->cols != A->rows) {
-        matrix_error_message();
+        matrix_error_message(1);
         return NAN;
     }
 
@@ -166,18 +198,17 @@ double matrix_det(struct Matrix* A)  // Определитель
     }
 
     if (A->cols == 2) {
-        double matr_det = (A->data[0]) * (A->data[3]) - (A->data[1]) * (A->data[2]);
+        MatrixItem matr_det = (A->data[0]) * (A->data[3]) - (A->data[1]) * (A->data[2]);
         return matr_det;
     }
 
     if (A->cols == 3) {
-        double matr_det = (A->data[0]) * (A->data[4]) * (A->data[8]) + (A->data[1]) * (A->data[5]) * (A->data[6]) + (A->data[3]) * (A->data[7]) * (A->data[2]);
+        MatrixItem matr_det = (A->data[0]) * (A->data[4]) * (A->data[8]) + (A->data[1]) * (A->data[5]) * (A->data[6]) + (A->data[3]) * (A->data[7]) * (A->data[2]);
         matr_det -= ((A->data[2]) * (A->data[4]) * (A->data[6]) + (A->data[1]) * (A->data[3]) * (A->data[8]) + (A->data[0]) * (A->data[5]) * (A->data[7]));
         return matr_det;
-    } else {
-        matrix_error_message();
+    } 
+        matrix_error_message(1);
         return NAN;
-    }
 }
 
 
@@ -186,6 +217,7 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
     struct Matrix E = matrix_init(A.rows, A.cols);
 
     if (E.data == NULL) {
+        matrix_error_message(1);
         return MATRIX_NULL;
     }
 
@@ -200,12 +232,10 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
 
     if (deg_acc > 2) {
         E = A;
-        for (size_t id = 2; id < deg_acc; ++id) {
+        for (size_t step = 2; step < deg_acc; ++step) {
             struct Matrix buf = E;
             E = matrix_mult(buf, A);
-            for (size_t idx = 0; idx < E.rows * E.cols; ++idx) {
-                E.data[idx] /= (id);
-            }
+            matrix_mult_scalar(1 / step, E);
             matrix_free(&buf);
         }
     }
@@ -215,13 +245,14 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
 struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy)
 {
     if (A->cols != A->rows) {
-        matrix_error_message();
+        matrix_error_message(1);
         return MATRIX_NULL;
     }
 
     struct Matrix E = matrix_init(A->rows, A->cols);
 
     if (E.data == NULL) {
+        matrix_error_message(1);
         return MATRIX_NULL;
     }
     struct Matrix matrix_transfer;
@@ -253,7 +284,6 @@ int main()
 
     C = matrix_mult(A, B);
     matrix_print(C);
-;
 
     deter = matrix_det(&C);
     printf("%f \n", deter);
