@@ -1,0 +1,97 @@
+#include <stdio.h>
+#include <math.h>
+
+
+typedef long long int kpk; // для расчёта в копейках
+
+
+const int PERIOD_YEARS = 20;
+const int START_YEAR = 2024;
+const int START_MONTH = 3;
+const double INFLATION = 0.07;
+const double BANK_PERCENT = 0.11;
+const double MORTGAGE_PERCENT = 0.09;
+const kpk START_SUM = 2000 * 1000 * 100;
+const kpk START_MONTH_SALARY = 150 * 1000 * 100;
+const kpk START_EXPENSES = 50 * 1000 * 100;
+const kpk BOB_START_RENT = 30 * 1000 * 100;
+const kpk ALICE_START_FLAT_COST = 10 * 1000 * 1000 * 100;
+
+
+kpk mortgage_payment() {
+	double month_percent = MORTGAGE_PERCENT / 12;
+	double total_rate = pow((1 + month_percent), PERIOD_YEARS * 12);
+	kpk mrtg_payment = (ALICE_START_FLAT_COST - START_SUM) * month_percent * total_rate / (total_rate - 1);
+	return mrtg_payment;
+}
+
+
+struct Person {
+	kpk savings;
+	kpk salary;
+	kpk expenses;
+	kpk actual_flat_cost;
+} Alice, Bob;
+
+
+void Alice_init() {
+	Alice.savings = 0;
+	Alice.salary = START_MONTH_SALARY;
+	Alice.expenses = START_EXPENSES;
+	Alice.actual_flat_cost = ALICE_START_FLAT_COST;
+}
+
+
+void Bob_init() {
+	Bob.savings = START_SUM;
+	Bob.salary = START_MONTH_SALARY;
+	Bob.expenses = START_EXPENSES;
+}
+
+
+void indexations(month) {
+	if (month % 12 == 0) {
+		Alice.salary *= 1 + INFLATION;
+		Bob.salary *= 1 + INFLATION;
+	}
+}
+
+
+void inflations() {
+	double month_inflation = pow((1.0 + INFLATION),(1.0 / 12));
+	Alice.expenses *= month_inflation;
+	Bob.expenses *= month_inflation;
+	Alice.actual_flat_cost *= month_inflation;
+}
+
+
+void savings() {
+	Alice.savings *= 1 + BANK_PERCENT / 12;
+	Bob.savings *= 1 + BANK_PERCENT / 12;
+	Alice.savings += Alice.salary - Alice.expenses - mortgage_payment();
+	Bob.savings += Bob.salary - Bob.expenses;
+}
+
+
+void lifecycle() {
+	int month = START_MONTH;
+	while (month != START_MONTH + 12 * PERIOD_YEARS) {
+		indexations(month);
+		inflations();
+		savings();
+		printf("capital = %lld\n", Alice.savings);
+		printf("capital = %lld\n", Alice.actual_flat_cost);
+		++month;
+	}
+	int Alice_capital = (Alice.savings + Alice.actual_flat_cost) / 100;
+	printf("Alice's capital = %i\n", Alice_capital);
+	int Bob_capital = Bob.savings / 100;
+	printf("Bob's capital = %i\n", Bob_capital);
+}
+
+
+void main() {
+	Alice_init();
+	Bob_init();
+	lifecycle();
+}
