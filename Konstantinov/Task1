@@ -11,10 +11,10 @@ const int START_MONTH = 3;
 const double INFLATION = 0.07;
 const double BANK_PERCENT = 0.11;
 const double MORTGAGE_PERCENT = 0.09;
-const kpk START_SUM = 2000 * 1000 * 100;
-const kpk START_MONTH_SALARY = 150 * 1000 * 100;
-const kpk START_EXPENSES = 50 * 1000 * 100;
-const kpk BOB_START_RENT = 30 * 1000 * 100;
+const kpk START_SUM = 2500 * 1000 * 100;
+const kpk START_MONTH_SALARY = 140 * 1000 * 100;
+const kpk START_EXPENSES = 54 * 1000 * 100;
+const kpk BOB_START_RENT = 29 * 1000 * 100;
 const kpk ALICE_START_FLAT_COST = 10 * 1000 * 1000 * 100;
 
 
@@ -30,7 +30,7 @@ struct Person {
 	kpk savings;
 	kpk salary;
 	kpk expenses;
-	kpk actual_flat_cost;
+	kpk flat;
 } Alice, Bob;
 
 
@@ -38,7 +38,7 @@ void Alice_init() {
 	Alice.savings = 0;
 	Alice.salary = START_MONTH_SALARY;
 	Alice.expenses = START_EXPENSES;
-	Alice.actual_flat_cost = ALICE_START_FLAT_COST;
+	Alice.flat = ALICE_START_FLAT_COST;
 }
 
 
@@ -46,6 +46,7 @@ void Bob_init() {
 	Bob.savings = START_SUM;
 	Bob.salary = START_MONTH_SALARY;
 	Bob.expenses = START_EXPENSES;
+	Bob.flat = BOB_START_RENT;
 }
 
 
@@ -61,7 +62,8 @@ void inflations() {
 	double month_inflation = pow((1.0 + INFLATION),(1.0 / 12));
 	Alice.expenses *= month_inflation;
 	Bob.expenses *= month_inflation;
-	Alice.actual_flat_cost *= month_inflation;
+	Alice.flat *= month_inflation;
+	Bob.flat *= month_inflation;
 }
 
 
@@ -69,7 +71,7 @@ void savings() {
 	Alice.savings *= 1 + BANK_PERCENT / 12;
 	Bob.savings *= 1 + BANK_PERCENT / 12;
 	Alice.savings += Alice.salary - Alice.expenses - mortgage_payment();
-	Bob.savings += Bob.salary - Bob.expenses;
+	Bob.savings += Bob.salary - Bob.expenses - Bob.flat;
 }
 
 
@@ -80,13 +82,13 @@ void lifecycle() {
 		inflations();
 		savings();
 		printf("capital = %lld\n", Alice.savings);
-		printf("capital = %lld\n", Alice.actual_flat_cost);
+		printf("capital = %lld\n", Alice.flat);
 		++month;
 	}
-	int Alice_capital = (Alice.savings + Alice.actual_flat_cost) / 100;
-	printf("Alice's capital = %i\n", Alice_capital);
+	int Alice_capital = (Alice.savings + Alice.flat) / 100;
+	printf("Alice's capital = %i RUB\n", Alice_capital);
 	int Bob_capital = Bob.savings / 100;
-	printf("Bob's capital = %i\n", Bob_capital);
+	printf("Bob's capital = %i RUB\n", Bob_capital);
 }
 
 
