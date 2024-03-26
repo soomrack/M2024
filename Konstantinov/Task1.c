@@ -4,7 +4,6 @@
 
 typedef long long int kpk; // для расчёта в копейках
 
-
 const int PERIOD_YEARS = 20;
 const int START_YEAR = 2024;
 const int START_MONTH = 3;
@@ -16,8 +15,6 @@ const kpk START_MONTH_SALARY = 140 * 1000 * 100;
 const kpk START_EXPENSES = 54 * 1000 * 100;
 const kpk BOB_START_RENT = 29 * 1000 * 100;
 const kpk ALICE_START_FLAT_COST = 10 * 1000 * 1000 * 100;
-
-double salary_coef = 2;
 
 
 kpk mortgage_payment() {
@@ -33,7 +30,7 @@ struct Person {
 	kpk salary;
 	kpk expenses;
 	kpk flat;
-} 
+};
 
 
 struct Person Alice;
@@ -81,12 +78,12 @@ void savings() {
 }
 
 
-void lifechanges(month) {
+void life_changes(month) {
     if (START_YEAR * 12 + month == 2026 * 12 + 2 || START_YEAR * 12 + month == 2026 * 12 + 3){
         Bob.savings -= Bob.salary;
     {
     if (START_YEAR * 12 + month == (2026 * 12 + 3)){
-	Bob.salary *= salary_coef;
+	Bob.salary *= 2;
     {
 {
 
@@ -97,7 +94,7 @@ void lifecycle() {
 		indexations(month);
 		inflations();
 		savings();
-		lifechanges();
+		life_changes();
 		printf("capital = %lld\n", Alice.savings);
 		printf("capital = %lld\n", Alice.flat);
 		++month;
