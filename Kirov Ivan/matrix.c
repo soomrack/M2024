@@ -41,10 +41,25 @@ void delete_matrix(struct Matrix* A)
 }
 
 
-void matrix_error()
+enum ErrorLevel {ERROR, WARNING};
+
+
+void matrix_error(enum ErrorLevel level, char* msg)
 {
-    printf("Error: different number of columns or rows\n");
+    switch (level)
+    {
+    case ERROR:
+        printf("ERROR: ");
+        break;
+    case WARNING:
+        printf("WARNING: ");
+        break;
+    default:
+        break;
+    }
+    printf("%s\n", msg);
 }
+
 
 
 void zero_matrix(struct Matrix A)
@@ -77,7 +92,7 @@ int matrix_add(struct Matrix A, struct Matrix B)
 void matrix_sum(const struct Matrix A, const struct Matrix B, const struct Matrix C)
 {
     if (A.cols != B.cols || A.rows != B.rows) {
-        matrix_error();
+        matrix_error(ERROR, "Для выполнения операции сложения матрицы должны иметь одинаковые размерности");
         return;
     }
     for (unsigned int idx = 0; idx < A.cols * A.rows; ++idx)
@@ -92,7 +107,7 @@ void matrix_sum(const struct Matrix A, const struct Matrix B, const struct Matri
 void matrix_sub(const struct Matrix A, const struct Matrix B, const struct Matrix C)
 {
     if (A.cols != B.cols || A.rows != B.rows) {
-        matrix_error();
+        matrix_error(ERROR, "Для выполнения операции вычитания матрицы должны иметь одинаковые размерности");
         return;
     }
     for (unsigned int idx = 0; idx < A.cols * A.rows; ++idx)
@@ -111,7 +126,7 @@ struct Matrix matrix_diff(struct Matrix A, struct Matrix B)
     if (diff.data == NULL) return NULL_MATRIX;
 
     memcpy(diff.data, A.data, sizeof(double) * A.cols * A.rows);
-    matrix_add(diff, B);
+    matrix_sub(A, B, diff);
 
     return diff;
 }
@@ -131,7 +146,11 @@ struct Matrix matrix_mult_scalar(const struct Matrix A, const double scalar)
 // mult = A * B
 struct Matrix matrix_mult(struct Matrix A, struct Matrix B)
 {
-    if (A.cols != B.rows) return NULL_MATRIX;
+    if (A.cols != B.rows) {
+        matrix_error(ERROR, "Для выполнения операции умножения матрицы должны иметь согласованные размерности");
+        return NULL_MATRIX;
+        
+    };
 
     struct Matrix mult = matrix_creation(A.rows, B.cols);
     if (mult.data == NULL) return NULL_MATRIX;
@@ -195,7 +214,10 @@ struct Matrix matrix_trans(struct Matrix A)
 // exp = e^A
 struct Matrix matrix_exp(struct Matrix A)
 {
-    if (A.cols != A.rows) return NULL_MATRIX;
+    if (A.cols != A.rows) {
+        matrix_error(ERROR, "Для выполнения операции возведения в степень матрица должна быть квадратной");
+        return NULL_MATRIX;
+    }
     if (A.cols == 0) return NULL_MATRIX;
 
     struct Matrix exp = matrix_creation(A.rows, A.cols);
