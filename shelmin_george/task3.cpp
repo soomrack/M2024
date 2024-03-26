@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+//Сделать throw
+
+
 enum Errors {
     ATTEMPT_TO_REINIT, SIZE_ZERO, SIZE_THRESHOLD_EXCEEDED, 
     WRONG_SIZES, NOT_INIT, NOT_SQUARE,
@@ -51,355 +54,246 @@ private:
     size_t cols;
     size_t rows;
     double* data = nullptr;
-
 public:
-    // конструктор пустой матрицы
-    Matrix()
-    {
-        //std::cout << "Вызван конструктор инициализации пустой матрицы\n";
+    Matrix();
+    Matrix(const size_t init_cols, const size_t init_rows);
+    
+    void random_fill();
+    void zeros_fill();
+    void identity_fill();
+    Matrix minor(const size_t minor_col, const size_t minor_row);    
+    double determinant();
+    Matrix transposition();
+    Matrix inverse();
+    
+    ~Matrix();
+
+    Matrix& operator = (const Matrix& matrix);
+    Matrix& operator += (const Matrix& matrix);
+    Matrix& operator += (const double number);
+    Matrix& operator -= (const Matrix& matrix);
+    Matrix& operator -= (const double number);
+    Matrix& operator *= (const double number);
+    Matrix& operator *= (const Matrix& matrix);
+    Matrix& operator /= (const double number);
+    Matrix operator + (const Matrix& matrix);
+    Matrix operator + (const double number);
+    Matrix operator - (const Matrix& matrix);
+    Matrix operator - (const double number);
+    Matrix operator * (const Matrix& matrix);
+    Matrix operator * (const double number);
+    Matrix operator ^ (const unsigned int exponent);
+    friend Matrix operator ^ (const double base, const Matrix& matrix);
+    
+    friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix);
+};
+
+
+Matrix::Matrix() :cols {0}, rows {0}
+{
+    //std::cout << "Вызван конструктор инициализации пустой матрицы\n";
+    data = nullptr;
+}
+
+
+Matrix::Matrix(const size_t init_cols, const size_t init_rows)
+{
+    //std::cout << "Вызван конструктор матрицы\n";
+
+    if ((init_cols == 0) || (init_rows == 0)) {
         cols = 0;
         rows = 0;
         data = nullptr;
+        matrix_error_log(SIZE_ZERO);
+        return;
     }
 
-
-    // конструктор
-    Matrix(const size_t init_cols, const size_t init_rows)
-    {
-        //std::cout << "Вызван конструктор матрицы\n";
-
-        if (init_cols * init_rows == 0) {
-            cols = 0;
-            rows = 0;
-            data = nullptr;
-            matrix_error_log(SIZE_ZERO);
-            return;
-        }
-
-        long double size_check = SIZE_MAX / init_cols / init_rows / sizeof(double);
-        if (size_check < 1.0) {
-            cols = 0;
-            rows = 0;
-            data = nullptr;
-            matrix_error_log(SIZE_THRESHOLD_EXCEEDED);
-            return;
-        }
-
-        cols = init_cols;
-        rows = init_rows;
-        data = new double[cols * rows];
-
-        if (data == nullptr) {
-            cols = 0;
-            rows = 0;
-            matrix_error_log(NOT_INIT);
-            return;
-        }
+    long double size_check = SIZE_MAX / init_cols / init_rows / sizeof(double);
+    if (size_check < 1.0) {
+        cols = 0;
+        rows = 0;
+        data = nullptr;
+        matrix_error_log(SIZE_THRESHOLD_EXCEEDED);
+        return;
     }
 
+    cols = init_cols;
+    rows = init_rows;
+    data = new double[cols * rows];
+}
 
-    void random_fill() {
-        for (size_t index = 0; index < cols * rows; index++) {
-            data[index] = double(rand() % 1000000) / 10000;
-        }
+
+void Matrix::random_fill() 
+{
+    for (size_t index = 0; index < cols * rows; index++) {
+        data[index] = double(rand() % 1000000) / 10000;
     }
+}
 
 
-    void zeros_fill() {
-        for (size_t index = 0; index < cols * rows; index++) {
-            data[index] = 0.0;
-        }
+void Matrix::zeros_fill() 
+{
+    for (size_t index = 0; index < cols * rows; index++) {
+        data[index] = 0.0;
     }
+}
 
 
-    void identity_fill() {
-        zeros_fill();
-        for (size_t index = 0; index < rows * cols; index += rows + 1) {
-            data[index] = 1.0;
-        }
+void Matrix::identity_fill() 
+{
+    zeros_fill();
+    for (size_t index = 0; index < rows * cols; index += rows + 1) {
+        data[index] = 1.0;
     }
+}
 
 
-    Matrix minor(const size_t minor_col, const size_t minor_row)
-    {
-        if ((cols<=1)||(rows<=1)) {
-            Matrix null_matrix;
-            matrix_error_log(MINOR_SIZE_ZERO);
-            return null_matrix;
+Matrix Matrix::minor(const size_t minor_col, const size_t minor_row)
+{
+    if ((cols <= 1) || (rows <= 1)) {
+        Matrix null_matrix;
+        matrix_error_log(MINOR_SIZE_ZERO);
+        return null_matrix;
+    }
+    if ((minor_col >= cols) || (minor_row >= rows)) {
+        Matrix null_matrix;
+        matrix_error_log(WRONG_MINOR_INDEX);
+        return null_matrix;
+    }
+    Matrix minor(cols - 1, rows - 1);
+    size_t origin_index = 0;
+    for (size_t current_col = 0; current_col < minor.cols; current_col++) {
+        if (current_col == minor_col) {
+            origin_index += cols;
         }
-        if ((minor_col>=cols)||(minor_row>=rows)) {
-            Matrix null_matrix;
-            matrix_error_log(WRONG_MINOR_INDEX);
-            return null_matrix;
-        }
-        Matrix minor(cols - 1, rows - 1);
-        size_t origin_index = 0;
-        for (size_t current_col = 0; current_col < minor.cols; current_col++) {
-            if (current_col == minor_col) {
-                origin_index += cols;
-            }
-            for (size_t current_row = 0; current_row < minor.rows; current_row++) {
-                if (current_row == minor_row) {
-                    origin_index += 1;
-                }
-                minor.data[current_col * minor.rows + current_row] = data[origin_index];
+        for (size_t current_row = 0; current_row < minor.rows; current_row++) {
+            if (current_row == minor_row) {
                 origin_index += 1;
             }
-            if (minor_row == minor.rows) {  // иначе не обрабатывается последний столбец
-                origin_index += 1;
-            }
+            minor.data[current_col * minor.rows + current_row] = data[origin_index];
+            origin_index += 1;
         }
-        return minor;
+        if (minor_row == minor.rows) {  // иначе не обрабатывается последний столбец
+            origin_index += 1;
+        }
     }
-    
-    
-    double determinant()
-    {
-        if (cols != rows) {
-            matrix_error_log(NOT_SQUARE);
-            return NAN;
-        }
-        if ((cols == 0) || (rows == 0)) {
-            matrix_error_log(SIZE_ZERO);
-            return NAN;
-        }
+    return minor;
+}
 
-        double determinant = 0.0;
-        if (cols == 1) {
-            determinant = data[0];
-            return determinant;
-        }
-        Matrix matrix_copy(cols,rows);
-        for (size_t index = 0; index < cols * rows; index++) {
-            matrix_copy.data[index] = data[index];
-        }
 
-        Matrix minor;
-        for (size_t summ_index = 0; summ_index < rows; summ_index++) {
-            minor = matrix_copy.minor(0, summ_index);
+double Matrix::determinant()
+{
+    if (cols != rows) {
+        matrix_error_log(NOT_SQUARE);
+        return NAN;
+    }
+    if ((cols == 0) || (rows == 0)) {
+        matrix_error_log(SIZE_ZERO);
+        return NAN;
+    }
 
-            if (summ_index % 2 == 0) {
-                determinant += data[summ_index] * minor.determinant();
-            }
-            else {
-                determinant -= data[summ_index] * minor.determinant();
-            }
-        }
-
+    double determinant = 0.0;
+    if (cols == 1) {
+        determinant = data[0];
         return determinant;
     }
-
-
-    Matrix transposition()
-    {
-        if (cols*rows==0) {
-            Matrix null_matrix;
-            matrix_error_log(SIZE_ZERO);
-            return null_matrix;
-        }
-        Matrix new_matrix(rows, cols);
-        for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
-            for (size_t current_row = 0; current_row < new_matrix.rows; current_row++) {
-
-                new_matrix.data[new_matrix.rows * current_col + current_row] =
-                    data[new_matrix.cols * current_row + current_col];
-            }
-        }
-        return new_matrix;
+    Matrix matrix_copy(cols, rows);
+    for (size_t index = 0; index < matrix_copy.cols * matrix_copy.rows; index++) {
+        matrix_copy.data[index] = data[index];
     }
-    
 
-    Matrix inverse()
-    {
-        if (cols != rows) {
-            Matrix matrix_null;
-            matrix_error_log(NOT_SQUARE);
-            return matrix_null;
-        }
-        if (cols * rows == 0) {
-            Matrix matrix_null;
-            matrix_error_log(NOT_SQUARE);
-            return matrix_null;
-        }
+    Matrix minor;
+    for (size_t summ_index = 0; summ_index < matrix_copy.rows; summ_index++) {
+        minor = matrix_copy.minor(0, summ_index);
 
-        Matrix matrix_copy(cols, rows);
-        for (size_t index = 0; index < cols * rows; index++) {
-            matrix_copy.data[index] = data[index];
+        if (summ_index % 2 == 0) {
+            determinant += data[summ_index] * minor.determinant();
         }
+        else {
+            determinant -= data[summ_index] * minor.determinant();
+        }
+    }
 
-        double det = matrix_copy.determinant();
-        if (det == NAN) {
-            Matrix matrix_null;
-            matrix_error_log(INV_MAT_CALC_ERROR);
-            return matrix_null;
-        }
-        Matrix inv_matrix(cols, rows);
+    return determinant;
+}
 
-        if (fabs(det) < 0.00001) {
-            inv_matrix.zeros_fill();
-            matrix_error_log(DET_EQUAL_ZERO);
-            return inv_matrix;
-        }
-        Matrix minor;
-        for (size_t current_col = 0; current_col < inv_matrix.cols; current_col++) {
-            for (size_t current_row = 0; current_row < inv_matrix.rows; current_row++) {
-                
-                minor=matrix_copy.minor(current_col, current_row);
 
-                if ((current_col + current_row) % 2 == 0) {
-                    inv_matrix.data[current_col * inv_matrix.cols + current_row] = minor.determinant();
-                }
-                else {
-                    inv_matrix.data[current_col * inv_matrix.cols + current_row] = (-1) * minor.determinant();
-                }
-            }
+Matrix Matrix::transposition()
+{
+    if ((cols==0)||(rows==0)) {
+        Matrix null_matrix;
+        matrix_error_log(SIZE_ZERO);
+        return null_matrix;
+    }
+    Matrix new_matrix(rows, cols);
+    for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
+        for (size_t current_row = 0; current_row < new_matrix.rows; current_row++) {
+
+            new_matrix.data[new_matrix.rows * current_col + current_row] =
+                data[new_matrix.cols * current_row + current_col];
         }
-        inv_matrix /= det;
-        inv_matrix = inv_matrix.transposition();
+    }
+    return new_matrix;
+}
+
+
+Matrix Matrix::inverse()
+{
+    if (cols != rows) {
+        Matrix matrix_null;
+        matrix_error_log(NOT_SQUARE);
+        return matrix_null;
+    }
+    if ((cols==0)||(rows==0)) {
+        Matrix matrix_null;
+        matrix_error_log(NOT_SQUARE);
+        return matrix_null;
+    }
+
+    Matrix matrix_copy(cols, rows);
+    for (size_t index = 0; index < matrix_copy.cols * matrix_copy.rows; index++) {
+        matrix_copy.data[index] = data[index];
+    }
+
+    double det = matrix_copy.determinant();
+    if (det == NAN) {
+        Matrix matrix_null;
+        matrix_error_log(INV_MAT_CALC_ERROR);
+        return matrix_null;
+    }
+    Matrix inv_matrix(cols, rows);
+
+    if (fabs(det) < 0.00001) {
+        inv_matrix.zeros_fill();
+        matrix_error_log(DET_EQUAL_ZERO);
         return inv_matrix;
     }
+    Matrix minor;
+    for (size_t current_col = 0; current_col < inv_matrix.cols; current_col++) {
+        for (size_t current_row = 0; current_row < inv_matrix.rows; current_row++) {
 
+            minor = matrix_copy.minor(current_col, current_row);
 
-// деструктор
-    ~Matrix()
-    {
-        //std::cout << "Вызван деструктор матрицы\n";
-        if (data==nullptr){
-            return;
-        }
-        cols = 0;
-        rows = 0;
-        delete[] data;
-        data = nullptr;
-    }
-    
-
-    friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix);
-    friend Matrix operator + (const Matrix& A, const Matrix& B);
-    friend Matrix operator + (const Matrix& matrix, const double number);
-    friend Matrix operator - (const Matrix& A, const Matrix& B);
-    friend Matrix operator - (const Matrix& matrix, const double number);
-    friend Matrix operator * (const Matrix& A, const Matrix& B);
-    friend Matrix operator * (const Matrix& matrix, const double number);
-    friend Matrix operator ^ (const double base, const Matrix& matrix);
-    friend Matrix operator ^ (const Matrix& matrix, const unsigned int exponent);
-
-    Matrix& operator = (const Matrix& matrix) 
-    {
-        if (matrix.cols * matrix.rows == 0) {
-            cols = 0;
-            rows = 0;
-            data = nullptr;
-            matrix_error_log(SIZE_ZERO);
-            return *this;
-        }
-
-        delete[] data;
-        data = nullptr;
-        cols = matrix.cols;
-        rows = matrix.rows;
-        data = new double[cols * rows];
-        for (size_t index = 0; index < cols * rows; index++) {
-            data[index] = matrix.data[index];
-        }
-        return *this;
-    };
-    
-    
-    Matrix& operator += (const Matrix& matrix)
-    {
-        if ((cols!=matrix.cols)||(rows!=matrix.rows)) {
-            matrix_error_log(WRONG_SIZES);
-            return *this;
-        }
-        for (size_t index = 0; index < cols * rows; index++) {
-            data[index] += matrix.data[index];
-        }
-        return *this;
-    }
-    
-    
-    Matrix& operator += (const double number) {
-        for (size_t index = 0; index < cols * rows; index++) {
-            data[index] += number;
-        }
-        return *this;
-    }
-    
-    
-    Matrix& operator -= (const Matrix& matrix)
-    {
-        if ((cols != matrix.cols) || (rows != matrix.rows)) {
-            matrix_error_log(WRONG_SIZES);
-            return *this;
-        }
-        for (size_t index = 0; index < cols * rows; index++) {
-            data[index] -= matrix.data[index];
-        }
-        return *this;
-    }
-    
-    
-    Matrix& operator -= (const double number) {
-        for (size_t index = 0; index < cols * rows; index++) {
-            data[index] -= number;
-        }
-        return *this;
-    }
-    
-    
-    Matrix& operator *= (const double number) {
-        for (size_t index = 0; index < cols * rows; index++) {
-            data[index] *= number;
-        }
-        return *this;
-    }
-    
-
-    Matrix& operator *= (const Matrix& matrix) 
-    {
-        if (rows != matrix.cols) {
-            matrix_error_log(WRONG_SIZES);
-            return *this;
-        }
-        size_t new_cols = cols;
-        size_t new_rows = matrix.rows;
-        double* new_data = new double[new_cols * new_rows];
-        if (new_data == nullptr) {
-            cols = 0;
-            rows = 0;
-            matrix_error_log(NOT_INIT);
-            return *this;
-        }
-
-        for (size_t current_col = 0; current_col < new_cols; current_col++) {
-            for (size_t current_row = 0; current_row < new_rows; current_row++) {
-                new_data[new_rows * current_col + current_row] = 0.0;
-                
-                for (size_t index = 0; index < rows; index++) {
-
-                    new_data[rows * current_col + current_row] +=
-                        data[rows * current_col + index] *
-                        matrix.data[matrix.rows * index + current_row];
-                }
+            if ((current_col + current_row) % 2 == 0) {
+                inv_matrix.data[current_col * inv_matrix.cols + current_row] = minor.determinant();
+            }
+            else {
+                inv_matrix.data[current_col * inv_matrix.cols + current_row] = (-1) * minor.determinant();
             }
         }
-        cols = new_cols;
-        rows = new_rows;
-        delete[] data;
-        data = new_data;
-
-        return *this;
     }
+    inv_matrix /= det;
+    inv_matrix = inv_matrix.transposition();
+    return inv_matrix;
+}
 
 
-    Matrix& operator /= (const double number) {
-        for (size_t index = 0; index < cols * rows; index++) {
-            data[index] /= number;
-        }
-        return *this;
-    }
-   };
+Matrix::~Matrix()
+{
+    //std::cout << "Вызван деструктор матрицы\n";
+    delete[] data;
+}
+
 
 std::ostream& operator<<(std::ostream& out, const Matrix& matrix)
 {
@@ -420,26 +314,154 @@ std::ostream& operator<<(std::ostream& out, const Matrix& matrix)
 }
 
 
-Matrix operator + (const Matrix& A, const Matrix& B)
+Matrix& Matrix::operator = (const Matrix& matrix)
 {
-    if ((A.cols != B.cols) || (A.rows != B.rows)) {
+    if ((matrix.cols == cols) && (matrix.rows == rows)) {
+        for (size_t index = 0; index < cols * rows; index++) {
+            data[index] = matrix.data[index];
+        }
+        return *this;
+    }
+
+    delete[] data;
+    if ((matrix.cols==0)||(matrix.rows==0)) {
+        cols = 0;
+        rows = 0;
+        data = nullptr;
+        matrix_error_log(SIZE_ZERO);
+        return *this;
+    }
+
+    data = nullptr;
+    cols = matrix.cols;
+    rows = matrix.rows;
+    data = new double[cols * rows];
+    for (size_t index = 0; index < cols * rows; index++) {
+        data[index] = matrix.data[index];
+    }
+    return *this;
+};
+
+
+Matrix& Matrix::operator += (const Matrix& matrix)
+{
+    if ((cols != matrix.cols) || (rows != matrix.rows)) {
+        matrix_error_log(WRONG_SIZES);
+        return *this;
+    }
+    for (size_t index = 0; index < cols * rows; index++) {
+        data[index] += matrix.data[index];
+    }
+    return *this;
+}
+
+
+Matrix& Matrix::operator += (const double number) 
+{
+    for (size_t index = 0; index < cols * rows; index++) {
+        data[index] += number;
+    }
+    return *this;
+}
+
+
+Matrix& Matrix::operator -= (const Matrix& matrix)
+{
+    if ((cols != matrix.cols) || (rows != matrix.rows)) {
+        matrix_error_log(WRONG_SIZES);
+        return *this;
+    }
+    for (size_t index = 0; index < cols * rows; index++) {
+        data[index] -= matrix.data[index];
+    }
+    return *this;
+}
+
+
+Matrix& Matrix::operator -= (const double number) 
+{
+    for (size_t index = 0; index < cols * rows; index++) {
+        data[index] -= number;
+    }
+    return *this;
+}
+
+
+Matrix& Matrix::operator *= (const double number) 
+{
+    for (size_t index = 0; index < cols * rows; index++) {
+        data[index] *= number;
+    }
+    return *this;
+}
+
+
+Matrix& Matrix::operator *= (const Matrix& matrix)
+{
+    if (rows != matrix.cols) {
+        matrix_error_log(WRONG_SIZES);
+        return *this;
+    }
+    size_t new_cols = cols;
+    size_t new_rows = matrix.rows;
+    double* new_data = new double[new_cols * new_rows];
+    if (new_data == nullptr) {
+        cols = 0;
+        rows = 0;
+        matrix_error_log(NOT_INIT);
+        return *this;
+    }
+
+    for (size_t current_col = 0; current_col < new_cols; current_col++) {
+        for (size_t current_row = 0; current_row < new_rows; current_row++) {
+            new_data[new_rows * current_col + current_row] = 0.0;
+
+            for (size_t index = 0; index < rows; index++) {
+
+                new_data[rows * current_col + current_row] +=
+                    data[rows * current_col + index] *
+                    matrix.data[matrix.rows * index + current_row];
+            }
+        }
+    }
+    cols = new_cols;
+    rows = new_rows;
+    delete[] data;
+    data = new_data;
+
+    return *this;
+}
+
+
+Matrix& Matrix::operator /= (const double number) 
+{
+    for (size_t index = 0; index < cols * rows; index++) {
+        data[index] /= number;
+    }
+    return *this;
+}
+
+
+Matrix Matrix::operator + (const Matrix& matrix)
+{
+    if ((cols != matrix.cols) || (rows != matrix.rows)) {
         Matrix null_matrix;
         matrix_error_log(WRONG_SIZES);
         return null_matrix;
     }
 
-    Matrix new_matrix(A.cols, B.cols);
-    new_matrix = A;
-    new_matrix += B;
+    Matrix new_matrix(cols,rows);
+    new_matrix = *this;
+    new_matrix += matrix;
     return new_matrix;
 }
 
 
-Matrix operator + (const Matrix& matrix, const double number)
+Matrix Matrix::operator + (const double number)
 {
     Matrix new_matrix;
-    new_matrix = matrix;
-    Matrix identity_matrix(matrix.cols, matrix.rows);
+    new_matrix = *this;
+    Matrix identity_matrix(cols, rows);
     identity_matrix.identity_fill();
 
     identity_matrix *= number;
@@ -448,11 +470,11 @@ Matrix operator + (const Matrix& matrix, const double number)
 }
 
 
-Matrix operator - (const Matrix& matrix, const double number)
+Matrix Matrix::operator - (const double number)
 {
     Matrix new_matrix;
-    new_matrix = matrix;
-    Matrix identity_matrix(matrix.cols, matrix.rows);
+    new_matrix = *this;
+    Matrix identity_matrix(cols, rows);
     identity_matrix.identity_fill();
 
     identity_matrix *= number;
@@ -461,38 +483,38 @@ Matrix operator - (const Matrix& matrix, const double number)
 }
 
 
-Matrix operator - (const Matrix& A, const Matrix& B)
+Matrix Matrix::operator - (const Matrix& matrix)
 {
-    if ((A.cols != B.cols) || (A.rows != B.rows)) {
+    if ((cols != matrix.cols) || (rows != matrix.rows)) {
         Matrix null_matrix;
         matrix_error_log(WRONG_SIZES);
         return null_matrix;
     }
 
-    Matrix new_matrix(A.cols, B.cols);
-    new_matrix = A;
-    new_matrix -= B;
+    Matrix new_matrix(cols, rows);
+    new_matrix = *this;
+    new_matrix -= matrix;
     return new_matrix;
 }
 
 
-Matrix operator * (const Matrix& A, const Matrix& B) {
-    if (A.rows != B.cols) {
+Matrix Matrix::operator * (const Matrix& matrix) {
+    if (rows != matrix.cols) {
         Matrix null_matrix;
         matrix_error_log(WRONG_SIZES);
         return null_matrix;
     }
 
-    Matrix new_matrix(A.cols, B.rows);
+    Matrix new_matrix(cols, matrix.rows);
     new_matrix.zeros_fill();
     for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
         for (size_t current_row = 0; current_row < new_matrix.rows; current_row++) {
 
-            for (size_t index = 0; index < A.rows; index++) {
+            for (size_t index = 0; index < rows; index++) {
 
                 new_matrix.data[new_matrix.rows * current_col + current_row] +=
-                    A.data[A.rows * current_col + index] *
-                    B.data[B.rows * index + current_row];
+                    data[rows * current_col + index] *
+                    matrix.data[matrix.rows * index + current_row];
             }
         }
     }
@@ -500,10 +522,10 @@ Matrix operator * (const Matrix& A, const Matrix& B) {
 }
 
 
-Matrix operator * (const Matrix& matrix, const double number)
+Matrix Matrix::operator * (const double number)
 {
     Matrix new_matrix;
-    new_matrix = matrix;
+    new_matrix = *this;
     new_matrix *= number;
     return new_matrix;
 }
@@ -538,21 +560,21 @@ Matrix operator ^ (const double base, const Matrix& matrix)
 }
 
 
-Matrix operator ^ (const Matrix& matrix, const unsigned int exponent)
+Matrix Matrix::operator ^ (const unsigned int exponent)
 {
-    if (matrix.rows != matrix.cols) {
+    if (rows != cols) {
         Matrix null_matrix;
         matrix_error_log(NOT_SQUARE);
         return null_matrix;
     }
 
-    Matrix new_matrix(matrix.cols, matrix.rows); 
+    Matrix new_matrix(cols, rows); 
     new_matrix.identity_fill(); 
     if (exponent == 0) {
         return new_matrix;
     }
     for (unsigned int index = 1; index <= exponent; index++) {
-        new_matrix *= matrix;
+        new_matrix *= *this;
     }
     return new_matrix;
 }
@@ -577,6 +599,7 @@ int main()
     std::cout << C;
 
     C = C * C.inverse();
+    //C = C + C + C;
 
     std::cout << C;
 
