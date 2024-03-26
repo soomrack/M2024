@@ -1,8 +1,9 @@
-﻿#include <stdio.h>
+#include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
+
 
 typedef long int Money;
 double INFLIATION = 0.12, INFLATION_MONTH = INFLIATION / 12;
@@ -11,11 +12,13 @@ double LOAN_RATE = 0.18, LOAN_MONTH = 0.18 / 12;
 int LOAN_YEARS = 30;
 Money MORTGAGE_PAYMENT;
 
+
 bool IS_RANDOM_INITIALIZED = false;
+
 
 double random_double(double min, double max) {
 
-    if (!IS_RANDOM_INITIALIZED){ // переменные через _ и капсом
+    if (!IS_RANDOM_INITIALIZED){
         srand(time(NULL)); // Инициализация генератора случайных чисел
         IS_RANDOM_INITIALIZED = true; // Установить флаг в true, чтобы не инициализировать srand повторно
         }
@@ -24,6 +27,7 @@ double random_double(double min, double max) {
     double div = RAND_MAX / range; // Для масштабирования rand() к нашему диапазону
     return min + (rand() / div); // Возвращаем значение в нужном диапазоне
 }
+
 
 struct Person
 {
@@ -39,40 +43,46 @@ struct Person
     Money initial_payment;
     Money appartment_repair;
     Money deposit;
+    Money boat_price;
+    Money TO;
+    Money resort;
 };
 
 
 struct Person Alice
 {
     Alice.salary = 150000,
-        Alice.food_spending = 15000,
-        Alice.home_price = 10000000,
-        Alice.rent = 0,
-        Alice.additional_spendings = 40000,
-        Alice.savings = 0,
-        Alice.loan_years = 30,
-        Alice.cost_random_min = 5000,
-        Alice.cost_random_max = 20000,
-        Alice.initial_payment = 2000000,
-        Alice.appartment_repair = 150000,
-        Alice.deposit = 0,
+    Alice.food_spending = 15000,
+    Alice.home_price = 10000000,
+    Alice.rent = 0,
+    Alice.additional_spendings = 40000,
+    Alice.savings = 0,
+    Alice.loan_years = 30,
+    Alice.cost_random_min = 5000,
+    Alice.cost_random_max = 20000,
+    Alice.initial_payment = 2000000,
+    Alice.appartment_repair = 150000,
+    Alice.deposit = 0,
 };
 
 
 struct Person Bob
 {
     Bob.salary = 150000,
-        Bob.food_spending = 15000,
-        Bob.home_price = 0,
-        Bob.rent = 30000,
-        Bob.additional_spendings = 40000,
-        Bob.savings = 2000000,
-        Bob.loan_years = 0,
-        Bob.cost_random_min = 5000,
-        Bob.cost_random_max = 20000,
-        Bob.initial_payment = 0,
-        Bob.appartment_repair = 0,
-        Bob.deposit = 0,
+    Bob.food_spending = 15000,
+    Bob.home_price = 0,
+    Bob.rent = 30000,
+    Bob.additional_spendings = 40000,
+    Bob.savings = 2000000,
+    Bob.loan_years = 0,
+    Bob.cost_random_min = 5000,
+    Bob.cost_random_max = 20000,
+    Bob.initial_payment = 0,
+    Bob.appartment_repair = 0,
+    Bob.deposit = 0,
+    Bob.boat_price = 1000000,
+    Bob.resort = 350000,
+    Bob.TO = 80000,
 };
 
 
@@ -89,7 +99,8 @@ void Alice_indexation()
 
 void Alice_mortgage() 
 {
-    MORTGAGE_PAYMENT = (Alice.home_price - Alice.initial_payment) * (LOAN_MONTH + LOAN_MONTH / (pow((1 + LOAN_MONTH), LOAN_YEARS * 12) - 1));
+    MORTGAGE_PAYMENT = (Alice.home_price - Alice.initial_payment) * (LOAN_MONTH + LOAN_MONTH / 
+        (pow((1 + LOAN_MONTH), LOAN_YEARS * 12) - 1));
 }
 
 
@@ -187,6 +198,12 @@ void Bob_rand_spendings()
 }
 
 
+void BoatTO()
+{
+    Bob.savings -= Bob.TO;
+}
+
+
 void Bob_deposit()
 {
     int Bob_deposit_profit;
@@ -195,6 +212,25 @@ void Bob_deposit()
     Bob.deposit += Bob_deposit_profit;
 }
 
+
+void Bob_get_boat(int year, int month)
+{
+    if (year == 2028 && month == 3) {
+        Bob.savings -= Bob.boat_price;
+    }
+    if (year >= 2028 && month == 12)
+        BoatTO();
+
+}
+
+
+void Bob_resort(int year, int month)
+{
+    if (year >= 2028 && month == 8) {
+        Bob.savings -= Bob.resort;
+    }
+}
+    
 
 void Bob_savings()
 {
@@ -241,6 +277,8 @@ void Bob_simulation()
         Bob_get_food();
         Bob_rand_spendings();
         Bob_deposit();
+        Bob_get_boat(year, month);
+        Bob_resort(year, month);
 
         if (year == 2024 + LOAN_YEARS && month == 2)
             break;
