@@ -79,10 +79,10 @@ void savings() {
 
 
 void life_changes(month) {
-    if (START_YEAR * 12 + month == 2026 * 12 + 2 || START_YEAR * 12 + month == 2026 * 12 + 3){
+    if (month == ((2026-START_YEAR) * 12 + 2)) {
         Bob.savings -= Bob.salary;
     {
-    if (START_YEAR * 12 + month == (2026 * 12 + 3)){
+    if (month == ((2026-START_YEAR) * 12 + 3)){
 	Bob.salary *= 2;
     {
 {
@@ -94,9 +94,7 @@ void lifecycle() {
 		indexations(month);
 		inflations();
 		savings();
-		life_changes();
-		printf("capital = %lld\n", Alice.savings);
-		printf("capital = %lld\n", Alice.flat);
+		life_changes(month);
 		++month;
 	}
 }
