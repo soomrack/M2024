@@ -15,20 +15,34 @@ struct Matrix {
 const struct Matrix MATRIX_NULL = { .cols = 0, .rows = 0, .data = NULL };
 
 
-void matrix_error_message(size_t error_type)  // Ошибка
-{
-    if (error_type == 1) {
-        printf("Error! Check your actions!\n");
-    }else if (error_type == 2){
-        printf("Error 2! Check your actions!\n");
-    }else if (error_type == 3) {
-        printf("Error_3.Column inequality of two matrices!\n");
-    }
-    else if (error_type == 4) {
-        printf("Error_4.Inequality of rows of two matrices!\n");
+//void matrix_error_message(size_t error_type)  // Ошибка
+//{
+    //if (error_type == 1) {
+      //  printf("Error_1. Check your actions!\n");
+   // }else if (error_type == 2){
+      //  printf("Error_2. Check your actions!\n");
+   // }else if (error_type == 3) {
+       // printf("Error_3.Column inequality of two matrices!\n");
+   // }
+   // else if (error_type == 4) {
+      //  printf("Error_4.Inequality of rows of two matrices!\n");
+   // }
+//}
+enum MatrixErrors { NO_MEMORY,INCOMPATIBLE_SIZES};
+
+void matrix_error_message(enum MatrixErrors error_type) {
+    switch (error_type) {
+    case NO_MEMORY:
+        printf("Error_1: No memory available!\n");
+        break;
+    case INCOMPATIBLE_SIZES:
+        printf("Error_2: Incompatible sizes of matrices!\n");
+        break;
+    default:
+        printf("Unknown error!\n");
+        break;
     }
 }
-
 
 struct Matrix matrix_init(const size_t rows, const size_t cols)  // Инициализация матрицы заданным числом строк и столбцов
 {
@@ -38,7 +52,7 @@ struct Matrix matrix_init(const size_t rows, const size_t cols)  // Инициа
     }
 
     if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols) { // rows * cols < MAX_SIZE / sizeof(MatrixItem)
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
         return MATRIX_NULL;  
     }
 
@@ -46,7 +60,7 @@ struct Matrix matrix_init(const size_t rows, const size_t cols)  // Инициа
     A.data = (MatrixItem*)malloc(A.cols * A.rows * sizeof(MatrixItem));
 
     if (A.data == NULL) {
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
         return MATRIX_NULL;
     }
     return A;
@@ -57,7 +71,7 @@ struct Matrix matrix_make_ident(size_t rows, size_t cols) // Cоздание и 
 {
     struct Matrix I = matrix_init(rows, cols);
     if (I.data == NULL) {
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
         return MATRIX_NULL;
     }
     memset(I.data, 0, sizeof(I.data));
@@ -74,7 +88,7 @@ struct Matrix matrix_create(const size_t rows, const size_t cols, const MatrixIt
 {
     struct Matrix A = matrix_init(rows, cols);
     if (A.data == NULL) {
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
         return MATRIX_NULL;
     }
     memcpy(A.data, values, rows * cols * sizeof(MatrixItem));
@@ -106,7 +120,7 @@ void matrix_print(const struct Matrix A)  // Вывод матрицы на эк
         }
         printf("\n");
     }else {
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
     }
 }
 
@@ -124,11 +138,11 @@ void matrix_add(const struct Matrix A, const struct Matrix B)  // Сложени
 struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)  // Сложение без перезаписи
 {
     if (A.cols != B.cols) {
-        matrix_error_message(3);
+        matrix_error_message(INCOMPATIBLE_SIZES);
         return MATRIX_NULL;
     }
     if (A.rows != B.rows) {
-        matrix_error_message(4);
+        matrix_error_message(INCOMPATIBLE_SIZES);
         return MATRIX_NULL;
     }
     struct Matrix C = matrix_init(A.cols, A.rows);
@@ -143,7 +157,7 @@ struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)  // Сл�
 struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B)  // Вычитание без перезаписи
 {
     if (A.cols != B.cols || A.rows != B.rows) {
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
         return MATRIX_NULL;
     }
     struct Matrix C = matrix_init(A.cols, A.rows);
@@ -157,13 +171,13 @@ struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B)  // Вы�
 struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)  // Умножение без перезаписи
 {
     if (A.cols != B.rows) {
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
         return MATRIX_NULL;
     }
     struct Matrix C = matrix_init(A.cols, B.rows);
 
     if (C.data == NULL) {
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
         return MATRIX_NULL;
     }
 
@@ -189,7 +203,7 @@ struct Matrix matrix_mult_scalar(const double scalar, struct Matrix B)  // Ум�
 double matrix_det(struct Matrix* A)  // Определитель
 {
     if (A->cols != A->rows) {
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
         return NAN;
     }
 
@@ -207,7 +221,7 @@ double matrix_det(struct Matrix* A)  // Определитель
         matr_det -= ((A->data[2]) * (A->data[4]) * (A->data[6]) + (A->data[1]) * (A->data[3]) * (A->data[8]) + (A->data[0]) * (A->data[5]) * (A->data[7]));
         return matr_det;
     } 
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
         return NAN;
 }
 
@@ -217,7 +231,7 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
     struct Matrix E = matrix_init(A.rows, A.cols);
 
     if (E.data == NULL) {
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
         return MATRIX_NULL;
     }
 
@@ -245,14 +259,14 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
 struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy)
 {
     if (A->cols != A->rows) {
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
         return MATRIX_NULL;
     }
 
     struct Matrix E = matrix_init(A->rows, A->cols);
 
     if (E.data == NULL) {
-        matrix_error_message(1);
+        matrix_error_message(NO_MEMORY);
         return MATRIX_NULL;
     }
     struct Matrix matrix_transfer;
