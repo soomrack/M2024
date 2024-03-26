@@ -17,6 +17,8 @@ const kpk START_EXPENSES = 54 * 1000 * 100;
 const kpk BOB_START_RENT = 29 * 1000 * 100;
 const kpk ALICE_START_FLAT_COST = 10 * 1000 * 1000 * 100;
 
+double salary_coef = 2;
+
 
 kpk mortgage_payment() {
 	double month_percent = MORTGAGE_PERCENT / 12;
@@ -31,7 +33,11 @@ struct Person {
 	kpk salary;
 	kpk expenses;
 	kpk flat;
-} Alice, Bob;
+} 
+
+
+struct Person Alice;
+struct Person Bob;
 
 
 void Alice_init() {
@@ -75,16 +81,31 @@ void savings() {
 }
 
 
+void lifechanges(month) {
+    if (START_YEAR * 12 + month == 2026 * 12 + 2 || START_YEAR * 12 + month == 2026 * 12 + 3){
+        Bob.savings -= Bob.salary;
+    {
+    if (START_YEAR * 12 + month == (2026 * 12 + 3)){
+	Bob.salary *= salary_coef;
+    {
+{
+
+
 void lifecycle() {
 	int month = START_MONTH;
 	while (month != START_MONTH + 12 * PERIOD_YEARS) {
 		indexations(month);
 		inflations();
 		savings();
+		lifechanges();
 		printf("capital = %lld\n", Alice.savings);
 		printf("capital = %lld\n", Alice.flat);
 		++month;
 	}
+}
+
+
+void print_result() {
 	int Alice_capital = (Alice.savings + Alice.flat) / 100;
 	printf("Alice's capital = %i RUB\n", Alice_capital);
 	int Bob_capital = Bob.savings / 100;
@@ -96,4 +117,5 @@ void main() {
 	Alice_init();
 	Bob_init();
 	lifecycle();
+	print_result();
 }
