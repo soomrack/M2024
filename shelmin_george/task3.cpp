@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-//Сделать throw
-
-
+/*
 enum Errors {
     ATTEMPT_TO_REINIT, SIZE_ZERO, SIZE_THRESHOLD_EXCEEDED, 
     WRONG_SIZES, NOT_INIT, NOT_SQUARE,
@@ -47,7 +45,7 @@ void matrix_error_log(enum Errors code) {
     }
 
 };
-
+*/
 
 class Matrix {
 private:
@@ -99,12 +97,12 @@ Matrix::Matrix() :cols {0}, rows {0}
 Matrix::Matrix(const size_t init_cols, const size_t init_rows)
 {
     //std::cout << "Вызван конструктор матрицы\n";
-
     if ((init_cols == 0) || (init_rows == 0)) {
         cols = 0;
         rows = 0;
         data = nullptr;
-        matrix_error_log(SIZE_ZERO);
+        throw std::runtime_error("WARNING: the matrix size equal to zero\n");
+        //matrix_error_log(SIZE_ZERO);
         return;
     }
 
@@ -113,7 +111,8 @@ Matrix::Matrix(const size_t init_cols, const size_t init_rows)
         cols = 0;
         rows = 0;
         data = nullptr;
-        matrix_error_log(SIZE_THRESHOLD_EXCEEDED);
+        throw std::runtime_error("ERROR: the matrix size too big\n");
+        //matrix_error_log(SIZE_THRESHOLD_EXCEEDED);
         return;
     }
 
@@ -151,17 +150,21 @@ void Matrix::identity_fill()
 Matrix Matrix::minor(const size_t minor_col, const size_t minor_row)
 {
     if ((cols <= 1) || (rows <= 1)) {
+        throw std::runtime_error("ERROR: the minor size equal to zero\n");
+        //matrix_error_log(MINOR_SIZE_ZERO);
         Matrix null_matrix;
-        matrix_error_log(MINOR_SIZE_ZERO);
         return null_matrix;
     }
     if ((minor_col >= cols) || (minor_row >= rows)) {
+        throw std::runtime_error("ERROR: the minor index is incorrect\n");
+        //matrix_error_log(WRONG_MINOR_INDEX);
         Matrix null_matrix;
-        matrix_error_log(WRONG_MINOR_INDEX);
         return null_matrix;
     }
+
     Matrix minor(cols - 1, rows - 1);
     size_t origin_index = 0;
+    
     for (size_t current_col = 0; current_col < minor.cols; current_col++) {
         if (current_col == minor_col) {
             origin_index += cols;
@@ -184,11 +187,13 @@ Matrix Matrix::minor(const size_t minor_col, const size_t minor_row)
 double Matrix::determinant()
 {
     if (cols != rows) {
-        matrix_error_log(NOT_SQUARE);
+        throw std::runtime_error("ERROR: the matrix size isn't square\n");
+        //matrix_error_log(NOT_SQUARE);
         return NAN;
     }
     if ((cols == 0) || (rows == 0)) {
-        matrix_error_log(SIZE_ZERO);
+        throw std::runtime_error("ERROR: the matrix size equal to zero\n");
+        //matrix_error_log(SIZE_ZERO);
         return NAN;
     }
 
@@ -220,11 +225,6 @@ double Matrix::determinant()
 
 Matrix Matrix::transposition()
 {
-    if ((cols==0)||(rows==0)) {
-        Matrix null_matrix;
-        matrix_error_log(SIZE_ZERO);
-        return null_matrix;
-    }
     Matrix new_matrix(rows, cols);
     for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
         for (size_t current_row = 0; current_row < new_matrix.rows; current_row++) {
@@ -240,14 +240,16 @@ Matrix Matrix::transposition()
 Matrix Matrix::inverse()
 {
     if (cols != rows) {
-        Matrix matrix_null;
-        matrix_error_log(NOT_SQUARE);
-        return matrix_null;
+        throw std::runtime_error("ERROR: the matrix size isn't square\n");
+        //matrix_error_log(NOT_SQUARE);
+        Matrix null_matrix;
+        return null_matrix;
     }
     if ((cols==0)||(rows==0)) {
-        Matrix matrix_null;
-        matrix_error_log(NOT_SQUARE);
-        return matrix_null;
+        throw std::runtime_error("ERROR: the matrix size equal to zero\n");
+        //matrix_error_log(SIZE_ZERO);
+        Matrix null_matrix;
+        return null_matrix;
     }
 
     Matrix matrix_copy(cols, rows);
@@ -257,15 +259,17 @@ Matrix Matrix::inverse()
 
     double det = matrix_copy.determinant();
     if (det == NAN) {
-        Matrix matrix_null;
-        matrix_error_log(INV_MAT_CALC_ERROR);
-        return matrix_null;
+        throw std::runtime_error("ERROR: the inverse matrix can't be caclulated\n");
+        //matrix_error_log(INV_MAT_CALC_ERROR);
+        Matrix null_matrix;
+        return null_matrix;
     }
     Matrix inv_matrix(cols, rows);
 
     if (fabs(det) < 0.00001) {
+        throw std::runtime_error("WARNING: the matrix determinant is equal to zero\n");
+        //matrix_error_log(DET_EQUAL_ZERO);
         inv_matrix.zeros_fill();
-        matrix_error_log(DET_EQUAL_ZERO);
         return inv_matrix;
     }
     Matrix minor;
@@ -328,7 +332,8 @@ Matrix& Matrix::operator = (const Matrix& matrix)
         cols = 0;
         rows = 0;
         data = nullptr;
-        matrix_error_log(SIZE_ZERO);
+        throw std::runtime_error("ERROR: the matrix size equal to zero\n");
+        //matrix_error_log(SIZE_ZERO);
         return *this;
     }
 
@@ -346,7 +351,8 @@ Matrix& Matrix::operator = (const Matrix& matrix)
 Matrix& Matrix::operator += (const Matrix& matrix)
 {
     if ((cols != matrix.cols) || (rows != matrix.rows)) {
-        matrix_error_log(WRONG_SIZES);
+        throw std::runtime_error("ERROR: the matrix sizes are incomparable\n");
+        // matrix_error_log(WRONG_SIZES);
         return *this;
     }
     for (size_t index = 0; index < cols * rows; index++) {
@@ -368,7 +374,8 @@ Matrix& Matrix::operator += (const double number)
 Matrix& Matrix::operator -= (const Matrix& matrix)
 {
     if ((cols != matrix.cols) || (rows != matrix.rows)) {
-        matrix_error_log(WRONG_SIZES);
+        throw std::runtime_error("ERROR: the matrix sizes are incomparable\n");
+        // matrix_error_log(WRONG_SIZES);
         return *this;
     }
     for (size_t index = 0; index < cols * rows; index++) {
@@ -399,7 +406,8 @@ Matrix& Matrix::operator *= (const double number)
 Matrix& Matrix::operator *= (const Matrix& matrix)
 {
     if (rows != matrix.cols) {
-        matrix_error_log(WRONG_SIZES);
+        throw std::runtime_error("ERROR: the matrix sizes are incomparable\n");
+        // matrix_error_log(WRONG_SIZES);
         return *this;
     }
     size_t new_cols = cols;
@@ -408,7 +416,8 @@ Matrix& Matrix::operator *= (const Matrix& matrix)
     if (new_data == nullptr) {
         cols = 0;
         rows = 0;
-        matrix_error_log(NOT_INIT);
+        throw std::runtime_error("ERROR: the matrix wasn't initialised\n");
+        //matrix_error_log(NOT_INIT);
         return *this;
     }
 
@@ -445,8 +454,9 @@ Matrix& Matrix::operator /= (const double number)
 Matrix Matrix::operator + (const Matrix& matrix)
 {
     if ((cols != matrix.cols) || (rows != matrix.rows)) {
+        throw std::runtime_error("ERROR: the matrix sizes are incomparable\n");
+        // matrix_error_log(WRONG_SIZES);
         Matrix null_matrix;
-        matrix_error_log(WRONG_SIZES);
         return null_matrix;
     }
 
@@ -486,8 +496,9 @@ Matrix Matrix::operator - (const double number)
 Matrix Matrix::operator - (const Matrix& matrix)
 {
     if ((cols != matrix.cols) || (rows != matrix.rows)) {
+        throw std::runtime_error("ERROR: the matrix sizes are incomparable\n");
+        // matrix_error_log(WRONG_SIZES);
         Matrix null_matrix;
-        matrix_error_log(WRONG_SIZES);
         return null_matrix;
     }
 
@@ -500,8 +511,9 @@ Matrix Matrix::operator - (const Matrix& matrix)
 
 Matrix Matrix::operator * (const Matrix& matrix) {
     if (rows != matrix.cols) {
+        throw std::runtime_error("ERROR: the matrix sizes are incomparable\n");
+        // matrix_error_log(WRONG_SIZES);
         Matrix null_matrix;
-        matrix_error_log(WRONG_SIZES);
         return null_matrix;
     }
 
@@ -536,8 +548,9 @@ Matrix operator ^ (const double base, const Matrix& matrix)
     const unsigned int accuracy = 15;
 
     if (matrix.rows != matrix.cols) {
+        throw std::runtime_error("ERROR: the matrix size isn't square\n");
+        //matrix_error_log(NOT_SQUARE);
         Matrix null_matrix;
-        matrix_error_log(NOT_SQUARE);
         return null_matrix;
     }
 
@@ -563,8 +576,9 @@ Matrix operator ^ (const double base, const Matrix& matrix)
 Matrix Matrix::operator ^ (const unsigned int exponent)
 {
     if (rows != cols) {
+        throw std::runtime_error("ERROR: the matrix size isn't square\n");
+        //matrix_error_log(NOT_SQUARE);
         Matrix null_matrix;
-        matrix_error_log(NOT_SQUARE);
         return null_matrix;
     }
 
@@ -585,22 +599,27 @@ int main()
     srand(time(NULL));
     setlocale(LC_ALL, "rus");
 
-    Matrix A(6, 6);
-    A.random_fill();
-    std::cout << A;
+    try {
+        Matrix A(6, 6);
+        A.random_fill();
+        std::cout << A;
 
-    Matrix B(6, 6);
-    B.random_fill();
-    std::cout << B;
+        Matrix B(6, 6);
+        B.random_fill();
+        std::cout << B;
 
-    Matrix C;
-    C = A+B;
-    C = C ^ 2;
-    std::cout << C;
+        Matrix C;
+        C = A + B;
+        C = C ^ 2;
+        std::cout << C;
 
-    C = C * C.inverse();
-    //C = C + C + C;
+        C = C * C.inverse();
+        //C = C + C + C;
 
-    std::cout << C;
+        std::cout << C;
+    }
 
+    catch(const std::exception& e){
+        std::cerr << e.what();
+    }
 }
