@@ -485,7 +485,7 @@ Matrix matrix_i(size_t rows, size_t cols) {
 
     matrix_zero(result);
     for (size_t i = 0; i < rows*cols; i++) {
-        if (i % (roes + 1) == 0) {
+        if (i % (rows + 1) == 0) {
             result.data[i] = 1.;
         }
     }
