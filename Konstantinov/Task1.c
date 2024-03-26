@@ -81,11 +81,11 @@ void savings() {
 void life_changes(month) {
     if (month == ((2026-START_YEAR) * 12 + 2)) {
         Bob.savings -= Bob.salary;
-    {
+    }
     if (month == ((2026-START_YEAR) * 12 + 3)){
 	Bob.salary *= 2;
-    {
-{
+    }
+}
 
 
 void lifecycle() {
