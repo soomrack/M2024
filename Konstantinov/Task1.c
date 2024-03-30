@@ -4,16 +4,18 @@
 
 typedef long long int kpk; // для расчёта в копейках
 
+kpk potentialsalary;
+
 const int PERIOD_YEARS = 20;
 const int START_YEAR = 2024;
 const int START_MONTH = 3;
 const double INFLATION = 0.07;
 const double BANK_PERCENT = 0.11;
 const double MORTGAGE_PERCENT = 0.09;
-const kpk START_SUM = 2500 * 1000 * 100;
+const kpk START_SUM = 2000 * 1000 * 100;
 const kpk START_MONTH_SALARY = 140 * 1000 * 100;
-const kpk START_EXPENSES = 54 * 1000 * 100;
-const kpk BOB_START_RENT = 29 * 1000 * 100;
+const kpk START_EXPENSES = 60 * 1000 * 100;
+const kpk BOB_START_RENT = 50 * 1000 * 100;
 const kpk ALICE_START_FLAT_COST = 10 * 1000 * 1000 * 100;
 
 
@@ -57,12 +59,13 @@ void indexations(month) {
 	if (month % 12 == 0) {
 		Alice.salary *= 1 + INFLATION;
 		Bob.salary *= 1 + INFLATION;
+		potentialsalary *= 1 + INFLATION;
 	}
 }
 
 
 void inflations() {
-	double month_inflation = pow((1.0 + INFLATION),(1.0 / 12));
+	double month_inflation = pow((1.0 + INFLATION), (1.0 / 12));
 	Alice.expenses *= month_inflation;
 	Bob.expenses *= month_inflation;
 	Alice.flat *= month_inflation;
@@ -79,22 +82,23 @@ void savings() {
 
 
 void life_changes(month) {
-    if ((month == (START_MONTH + (2026-START_YEAR) * 12 + 2)) || (month == (START_MONTH + (2026-START_YEAR) * 12 + 3))) {
-        Bob.savings -= Bob.salary;
-    }
-    if (month == (START_MONTH + (2026-START_YEAR) * 12 + 3)){
-	Bob.salary *= 2;
-    }
+	if (month == (START_MONTH + (2026 - START_YEAR) * 12 + 2)) {
+		potentialsalary = Bob.salary;
+		Bob.salary = 0;
+	}
+	if (month == (START_MONTH + (2026 - START_YEAR) * 12 + 4)) {
+		Bob.salary = potentialsalary * 2;
+	}
 }
 
 
 void lifecycle() {
 	int month = START_MONTH;
 	while (month != START_MONTH + 12 * PERIOD_YEARS) {
+		life_changes(month);
 		indexations(month);
 		inflations();
 		savings();
-		life_changes(month);
 		++month;
 	}
 }
