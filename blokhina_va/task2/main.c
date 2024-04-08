@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 
 typedef struct {
     size_t rows;
@@ -16,35 +15,45 @@ Matrix matrixB;
 Matrix matrixResult;
 
 // Коды ошибок
-void handle_error(size_t error_code) {
-    switch (error_code) {
-        case 1:
-            printf("Ошибка выделения памяти!\n");
+enum Error{
+    UNDENTIFY_ERROR,
+    MEMORY_ALLOCATION_ERROR,
+    INAVALID_INPUT,
+    MATRIX_SIZE_IS_NOT_EQUAL,
+    FIRST_MATCOLS_IS_NOT_EQUAL_SECOND_MATROWS,
+    TOO_LARGE_MATRIX_SIZE,
+    MATRIX_IS_NOT_SQUARE
+};
+
+void handle_error(enum Error error) {
+    switch (error) {
+        case MEMORY_ALLOCATION_ERROR:
+            printf("Memory allocation error.\n");
             break;
-        case 2:
-            printf("Некорректный ввод.\n");
+        case INAVALID_INPUT:
+            printf("Invalid input.\n");
             break;
-        case 3:
-            printf("Размеры матриц не равны.\n");
+        case MATRIX_SIZE_IS_NOT_EQUAL:
+            printf("Matrix size.\n");
             break;
-        case 4:
+        case FIRST_MATCOLS_IS_NOT_EQUAL_SECOND_MATROWS:
             printf("Количество стобцов первой матрицы не равно количеству строк второй матрицы.\n");
             break;
-        case 5:
+        case TOO_LARGE_MATRIX_SIZE:
             printf("Матрица больше, чем ожидалось.\n");
             break;
-        case 6:
+        case MATRIX_IS_NOT_SQUARE:
             printf("Матрица не квадратная.\n");
             break;
-        default:
+        case UNDENTIFY_ERROR:
             printf("Неизвестная ошибка.\n");
             break;
     }
-    exit(0);
+    return 1;
 }
 
 // Выделение памяти
-Matrix matrix_create(size_t rows, size_t cols, double coeff) {
+Matrix matrix_create(size_t rows, size_t cols, enum Error error, double coeff) {
     Matrix mat;
     mat.rows = rows;
     mat.cols = cols;
@@ -58,8 +67,7 @@ Matrix matrix_create(size_t rows, size_t cols, double coeff) {
     // Выделение памяти под всю матрицу одним блоком
     double *matrix_data = (double *)malloc(rows * cols * sizeof(double));
     if (matrix_data == NULL) {
-        // Обработка ошибки выделения памяти
-        exit(1);
+        handle_error(MEMORY_ALLOCATION_ERROR);
     }
 
     // Выделение памяти под массив указателей на строки
