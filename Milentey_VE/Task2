@@ -107,16 +107,6 @@ void matrix_print(const struct Matrix A)  // Вывод матрицы на эк
 }
 
 
-void matrix_add(const struct Matrix A, const struct Matrix B)  // Сложение матриц с перезаписью
-{
-   if (A.cols != B.cols || A.rows != B.rows) return ;
-
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
-        A.data[idx] += B.data[idx];
-    }
-}
-
-
 struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)  // Сложение без перезаписи
 {
     if (A.cols != B.cols) {
@@ -273,8 +263,6 @@ int main()
     E = matrix_create(2, 2, (double[]) { 3., 2., 1., 1. });
 
     matrix_print(A);
-    matrix_print(B);
-    matrix_add(B, A);
     matrix_print(B);
 
     C = matrix_mult(A, B);
