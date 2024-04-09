@@ -49,7 +49,7 @@ Matrix matrix_create(const size_t rows, const size_t cols) {
     };
 
     // Проверка на переполнение (*) - работа с массивом ************************************
-    if (cols >= SIZE_MAX / (sizeof(double) * rows)) {  // Макс число (количество строк или столбцов) делим на количество строк или столбцов, если значение больше, то выходит за рамки памяти (частное меньше единицы)
+    if (cols >= SIZE_MAX / (sizeof(double) * rows)) {  // SIZE_MAX - макс допустимое значение типа size_t ,Макс число (количество строк или столбцов) делим на количество строк или столбцов, если значение больше, то выходит за рамки памяти (частное меньше единицы)
         log_message(ERROR, "Out of size");  // Логирование с указанием уровня логирования
         return MATRIX_NULL;
     }
@@ -85,17 +85,19 @@ void matrix_print(const Matrix M) {  // Вывод матрицы
 }
 
 
-void matrix_fill_random(Matrix M) {  // Заполнение матрицы рандомными числами
+void matrix_fill_random(Matrix* M) {  // Заполнение матрицы рандомными числами
     srand(time(NULL)); // в () значение базы, чтоб каждый раз был рандом
-    for (size_t idx = 0; idx < M.rows * M.cols; idx++) {
-        M.data[idx] = (double)rand() / RAND_MAX;
+    for (size_t idx = 0; idx < M->rows * M->cols; idx++) {
+        M->data[idx] = (double)rand() / RAND_MAX;
     }
 }
 
-void matrix_free(Matrix* M) {  // Очистка памяти, при ненадобности матрицы
+void matrix_free(Matrix* M) {  // Очистка памяти, при ненадобности матрицы указатель 0 
+   
     M->rows = 0; // через указатели
     M->cols = 0;
     free(M->data);
+    M->data = NULL;
 }
 
 
@@ -106,7 +108,7 @@ Matrix matrix_sum(const Matrix A, const Matrix B) {
         return MATRIX_NULL;
     }
 
-    Matrix result = matrix_create(A.rows, A.cols);  // Создаем матрицу, тк они одного размера нет разницы
+    Matrix result = matrix_create(A.rows, A.cols);  // Создаем матрицу, тк они одного размера нет разницы - переделать комментарий - нулевая матрица = ничего не сделать 
     if (result.data == NULL) { // Если сумма равна нулю, ошибка
         log_message(ERROR, "Data matrix of 'result' is NULL!");
         return MATRIX_NULL;
@@ -154,11 +156,11 @@ Matrix matrix_multiply(const Matrix A, const Matrix B) {
         return MATRIX_NULL;
     }
 
-    for (size_t row = 0; row < A.rows; row++) {  // Перемножение строк на столбцы (*), size_t - размер строк или столбцов
+    for (size_t row = 0; row < A.rows; row++) {  // Перемножение строк на столбцы, size_t - размер строк или столбцов
         for (size_t col = 0; col < B.cols; col++) {
             double sum = 0;  // Временная переменная для сложения
             for (size_t offset = 0; offset < A.cols; offset++) {
-                sum += A.data[row * A.cols + offset] * B.data[offset * B.cols + col]; // ***********
+                sum += A.data[row * A.cols + offset] * B.data[offset * B.cols + col]; 
             }
             result.data[row * B.cols + col] = sum;
         }
@@ -167,7 +169,7 @@ Matrix matrix_multiply(const Matrix A, const Matrix B) {
 }
 
 
-// Умножение матрицы на скаляр
+// Умножение матрицы на скаляр - проверка выдаёт ошибку
 Matrix matrix_multiply_by_scalar(const Matrix M, const double scalar) {
     if (M.rows == 0 || M.cols == 0) {  // Если количество строк или столбцов рано 0, ошибка
         log_message(ERROR, "One of dimensions of multiply matrix on scalar has value 0.");
@@ -187,6 +189,24 @@ Matrix matrix_multiply_by_scalar(const Matrix M, const double scalar) {
 }
 
 
+//Единичная матрица для экспоненты
+Matrix matrix_E_create(const size_t rows, const size_t cols) {
+
+    Matrix matrix_E = matrix_create(rows, cols); // Создание "нулевой" матрицы
+    if (matrix_E.data == NULL) {  // Проверка памяти для матрицы на нуль
+        log_message(ERROR, " Data matrix of 'matrix_E' is NULL!");
+        return MATRIX_NULL;
+    }
+
+    memset(matrix_E.data, 0, rows * cols * sizeof(double));  // Заполнение памяти байтами на указанную длину, обнуление
+    for (size_t idx_diag = 0; idx_diag < matrix_E.rows; idx_diag++) {  // Заполнение главной диагонали единицами 
+        matrix_E.data[idx_diag * matrix_E.rows + idx_diag] = 1.;
+    }
+
+    return matrix_E;
+}
+
+
 // Экспонента
 Matrix matrix_exponential(const Matrix M, int iteration_count) {
     if (M.rows == 0 || M.cols == 0) {  // Проверка на нуль
@@ -199,38 +219,18 @@ Matrix matrix_exponential(const Matrix M, int iteration_count) {
         return M;
     }
 
+    Matrix result = matrix_E_create(M.rows, M.cols); // Приравнивание к единичной матрице
+    Matrix temp = matrix_E_create(M.rows, M.cols);
 
-    Matrix result = matrix_create(M.rows, M.cols);  // Создание матрицы резулт *****************
-    if (result.data == NULL) {  // Проверка памяти для матрицы на нуль
-        log_message(ERROR, " Data matrix of 'result' is NULL!");
-        return MATRIX_NULL;
-    }
-
-    Matrix temp = matrix_create(M.rows, M.cols);  // Создание матрицы креэйт ************
-    if (temp.data == NULL) {   // Проверка памяти для матрицы на нуль
-        log_message(ERROR, "Watchout! Data matrix of 'temp' is NULL!");
-        matrix_free(&result);  // Освобождение данных из-под матрицы резулт
-        return MATRIX_NULL;
-    }
-
-
-    // Единичные матрицы для экспоненты
-    size_t allo_mem_size = M.rows * M.cols * sizeof(double);
-    memset(result.data, 0, allo_mem_size);  // Заполнение памяти байтами на указанную длину
-    memset(temp.data, 0, allo_mem_size);  // Обнуление
-    for (size_t idx_diag = 0; idx_diag < M.rows; idx_diag++) {  // Заполнение главной диагонали единицами 
-        result.data[idx_diag * M.rows + idx_diag] = 1.;
-        temp.data[idx_diag * M.rows + idx_diag] = 1.;
-    }
 
     // Расчёт экспоненциального ряда
     for (int iteration = 1; iteration <= iteration_count; iteration++) {  // по формуле матричной экспоненты повтор от 1 до n! 
-        Matrix copy_ptr = temp;  // Временная переменная, которая еденичная матрица, запоминаем, чтобы потом убрать память
+        Matrix copy_ptr = temp;  // Временная перемення (единичная матрица) чтобы убрать память
         temp = matrix_multiply(temp, M);
         matrix_free(&copy_ptr);  // Чистка памяти
 
         copy_ptr = temp;
-        temp = matrix_multiply_by_scalar(temp, 1. / iteration); // Реализация степени матрицы (умножение на еденичную м и деление на факториал)
+        temp = matrix_multiply_by_scalar(temp, 1. / iteration); // Реализация степени матрицы (умножение на единичную м и деление на факториал) !!!!!!!!!!!!!!!
         matrix_free(&copy_ptr);  // Чистка памяти
 
         copy_ptr = result;
@@ -248,17 +248,17 @@ Matrix matrix_exponential(const Matrix M, int iteration_count) {
 double matrix_determinant_of_by_minors(const Matrix M) {
     if (M.rows == 0 || M.cols == 0) {  // Проверка на нуль
         log_message(ERROR, "Matrix should be size more then zero!");
-        return 0;
+        return NAN;
     }
 
     if (M.rows != M.cols) {  // Проверка на квадратность
         log_message(WARNING, "Determinant can only be calculated for sqare matrices.");
-        return 0;
+        return NAN;
     }
 
     if (M.rows > 10) {  // Слишком долго будет считать если будем брать матрицу больше 10х10
         log_message(WARNING, "Can't be calculated for a matrix of dimensions greater than 10.");
-        return 0;
+        return NAN;
     }
 
     size_t size = M.rows;
@@ -270,10 +270,10 @@ double matrix_determinant_of_by_minors(const Matrix M) {
     Matrix submat = matrix_create(size - 1, size - 1); // Создание квадратной под матрицы, которая меньше предыдущей
     if (submat.data == NULL) {  // Проверка выделения памяти
         log_message(ERROR, " Data matrix of 'submat' is NULL!");
-        return 0;
+        return NAN;
     }
 
-    for (size_t idx = 0; idx < size; idx++) {  //(*)
+    for (size_t idx = 0; idx < size; idx++) {  
         size_t sub_row = 0;
         for (size_t row = 1; row < size; row++) { // По сторокам
             size_t sub_col = 0;
@@ -289,7 +289,7 @@ double matrix_determinant_of_by_minors(const Matrix M) {
             sub_row++;
         }
 
-        short sign = (idx % 2 == 0) ? 1 : -1; // знак перед определителем (idx - индекс, остаток от деления на 2 , упрощенное иф элс
+        short sign = (idx % 2 == 0) ? 1 : -1; // знак перед определителем (idx - индекс, остаток от деления на 2 , упрощенное if else
         double subdet = matrix_determinant_of_by_minors(submat);  // Рекурсия
         det += sign * M.data[idx] * subdet;
     }
@@ -299,7 +299,8 @@ double matrix_determinant_of_by_minors(const Matrix M) {
     return det;
 }
 
- 
+
+
 
 void task_exp() {  // Пример работы экспоненты матрицы 2х2
     size_t size = 2;
@@ -317,35 +318,44 @@ void task_exp() {  // Пример работы экспоненты матри�
     matrix_free(&expMat);
 }
 
-void task_matrix_determinant_by_classic() {  // Пример работы вычисления определителя матрицы 3х3 методом треугольника
+void matrix_determinant_by_classic() {  // Вычисление определителя матрицы 3х3 методом треугольника 
     size_t size = 3;
     Matrix matrix = matrix_create(size, size);
+    matrix_fill_random(&matrix);
+    
 
-    matrix.data[0] = 1; matrix.data[1] = 2; matrix.data[2] = 3;  // Заполнение матрицы числами
-    matrix.data[3] = 4; matrix.data[4] = 5; matrix.data[5] = 6;
-    matrix.data[6] = 7; matrix.data[7] = 8; matrix.data[8] = 8;
+    if (matrix.rows == 0 || matrix.cols == 0) {  // Проверка на нуль
+        log_message(ERROR, "Matrix should be size more then zero!");
+        return NAN;
+    }
 
 
-    double Matrix_determinant = matrix.data[0] * matrix.data[4] * matrix.data[8] + matrix.data[1] * matrix.data[5] * matrix.data[6]
+ 
+        double Matrix_determinant = matrix.data[0] * matrix.data[4] * matrix.data[8] + matrix.data[1] * matrix.data[5] * matrix.data[6]
         + matrix.data[3] * matrix.data[7] * matrix.data[2] - matrix.data[6] * matrix.data[4] * matrix.data[2]
         - matrix.data[3] * matrix.data[1] * matrix.data[8] - matrix.data[7] * matrix.data[5] * matrix.data[0];
-    
+
+    log_message(INFO, "3*3 Rand Matrix:");
+    matrix_print(matrix);
 
     log_message(INFO, "Matrix determinant classic:");
     printf("%f\n", Matrix_determinant);
     matrix_free(&matrix);
-    
+
 }
 
-// void matrix_look(const Matrix C) {
-  //  Matrix new_rand_matrix = matrix_create(C.rows, C.cols);
-   // matrix_fill_random(Matrix C);
-   // matrix_print(const Matrix C);
-//}
 
 int main() {
-    task_matrix_determinant_by_classic();
-    task_exp(); 
-    // matrix_look();
+    matrix_determinant_by_classic();
+
+    Matrix M = matrix_create(3, 3);
+
+    matrix_fill_random(&M);
+    matrix_print(M);
+
+    Matrix M_E = matrix_exponential(M, 7);
+    matrix_print(M_E);
+
     return 0;
+
 }
