@@ -1,319 +1,306 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
 #include <math.h>
-#include <string.h>
 
 
 typedef double MatrixItem;
 
-
-typedef struct Matrix {
-    size_t cols;
-    size_t rows;
+struct Matrix {
+    size_t cols;  // столбец
+    size_t rows;  // строка
     MatrixItem* data;
-}Matrix;
+};
 
+const struct Matrix MATRIX_NULL = { .cols = 0, .rows = 0, .data = NULL };
 
-const Matrix MATRIX_ZERO = { 0, 0, NULL };
+enum MatrixErrors { NO_MEMORY,INCOMPATIBLE_SIZES};
 
-
-Matrix matrix_memory(const size_t cols, const size_t rows) {
-    Matrix matrix;
-    matrix.cols = cols;
-    matrix.rows = rows;
-
-    if (cols == 0 || rows == 0) {
-        struct Matrix A = { .cols = cols, .rows = rows, .data = NULL };
-        return A;
-    }
-
-    if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols) return MATRIX_ZERO;
-
-    matrix.data = malloc(matrix.cols * matrix.rows * sizeof(MatrixItem));
-
-    if (matrix.data == NULL) {
-        return MATRIX_ZERO;
-    }
-
-
-    return matrix;
-}
-
-
-void matrix_fill_rand(Matrix* matrix)
-{
-    for (size_t index = 0; index < matrix->cols * matrix->rows; ++index) {
-        matrix->data[index] = ((int)rand() % 10);
+void matrix_error_message(enum MatrixErrors error_type) {
+    switch (error_type) {
+    case NO_MEMORY:
+        printf("Error_1: No memory available!\n");
+        break;
+    case INCOMPATIBLE_SIZES:
+        printf("Error_2: Incompatible sizes of matrices!\n");
+        break;
+    default:
+        printf("Unknown error!\n");
+        break;
     }
 }
 
-
-void matrix_print(const Matrix matrix)
+struct Matrix matrix_init(const size_t rows, const size_t cols)  // Инициализация матрицы заданным числом строк и столбцов
 {
-    for (size_t row = 0; row < matrix.rows; ++row) {
-        for (size_t col = 0; col < matrix.cols; ++col) {
-            printf("%.2f ", matrix.data[row * matrix.cols + col]);
+    if (rows == 0 || cols == 0) {
+        matrix_error_message(1);
+        return MATRIX_NULL;
+    }
+
+    if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols) { // rows * cols < MAX_SIZE / sizeof(MatrixItem)
+        matrix_error_message(NO_MEMORY);
+        return MATRIX_NULL;  
+    }
+
+    struct Matrix A = { .cols = cols, .rows = rows, .data = NULL };
+    A.data = (MatrixItem*)malloc(A.cols * A.rows * sizeof(MatrixItem));
+
+    if (A.data == NULL) {
+        matrix_error_message(NO_MEMORY);
+        return MATRIX_NULL;
+    }
+    return A;
+}
+
+
+struct Matrix matrix_make_ident(size_t rows, size_t cols) // Cоздание и возвращение единичной матрицы
+{
+    struct Matrix I = matrix_init(rows, cols);
+    if (I.data == NULL) {
+        matrix_error_message(NO_MEMORY);
+        return MATRIX_NULL;
+    }
+    memset(I.data, 0, sizeof(I.data));
+    for (size_t idx = 0; idx < rows * cols; idx++) {
+        if (idx % (rows + 1) == 0) {
+            I.data[idx] = 1.;
+        }
+    }
+    return I;
+}
+
+
+struct Matrix matrix_create(const size_t rows, const size_t cols, const MatrixItem* values)
+{
+    struct Matrix A = matrix_init(rows, cols);
+    if (A.data == NULL) {
+        matrix_error_message(NO_MEMORY);
+        return MATRIX_NULL;
+    }
+    memcpy(A.data, values, rows * cols * sizeof(MatrixItem));
+    return A;
+}
+
+
+void matrix_free(struct Matrix* A)  // Освобождение памяти
+{
+    if (A->data != NULL || A->cols != 0 || A->rows != 0) {
+
+        A->cols = 0;
+        A->rows = 0;
+        free(A->data);
+        A->data = NULL;
+    }
+}
+
+
+void matrix_print(const struct Matrix A)  // Вывод матрицы на экран 
+{
+    if (A.data != NULL || A.cols != 0 || A.rows != 0) {
+        for (size_t row = 0; row < A.rows; ++row) {
+            printf("[ ");
+            for (size_t col = 0; col < A.cols; ++col) {
+                printf("%4.2f ", A.data[A.cols * row + col]);
+            }
+            printf("]\n");
         }
         printf("\n");
+    }else {
+        matrix_error_message(NO_MEMORY);
     }
-    printf("\n");
 }
 
 
-void matrix_errorofsize(char* operation_name, char* error)
+void matrix_add(const struct Matrix A, const struct Matrix B)  // Сложение матриц с перезаписью
 {
-    printf("%s is impossible. %s\n", operation_name, error);
+   if (A.cols != B.cols || A.rows != B.rows) return ;
+
+    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
+        A.data[idx] += B.data[idx];
+    }
 }
 
 
-void matrix_memory_clear(Matrix* matrix)
+struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)  // Сложение без перезаписи
 {
-    free(matrix->data);
+    if (A.cols != B.cols) {
+        matrix_error_message(INCOMPATIBLE_SIZES);
+        return MATRIX_NULL;
+    }
+    if (A.rows != B.rows) {
+        matrix_error_message(INCOMPATIBLE_SIZES);
+        return MATRIX_NULL;
+    }
+    struct Matrix C = matrix_init(A.cols, A.rows);
+    for (size_t idx = 0; idx < C.cols * C.rows; ++idx) {
+        C.data[idx] = A.data[idx] + B.data[idx];
+    }
+    printf("Exit code 0\n");
+    return C;
 }
 
 
-Matrix matrix_sum(const Matrix A, const Matrix B)
+struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B)  // Вычитание без перезаписи
 {
-    if (A.rows != B.rows || A.cols != B.cols) {
-        matrix_errorofsize("Addition", "Matrixes should have equal sizes");
-        return MATRIX_ZERO;
+    if (A.cols != B.cols || A.rows != B.rows) {
+        matrix_error_message(NO_MEMORY);
+        return MATRIX_NULL;
     }
-
-    Matrix result = matrix_memory(A.cols, A.rows);
-    if (result.data == NULL) return MATRIX_ZERO;
-
-    for (size_t index = 0; index < (result.cols * result.rows); ++index) {
-        result.data[index] = A.data[index] + B.data[index];
+    struct Matrix C = matrix_init(A.cols, A.rows);
+    for (size_t idx = 0; idx < C.cols * C.rows; ++idx) {
+        C.data[idx] = A.data[idx] - B.data[idx];
     }
-    return result;
+    return C;
 }
 
 
-Matrix matrix_subtract(const Matrix A, const Matrix B)
-{
-    if (A.rows != B.rows && A.cols != B.cols) {
-        matrix_errorofsize("Subtruction", "Matrixes should have equal sizes");
-        return MATRIX_ZERO;
-    }
-
-    Matrix result = matrix_memory(A.cols, A.rows);
-    if (result.data == NULL) return MATRIX_ZERO;
-
-    for (size_t index = 0; index < result.cols * result.rows; ++index) {
-        result.data[index] = A.data[index] - B.data[index];
-    }
-    return result;
-}
-
-
-Matrix matrix_multiply_on_number(const Matrix matrix, MatrixItem number)
-{
-    Matrix result = matrix_memory(matrix.cols, matrix.rows);
-    if (result.data == NULL) return MATRIX_ZERO;
-
-    for (size_t index = 0; index < result.cols * result.rows; ++index) {
-        result.data[index] = matrix.data[index] * number;
-    }
-    return result;
-}
-
-
-Matrix matrix_multiply(const Matrix A, const Matrix B)
+struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)  // Умножение без перезаписи
 {
     if (A.cols != B.rows) {
-        matrix_errorofsize("Multiplication", "Matrixes should have certain sizes");
-        return MATRIX_ZERO;
+        matrix_error_message(NO_MEMORY);
+        return MATRIX_NULL;
     }
+    struct Matrix C = matrix_init(A.cols, B.rows);
 
-    Matrix result = matrix_memory(B.cols, A.rows);
-    if (result.data == NULL) return MATRIX_ZERO;
+    if (C.data == NULL) {
+        matrix_error_message(NO_MEMORY);
+        return MATRIX_NULL;
+    }
 
     for (size_t rowA = 0; rowA < A.rows; ++rowA) {
-        for (size_t colB = 0; colB < B.cols; ++colB) {
-            double summa = 0.0;
-            for (size_t k = 0; k < A.cols; ++k) {
-                summa += A.data[rowA * A.cols + k] * B.data[k * B.cols + colB];
+        for (size_t colsB = 0; colsB < B.cols; ++colsB) {
+            C.data[rowA * (A.cols) + colsB] = 0;
+            for (size_t idx = 0; idx < A.cols; ++idx) {
+                C.data[rowA * (A.cols) + colsB] += (A.data[(rowA * A.cols) + idx]) * (B.data[(idx * B.cols) + colsB]);
             }
-            result.data[rowA * B.cols + colB] = summa;
         }
     }
-    return result;
+
+    return C;
+}
+struct Matrix matrix_mult_scalar(const double scalar, struct Matrix B)  // Умножение на скаляр
+{
+    for (size_t idx = 0; idx < B.cols * B.rows; ++idx) {
+        B.data[idx] *= scalar;
+    }
+    return B;
 }
 
-
-MatrixItem matrix_det(const Matrix matrix)
+double matrix_det(struct Matrix* A)  // Определитель
 {
-    if (matrix.cols != matrix.rows) {
-        matrix_errorofsize("Getting determinant", "Matrix should be square");
+    if (A->cols != A->rows) {
+        matrix_error_message(NO_MEMORY);
         return NAN;
     }
 
-    MatrixItem result = 0;
-    size_t n = matrix.cols;
-
-    if (n == 1) {
-        result = matrix.data[0];
-        return result;
+    if (A->cols == 1) {
+        return A->data[0];
     }
 
-    for (size_t row = 0; row < n; ++row) {
-        size_t col = 0;
-        Matrix submatrix = matrix_memory(n - 1, n - 1);
-        size_t row_offset = 0;
-        size_t col_offset = 0;
-
-        for (size_t sub_row = 0; sub_row < n - 1; ++sub_row) {
-            for (size_t sub_col = 0; sub_col < n - 1; ++sub_col) {
-                if (sub_row == row) { row_offset = 1; }
-                if (sub_col == col) { col_offset = 1; }
-
-                submatrix.data[sub_row * (n - 1) + sub_col] =
-                    matrix.data[(sub_row + row_offset) * n + (sub_col + col_offset)];
-            }
-        }
-        result += pow(-1, row + col) * matrix.data[row * n + col] * matrix_det(submatrix);
-        matrix_memory_clear(&submatrix);
+    if (A->cols == 2) {
+        MatrixItem matr_det = (A->data[0]) * (A->data[3]) - (A->data[1]) * (A->data[2]);
+        return matr_det;
     }
-    return result;
+
+    if (A->cols == 3) {
+        MatrixItem matr_det = (A->data[0]) * (A->data[4]) * (A->data[8]) + (A->data[1]) * (A->data[5]) * (A->data[6]) + (A->data[3]) * (A->data[7]) * (A->data[2]);
+        matr_det -= ((A->data[2]) * (A->data[4]) * (A->data[6]) + (A->data[1]) * (A->data[3]) * (A->data[8]) + (A->data[0]) * (A->data[5]) * (A->data[7]));
+        return matr_det;
+    } 
+        matrix_error_message(NO_MEMORY);
+        return NAN;
 }
 
 
-Matrix matrix_transpose(const Matrix matrix)
+struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
 {
-    Matrix result = matrix_memory(matrix.rows, matrix.cols);
-    if (result.data == NULL) return MATRIX_ZERO;
+    struct Matrix E = matrix_init(A.rows, A.cols);
 
-    for (size_t row = 0; row < result.rows; ++row) {
-        for (size_t col = 0; col < result.cols; ++col) {
-            result.data[row * result.cols + col] = matrix.data[col * result.rows + row];
-        }
+    if (E.data == NULL) {
+        matrix_error_message(NO_MEMORY);
+        return MATRIX_NULL;
     }
-    return result;
-}
 
+    if (deg_acc == 1) {
+        struct Matrix E = matrix_make_ident(A.cols, A.rows);
+        return E;
+    }
 
-Matrix matrix_one(size_t dimention)
-{
-    Matrix result = matrix_memory(dimention, dimention);
-    if (result.data == NULL) return MATRIX_ZERO;
+    if (deg_acc == 2) {
+        return A;
+    }
 
-    for (size_t row = 0; row < result.rows; ++row) {
-        for (size_t col = 0; col < result.cols; ++col) {
-            result.data[row * result.cols + col] = (row == col) ? 1. : 0.;
+    if (deg_acc > 2) {
+        E = A;
+        for (size_t step = 2; step < deg_acc; ++step) {
+            struct Matrix buf = E;
+            E = matrix_mult(buf, A);
+            matrix_mult_scalar(1 / step, E);
+            matrix_free(&buf);
         }
     }
-    return result;
+    return E;
 }
 
-
-Matrix matrix_copy(const Matrix matrix)
+struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy)
 {
-    Matrix result = matrix_memory(matrix.cols, matrix.rows);
-    if (result.data == NULL) return MATRIX_ZERO;
-
-    memcpy(result.data, matrix.data, matrix.rows * matrix.cols * sizeof(MatrixItem));
-
-    return result;
-}
-
-
-Matrix matrix_expo(const Matrix matrix, size_t accuracy)
-{
-    if (matrix.cols != matrix.rows) {
-        matrix_errorofsize("Exp", "Matrix should be square");
-        return MATRIX_ZERO;
+    if (A->cols != A->rows) {
+        matrix_error_message(NO_MEMORY);
+        return MATRIX_NULL;
     }
 
-    Matrix result_help, pow_help, multiplied;
-    Matrix result = matrix_one(matrix.rows);
-    if (result.data == NULL) return MATRIX_ZERO;
-    Matrix pow = matrix_one(matrix.rows);
-    if (pow.data == NULL) return MATRIX_ZERO;
-    int factorial = 1;
+    struct Matrix E = matrix_init(A->rows, A->cols);
 
-    for (size_t acc = 1; acc <= accuracy; ++acc) {
-        factorial *= acc;
-
-        pow_help = matrix_multiply(pow, matrix);
-        if (pow_help.data == NULL) return MATRIX_ZERO;
-        matrix_memory_clear(&pow);
-        pow = matrix_copy(pow_help);
-        if (pow.data == NULL) return MATRIX_ZERO;
-
-        matrix_memory_clear(&pow_help);
-
-        multiplied = matrix_multiply_on_number(pow, 1. / factorial);
-        if (multiplied.data == NULL) return MATRIX_ZERO;
-        result_help = matrix_sum(result, multiplied);
-        if (result_help.data == NULL) return MATRIX_ZERO;
-        result = matrix_copy(result_help);
-        if (result.data == NULL) return MATRIX_ZERO;
-
-        matrix_memory_clear(&result_help);
-        matrix_memory_clear(&multiplied);
+    if (E.data == NULL) {
+        matrix_error_message(NO_MEMORY);
+        return MATRIX_NULL;
     }
-    matrix_memory_clear(&pow);
-    return result;
+    struct Matrix matrix_transfer;
+
+    for (size_t deg_acc = 1; deg_acc <= accuracy; ++deg_acc) {
+        matrix_transfer = sum_for_e(deg_acc, *A);
+        struct Matrix buf1 = E;
+        E = matrix_sum(buf1, matrix_transfer);
+        matrix_free(&buf1);
+        matrix_free(&matrix_transfer);
+    }
+    return E;
 }
+
 
 int main()
 {
-    Matrix mat1, mat2;
+    struct Matrix A, B, C, E, N;
+    double deter;
 
-    printf("\n     First matrix\n");
-    mat1 = matrix_memory(3, 3);
-    matrix_fill_rand(&mat1);
-    matrix_print(mat1);
+    A = matrix_create(3, 3, (double[]) { 3., 2., 1., 1., 6., 7., 2., 6., 8. });
+    B = matrix_create(3, 3, (double[]) { 1., 0., 0., 1., 7., 2., 6., 6., 8. });
+    E = matrix_create(2, 2, (double[]) { 3., 2., 1., 1. });
 
-    printf("     Second matrix\n");
-    mat2 = matrix_memory(3, 3);
-    matrix_fill_rand(&mat2);
-    matrix_print(mat2);
+    matrix_print(A);
+    matrix_print(B);
+    matrix_add(B, A);
+    matrix_print(B);
 
-    printf("     Sum\n");
-    Matrix addition;
-    addition = matrix_sum(mat1, mat2);
-    matrix_print(addition);
-    matrix_memory_clear(&addition);
+    C = matrix_mult(A, B);
+    matrix_print(C);
 
-    printf("     Sub\n");
-    Matrix subtruction;
-    subtruction = matrix_subtract(mat1, mat2);
-    matrix_print(subtruction);
-    matrix_memory_clear(&subtruction);
+    deter = matrix_det(&C);
+    printf("%f \n", deter);
 
-    printf("     Multiply\n");
-    Matrix multiplication_matrices;
-    multiplication_matrices = matrix_multiply(mat1, mat2);
-    matrix_print(multiplication_matrices);
-    matrix_memory_clear(&multiplication_matrices);
+    N = matrix_make_ident(3, 3);
+    matrix_print(N);
 
-    MatrixItem determinant;
-    printf("     Det 1\n");
-    determinant = matrix_det(mat1);
-    printf("%.2f\n\n", determinant);
+    matrix_print(A);
+    A = matrix_exp(&A, 3);
+    matrix_print(A);
 
-    printf("     Det 2\n");
-    determinant = matrix_det(mat2);
-    printf("%.2f\n\n", determinant);
 
-    printf("     Transp 1\n");
-    Matrix transpose1;
-    transpose1 = matrix_transpose(mat1);
-    matrix_print(transpose1);
-    matrix_memory_clear(&transpose1);
+    matrix_free(&E);
+    matrix_free(&A);
+    matrix_free(&B);
+    matrix_free(&C);
+    matrix_free(&N);
 
-    printf("     Transp 2\n");
-    Matrix transpose2;
-    transpose2 = matrix_transpose(mat2);
-    matrix_print(transpose2);
-    matrix_memory_clear(&transpose2);
-
-    printf("     e\n");
-    Matrix exponenta;
-    exponenta = matrix_expo(mat1, 3);
-    matrix_print(exponenta);
-    matrix_memory_clear(&exponenta);
-    matrix_memory_clear(&mat1);
-    matrix_memory_clear(&mat2);
+    return 0;
 }
