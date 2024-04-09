@@ -1,97 +1,146 @@
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
+typedef long long int money; // считаем в копейках
 
 // Структура, описывающая человека
 struct Person {
-    float salary;           // Зарплата
-    float savings;          // Накопления
-    float expenses;         // Расходы
-    float deposit;          // Вклад
-    float ipoteka_rate;    // Процентная ставка ипотеки
-    float deposit_rate;     // Процентная ставка вклада
-    float ipoteka_dolg;
-};
-double month_inflation_rate = 0.12/12;
-float apartment_price = 20000000;
+    money income;           // Зарплата
+    money expenses;         // Расходы
+    money deposit;          // Вклад
+    money flat_pay;         // Оплата по ипотеке/аренды
+    money capital;
+} Alice, Bob;
+
+double MONTH_INFLATION_RENT = 0.12/12;
+money APARTMENT_PRICE = 2000000000;
+money START_CAP = 2000000000;
+double IPOTEKA_RATE = 0.12;     // Процентная ставка ипотеки
+double DEPOSIT_RATE = 0.16;     // Процентная ставка вклада
+static money SALARY = 30000000;
+
+int YEARS = 30;
+int START_YEEAR = 2024;
+int START_MONTH = 2;
 
 // Создаем человека и инициализируем его данные
-struct Person Alice = {.salary=300000,.savings=2000000,.expenses=120000,.ipoteka_rate=0.18,.ipoteka_dolg=20000000};
-struct Person Bob = {.salary=300000,.expenses=45000,.deposit=2000000,.deposit_rate=0.16};
-
-// Функция для оплаты первого взноса
-void payIpotekaVznos() {
-    Alice.ipoteka_dolg -= Alice.savings;
-    Alice.savings = 0;
+void AliceInit() {
+    Alice.income = SALARY;
+    Alice.capital = 0;
+    Alice.expenses = 12000000;
 }
+
+void BobInit() {
+    Bob.income = SALARY;
+    Bob.capital = 0;
+    Bob.expenses = 4500000;
+}
+
+
 // Функция для оплаты ипотеки
+//void payIpoteka() {
+   //Alice.savings = Alice.income - Alice.expenses;
+   //Alice.ipoteka_dolg -= Alice.savings;
+   //Alice.ipoteka_dolg *= 1 + Alice.ipoteka_rate/12;
+   //Alice.savings = 0;
+//}
+
 void payIpoteka() {
-    Alice.savings = Alice.salary - Alice.expenses;
-    Alice.ipoteka_dolg -= Alice.savings;
-    Alice.ipoteka_dolg *= 1 + Alice.ipoteka_rate/12;
-    Alice.savings = 0;
+    Alice.flat_pay = (APARTMENT_PRICE - START_CAP) * (((IPOTEKA_RATE / 12.0) * pow((1 + IPOTEKA_RATE / 12.0), (YEARS * 12.0)))
+        / (pow((1 + IPOTEKA_RATE / 12.0), (YEARS * 12.0)) - 1));
 }
 
-// Функция для оплаты ипотеки
-void AliceSavings() {
-    Alice.savings+=abs(Alice.ipoteka_dolg);
-    Alice.ipoteka_dolg = 0;
-    Alice.savings += Alice.salary - Alice.expenses;
+
+void AliceSpendings() {
+    Alice.expenses += Alice.flat_pay;
 }
+
+void AliceSalary() {
+    Alice.capital += Alice.income;
+}
+
+
+void BobSalary() {
+    Bob.capital += Bob.income;
+}
+
 
 // Функция для инвестирования денег на вклад
 void investDeposit() {
-   Bob.savings = Bob.salary - Bob.expenses;
-   Bob.deposit += Bob.savings;
-   Bob.deposit *= 1 + Bob.deposit_rate/12;
-   Bob.savings = 0;
+   Bob.deposit += Bob.capital;
+   Bob.deposit *= 1 + DEPOSIT_RATE/12;
+   Alice.deposit += Alice.capital;
+   Alice.deposit *= 1 + DEPOSIT_RATE/12;
 }
 
 void inflation(){
-    Alice.expenses *= (1 + month_inflation_rate);
-    Alice.salary *= (1 + month_inflation_rate);
-    Bob.expenses *= (1 + month_inflation_rate);
-    Bob.salary *= (1 + month_inflation_rate);
-    apartment_price *= (1 + month_inflation_rate);
+    Alice.expenses *= (1 + MONTH_INFLATION_RENT);
+    Alice.income *= (1 + MONTH_INFLATION_RENT);
+    Bob.expenses *= (1 + MONTH_INFLATION_RENT);
+    Bob.income *= (1 + MONTH_INFLATION_RENT);
+    APARTMENT_PRICE *= (1 + MONTH_INFLATION_RENT);
     
 }
 
-void SomeBad(int month,int year, int bad_month, int bad_year){
-    if (month == bad_month && year == bad_year)
-    {
-        
-    }
+void PrintAlice() {   
+    printf("Alice money ost: %lld rub\n", Alice.capital);
 }
+
+void PrintBob() {   
+    printf("Bob money ost: %lld rub\n", Bob.capital);
+}
+
+
+//void SomeBad(int month,int year, int bad_month, int bad_year){
+//    if (month == bad_month && year == bad_year)
+//    {
+//        
+//    }
+//}
 
 // Функция 
 void Simulation(int start_year, int end_year) {
-    //Оплата первго взноса по ипотеке
-    payIpotekaVznos();
 
     // Цикл по годам и месяцам
     for (int year = start_year; year <= end_year; ++year) {
+
         for (int month = 1; month <= 12; ++month) {
             //SomeBad(month,year,9,2045)
-            if (Alice.ipoteka_dolg>0){
+
+            if (Alice.flat_pay>0){
                 payIpoteka();
             }
             else{
-                AliceSavings();
+                Alice.flat_pay = 0;
             }
 
+            AliceSalary ();
+            AliceSpendings();
+            BobSalary();
             investDeposit();
             inflation();
         }
     }
+
     // Боб купил квартиру
-    Bob.savings = Bob.deposit- apartment_price;
+   // Bob.capital = Bob.deposit- APARTMENT_PRICE;
+
 }
+
+
 
 int main() {
 
+
+    AliceInit();
+    BobInit();
+
     Simulation(2024,2054);
-    // Вывод информации о состоянии финансов
-    printf("Alice money ost: %.2f rub\n", Alice.savings);
-    printf("Bob money ost: %.2f rub\n", Bob.savings);
-    
+   
+    PrintAlice();
+    PrintBob();
+
     return 0;
 }
