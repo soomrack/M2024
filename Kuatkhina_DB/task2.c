@@ -48,7 +48,7 @@ Matrix matrix_create(const size_t rows, const size_t cols) {
         return MATRIX_NULL;
     };
 
-    // Проверка на переполнение (*) - работа с массивом ************************************
+    // Проверка на переполнение (*)
     if (cols >= SIZE_MAX / (sizeof(double) * rows)) {  // SIZE_MAX - макс допустимое значение типа size_t ,Макс число (количество строк или столбцов) делим на количество строк или столбцов, если значение больше, то выходит за рамки памяти (частное меньше единицы)
         log_message(ERROR, "Out of size");  // Логирование с указанием уровня логирования
         return MATRIX_NULL;
@@ -77,7 +77,7 @@ void matrix_print(const Matrix M) {  // Вывод матрицы
 
     for (size_t row = 0; row < M.rows; row++) {  // for (инициализация перед циклом; условие True цикла; приращение) - для строки
         for (size_t col = 0; col < M.cols; col++) { // для столбца каждого ряда
-            printf("%.2f\t", M.data[row * M.cols + col]); // вещественное число с 2мя знаками после точки ******************
+            printf("%.2f\t", M.data[row * M.cols + col]); // вещественное число с 2мя знаками после точки
         }
 
         printf("\n\n");
@@ -96,7 +96,7 @@ void matrix_free(Matrix* M) {  // Очистка памяти, при ненад
    
     M->rows = 0; // через указатели
     M->cols = 0;
-    free(M->data);
+    free(M->data)
     M->data = NULL;
 }
 
