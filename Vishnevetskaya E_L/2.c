@@ -15,14 +15,13 @@ Matrix Matrix_create(size_t rows, size_t cols) {
     mat.rows = rows;
     mat.cols = cols;
     size_t maxSize = __SIZE_MAX__;
-    mat.data = (double *)malloc(rows * cols * sizeof(double));
-
-    size_t desiredSize = mat.rows * mat.cols;
-
-    if (desiredSize > maxSize) {
+    
+    if (rows >= SIZE_MAX / sizeof(double) / cols) {
         printf("Matrix size error.\n");
         return MATRIX_NULL;
     }
+
+    mat.data = (double *)malloc(rows * cols * sizeof(double));
 
     if (mat.data == NULL) {
         fprintf(stderr, "Memory allocation failed\n");
