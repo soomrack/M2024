@@ -87,6 +87,8 @@ Matrix Matrix_sum(const Matrix *mat1, const Matrix *mat2) {
 
     Matrix result = Matrix_create(mat1->rows, mat1->cols);
 
+    if (result.data == NULL) return MATRIX_NULL;
+
     for (size_t i = 0; i < mat1->rows*mat1->cols; i++) {
         double sum = mat1->data[i] + mat2->data[i];
             result.data[i] = sum;
@@ -103,7 +105,9 @@ Matrix Matrix_subtract(const Matrix *mat1, const Matrix *mat2) {
 
     Matrix result = Matrix_create(mat1->rows, mat1->cols);
 
-   for (size_t i = 0; i < mat1->rows*mat1->cols; i++) {
+    if (result.data == NULL) return MATRIX_NULL;
+    
+    for (size_t i = 0; i < mat1->rows*mat1->cols; i++) {
         double diff = mat1->data[i] - mat2->data[i];
             result.data[i] = diff;
     }
@@ -123,6 +127,8 @@ Matrix Matrix_multiply(const Matrix *mat1, const Matrix *mat2) {
 
     Matrix result = Matrix_create(rows, cols);
 
+    if (result.data == NULL) return MATRIX_NULL;
+
     for (size_t i = 0; i < rows; i++) {
         for (size_t j = 0; j < cols; j++) {
             double sum = 0;
@@ -138,6 +144,8 @@ Matrix Matrix_multiply(const Matrix *mat1, const Matrix *mat2) {
 
 Matrix Matrix_scalar_mult(const Matrix *mat, double scalar) {
     Matrix result = Matrix_create(mat->rows, mat->cols);
+
+    if (result.data == NULL) return MATRIX_NULL;
 
     for (size_t i = 0; i < mat->rows*mat->cols; i++) {
         result.data[i] = mat->data[i] * scalar;
@@ -159,6 +167,9 @@ double Matrix_determinant(const Matrix *mat) {
         for (size_t i = 0; i < mat->cols; i++) {
             // Получаем минор для каждого элемента первой строки
             Matrix minor = Matrix_create(mat->rows - 1, mat->cols - 1);
+
+            if (minor.data == NULL) return MATRIX_NULL;
+            
             size_t minor_row = 0, minor_col = 0;
             for (size_t j = 1; j < mat->rows; j++) {
                 for (size_t k = 0; k < mat->cols; k++) {
@@ -180,7 +191,10 @@ double Matrix_determinant(const Matrix *mat) {
 
 Matrix Matrix_identity(const Matrix *mat){
 
-     Matrix identity = Matrix_create(mat->rows, mat->cols);
+    Matrix identity = Matrix_create(mat->rows, mat->cols);
+    
+    if (result.data == NULL) return MATRIX_NULL;
+    
         for (size_t i = 0; i < mat->rows; ++i) {
             for (size_t j = 0; j < mat->cols; ++j) {
                 identity.data[i * mat->cols + j] = i == j ? 1 : 0;
