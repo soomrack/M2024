@@ -10,7 +10,7 @@ typedef double MatrixItem;
 struct Matrix {
     size_t cols;
     size_t rows;
-    MatrixItem *data;
+    MatrixItem* data;
 };
 
 const struct Matrix MATRIX_NULL = { .cols = 0, .rows = 0, .data = NULL };
@@ -43,7 +43,7 @@ struct Matrix matrix_create(const size_t rows, const size_t cols, const MatrixIt
 }
 
 
-void matrix_free(struct Matrix *A)
+void matrix_free(struct Matrix* A)
 {
     free(A->data);
     *A = MATRIX_NULL;
@@ -116,6 +116,18 @@ struct Matrix matrix_mult_scalar(const struct Matrix A, const double scalar)
     return C;
 }
 
+// (A / coeff)
+struct Matrix matrix_div_scalar(const struct Matrix A, const double scalar)
+{
+    struct Matrix C = matrix_allocate(A.rows, A.cols);
+    if (C.data == NULL) return MATRIX_NULL;
+
+    for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
+        C.data[idx] = A.data[idx] / scalar;
+    }
+    return C;
+}
+
 
 // C = A * B
 struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
@@ -157,40 +169,6 @@ double det(const struct Matrix A)
 }
 
 
-struct Matrix sum_for_matrix_exp(struct Matrix A, unsigned int level)
-{
-    struct Matrix S, C;
-    double n = 1.0;
-
-    struct Matrix SUM = matrix_allocate(A.rows, A.cols);
-    if (SUM.data == NULL) {
-        matrix_free(&SUM);
-        return MATRIX_NULL;
-    }
-
-    memcpy(SUM.data, A.data, SUM.cols * SUM.rows * sizeof(MatrixItem));
-
-    for (unsigned int counter = 2; counter <= level; counter++) {
-        C = matrix_mult(SUM, A);
-        if (C.data == NULL) {
-            matrix_free(&C);
-            matrix_free(&SUM);
-            matrix_free(&S);
-            return MATRIX_NULL;
-        }
-        memcpy(SUM.data, C.data, SUM.cols * SUM.rows * sizeof(MatrixItem));
-        matrix_free(&C);
-    }
-
-
-    for (unsigned int counter = 1; counter <= level; counter++) n *= counter;
-
-    S = matrix_mult_scalar(SUM, 1 / n);
-    matrix_free(&SUM);
-    return S;
-}
-
-
 struct Matrix matrix_E(const struct Matrix A)
 {
     struct Matrix E = matrix_allocate(A.cols, A.rows);
@@ -202,19 +180,41 @@ struct Matrix matrix_E(const struct Matrix A)
     return E;
 }
 
+//Factorial()
+double factorial(int n)
+{
+    if (n == 1)
+    {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
 
-// C = e ^ (A)
+ //C = e ^ (A)
 struct Matrix matrix_exp(struct Matrix A, unsigned long int level)
 {
-    struct Matrix C, SUMEXP;
+    struct Matrix SUMEXP;
 
     if (A.rows != A.cols) return MATRIX_NULL;
 
     SUMEXP = matrix_E(A);
     matrix_add(SUMEXP, A);
 
+    struct Matrix C = matrix_allocate(A.rows, A.cols);
+    if (C.data == NULL) {
+        matrix_free(&C);
+        return MATRIX_NULL;
+    }
+
     for (unsigned int count = 2; count <= level; count++) {
-        C = sum_for_matrix_exp(A, count);
+
+        C = A;
+
+        for (unsigned int idx = 0; idx < count-1; idx++) //C^count
+            C = matrix_mult(A, C);
+
+        C = matrix_div_scalar(C, factorial(count)); // C / count!
+
         if (C.data == NULL) {
             matrix_free(&C);
             matrix_free(&SUMEXP);
@@ -244,7 +244,7 @@ void matrix_print(const struct Matrix A)
 
 int main()
 {
-    struct Matrix A, B, C, C2, C3;
+    struct Matrix A, B, C, C3;
 
     printf("\nFirst matrix\n");
     A = matrix_create(2, 2, (double[]) { 2., 1., 1., 1. });
@@ -253,6 +253,10 @@ int main()
     printf("Second matrix\n");
     B = matrix_create(2, 2, (double[]) { 1., 0., 0., 1. });
     matrix_print(B);
+
+
+    printf("MAtrix E\n");
+    matrix_print(matrix_E(A));
 
     printf("Sum1 of matrices\n");
     matrix_add(A, B);
@@ -284,9 +288,9 @@ int main()
     printf("%4.2f \n", det(A));
 
     printf("\nExponent of the first matrix\n");
-    sum_for_matrix_exp(A, 2);
-    C3 = matrix_exp(A, 2);
+    C3 = matrix_exp(A, 10);
     matrix_print(C3);
+
 
     matrix_free(&A);
     matrix_free(&B);
