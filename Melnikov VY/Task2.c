@@ -51,7 +51,7 @@ void matrix_error(enum ErrorType error) {
 
 
 struct Matrix matrix_allocate(const size_t rows, const size_t cols) {
-    if (rows == 0 && cols == 0) return MATRIX_NULL;
+    if (rows == 0 || cols == 0) return MATRIX_NULL;
 
     if (rows >= SIZE_MAX / sizeof(matrix_item) / cols) {
         matrix_error(MEMORY_ERROR);
@@ -69,6 +69,14 @@ struct Matrix matrix_allocate(const size_t rows, const size_t cols) {
 
     return M;
 }
+
+
+struct Matrix* matrix_allocate_ptr(const size_t rows, const size_t cols) {
+    struct Matrix M = matrix_allocate(rows, cols);
+    return &M;
+}
+
+
 
 
 void matrix_fill(struct Matrix* M, enum MatrixType matrix_type) {
@@ -132,31 +140,27 @@ struct Matrix matrix_create(const size_t rows, const size_t cols, enum MatrixTyp
 
 
 void matrix_free(struct Matrix *M) {
-    if (M->data == NULL) matrix_error(FREE_ERROR);
-    else {
-        free(M->data);
-    }
-    //M = MATRIX_NULL;
+    free(M->data);
 }
 
 
-struct Matrix matrix_copy(const struct Matrix A, struct Matrix B) {
-    if (A.data == NULL || B.data == NULL) {
+struct Matrix matrix_copy(const struct Matrix A, struct Matrix *B) {
+    if (A.data == NULL || B->data == NULL) {
         matrix_error(BAD_MATRIX_ERROR);
         return MATRIX_NULL;
     }
 
-    matrix_free(&B);
+    matrix_free(B);
 
-    B = matrix_allocate(A.rows, A.cols);
-    memcpy(B.data, A.data, B.cols * B.rows * sizeof(matrix_item));
+    B = matrix_allocate_ptr(A.rows, A.cols);
+    memcpy(B->data, A.data, B->cols * B->rows * sizeof(matrix_item));
 
-    if (B.data == NULL) {
+    if (B->data == NULL) {
         matrix_error(COPY_ERROR);
         return MATRIX_NULL;
     }
 
-    return B;
+    return *B;
 }
 
 
@@ -317,9 +321,8 @@ struct Matrix matrix_exp(const struct Matrix A, const unsigned int n) {
             matrix_free(&temp);
             return MATRIX_NULL;
         }
-        matrix_copy(temp, summand);
-        //matrix_free(&temp);
-        temp = MATRIX_NULL;
+        matrix_copy(temp, &summand);
+        matrix_free(&temp);
 
         temp = matrix_multiply(summand, 1. / idx);
         if (temp.data == NULL) {
@@ -328,9 +331,8 @@ struct Matrix matrix_exp(const struct Matrix A, const unsigned int n) {
             matrix_free(&temp);
             return MATRIX_NULL;
         }
-        matrix_copy(temp, summand);
-        //matrix_free(&temp);
-        temp = MATRIX_NULL;
+        matrix_copy(temp, &summand);
+        matrix_free(&temp);
 
         temp = matrix_sum(exponent, summand);
         if (temp.data == NULL) {
@@ -339,11 +341,12 @@ struct Matrix matrix_exp(const struct Matrix A, const unsigned int n) {
             matrix_free(&temp);
             return MATRIX_NULL;
         }
-        matrix_copy(temp, exponent);
+        matrix_copy(temp, &exponent);
         matrix_free(&temp);
     }
 
     matrix_free(&summand);
+    matrix_free(&temp);
 
     return exponent;
 }
