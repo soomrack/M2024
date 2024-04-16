@@ -180,52 +180,47 @@ struct Matrix matrix_E(const struct Matrix A)
     return E;
 }
 
-//Factorial()
-double factorial(int n)
-{
-    if (n == 1)
-    {
-        return 1;
-    }
-    return n * factorial(n - 1);
-}
-
  //C = e ^ (A)
 struct Matrix matrix_exp(struct Matrix A, unsigned long int level)
 {
-    struct Matrix SUMEXP;
+    struct Matrix sumexp;
 
     if (A.rows != A.cols) return MATRIX_NULL;
 
-    SUMEXP = matrix_E(A);
-    matrix_add(SUMEXP, A);
+    sumexp = matrix_E(A);
+    matrix_add(sumexp, A);
 
     struct Matrix C = matrix_allocate(A.rows, A.cols);
     if (C.data == NULL) {
-        matrix_free(&C);
+        matrix_free(&sumexp);
         return MATRIX_NULL;
     }
 
     for (unsigned int count = 2; count <= level; count++) {
-
+        matrix_free(&C);
         C = A;
 
-        for (unsigned int idx = 0; idx < count-1; idx++) //C^count
+        for (unsigned int idx = 0; idx < count - 1; idx++) {
+            struct Matrix t = C;
             C = matrix_mult(A, C);
+            matrix_free(&t);
 
-        C = matrix_div_scalar(C, factorial(count)); // C / count!
+            struct Matrix t = C;
+            C = matrix_div_scalar(C, count);
+            matrix_free(&t);
+        }
+
 
         if (C.data == NULL) {
-            matrix_free(&C);
-            matrix_free(&SUMEXP);
+            matrix_free(&sumexp);
             return MATRIX_NULL;
         }
-        matrix_add(SUMEXP, C);
+        matrix_add(sumexp, C);
         matrix_free(&C);
     }
 
 
-    return SUMEXP;
+    return sumexp;
 }
 
 
