@@ -198,7 +198,7 @@ struct Matrix matrix_exp(struct Matrix A, unsigned long int level)
 
     for (unsigned int count = 2; count <= level; count++) {
         matrix_free(&C);
-        C = A;
+        memcpy(C.data, A.data, C.cols * C.rows * sizeof(MatrixItem));
 
         for (unsigned int idx = 0; idx < count - 1; idx++) {
             struct Matrix t = C;
