@@ -71,14 +71,6 @@ struct Matrix matrix_allocate(const size_t rows, const size_t cols) {
 }
 
 
-struct Matrix* matrix_allocate_ptr(const size_t rows, const size_t cols) {
-    struct Matrix M = matrix_allocate(rows, cols);
-    return &M;
-}
-
-
-
-
 void matrix_fill(struct Matrix* M, enum MatrixType matrix_type) {
     switch (matrix_type) {
     case (ZEROS):
@@ -141,7 +133,7 @@ struct Matrix matrix_create(const size_t rows, const size_t cols, enum MatrixTyp
 
 void matrix_free(struct Matrix *M) {
     free(M->data);
-    M = MATRIX_NULL;
+    *M = MATRIX_NULL;
 }
 
 
@@ -153,13 +145,12 @@ struct Matrix matrix_copy(const struct Matrix A, struct Matrix *B) {
 
     matrix_free(B);
 
-    B = matrix_allocate_ptr(A.rows, A.cols);
-    memcpy(B->data, A.data, B->cols * B->rows * sizeof(matrix_item));
-
+    *B = matrix_allocate(A.rows, A.cols);
     if (B->data == NULL) {
         matrix_error(COPY_ERROR);
         return MATRIX_NULL;
     }
+    memcpy(B->data, A.data, B->cols * B->rows * sizeof(matrix_item));
 
     return *B;
 }
