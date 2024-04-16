@@ -15,7 +15,7 @@ const struct Matrix MATRIX_NULL = { 0, 0, NULL };
 
 void matrix_error_message()
 {
-    printf("Error\n");
+    printf("Error! Enter the matrix! \n");
 }
 
 
