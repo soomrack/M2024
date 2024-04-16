@@ -14,7 +14,7 @@ struct Matrix {
 const struct Matrix MATRIX_NULL = { 0, 0, NULL }; // Пустая матрица
 
 void matrix_error_message(const char str[]) {
-    printf(str); // Сообщение об ошибке
+    printf("&s", str); // Сообщение об ошибке
 }
 
 // Инициализация матрицы заданных размеров
@@ -54,7 +54,7 @@ struct Matrix matrix_make_ident(size_t rows, size_t cols) {
     }
 
     // Заполнение элементов диагонали единицами, остальных элементов - нулями
-    memset(I.data, 0, sizeof(I.data) / sizeof(MatrixItem));
+    memset(I.data, 0, A.cols * A.rows * sizeof(MatrixItem));
     for (size_t idx = 0; idx < rows * cols; idx += cols + 1) {
             I.data[idx] = 1;
     }
@@ -120,9 +120,10 @@ struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B) {
 
 // Умножение каждого элемента матрицы на заданный коэффициент
 void matrix_mult_coeff(struct Matrix A, const double coeff) {
-    if (A.data == NULL)
+    if (A.data == NULL){
     	matrix_error_message("Матрица пустая. Невозможно умножение на коэффицент");
         return;
+    }
 
     // Умножение каждого элемента матрицы на заданный коэффициент
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
@@ -197,8 +198,16 @@ double matrix_det(struct Matrix* A) {
     return NAN;
 }
 
+struct Matrix matrix_copy(const struct Matrix A){
+	struct Matrix C = matrix_init(A.cols, A.rows);
+	if(C.data == NULL){
+		return C;
+	}
+	memcpy(C.data, A.data, A.cols * A.rows * sizeof(MatrixItem));
+}
+
 // Возведение матрицы в степень
-struct Matrix sum_for_e( const struct Matrix A, const size_t deg_acc) {
+struct Matrix sum_for_e(const struct Matrix A, const size_t deg_acc) {
     if (deg_acc == 1)
     {
         return matrix_make_ident(A.cols, A.rows);
@@ -207,16 +216,15 @@ struct Matrix sum_for_e( const struct Matrix A, const size_t deg_acc) {
     struct Matrix E = matrix_init(A.cols, A.rows);
     
     if (E.data == NULL){
-    	matrix_free(&E);
     	return MATRIX_NULL;
     }
 
+    E = matrix_copy(A);
+
     if (deg_acc == 2){
-    	matrix_free(&E);
-    	return A;
+    	return E;
     }
 
-    E = A;
     for (size_t id = 2; id < deg_acc; ++id)
     {
         struct Matrix power = E;
