@@ -3,83 +3,80 @@
 #include<string.h>
 #include<math.h>
 
-typedef double matrix_item; // Тип элемента матрицы
+typedef double MatrixItem; // Тип элемента матрицы
 
-struct matrix {
+struct Matrix {
     size_t cols; // Количество столбцов
     size_t rows; // Количество строк
-    matrix_item* data; // Указатель на данные матрицы
+    MatrixItem* data; // Указатель на данные матрицы
 };
 
-const struct matrix MATRIX_NULL = { 0, 0, NULL }; // Пустая матрица
+const struct Matrix MATRIX_NULL = { 0, 0, NULL }; // Пустая матрица
 
-void matrix_error_message() {
-    printf("Error! Check your actions!\n"); // Сообщение об ошибке
+void matrix_error_message(const char str[]) {
+    printf(str); // Сообщение об ошибке
 }
 
 // Инициализация матрицы заданных размеров
-struct matrix matrix_init(const size_t cols, const size_t rows) {
-    struct matrix a;
-    a.cols = cols;
-    a.rows = rows;
+struct Matrix matrix_init(const size_t cols, const size_t rows) {
+    struct Matrix A;
+    A.cols = cols;
+    A.rows = rows;
 
     // Проверка на нулевые размеры матрицы
     if (cols == 0 || rows == 0) {
+    	matrix_error_message("Ваша матрица не имеет ячеек");
         return MATRIX_NULL;
     }
 
     // Проверка на переполнение памяти при выделении памяти для хранения данных матрицы
-    if (rows >= SIZE_MAX / sizeof(matrix_item) / cols)
-        return MATRIX_NULL;
+    if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols){
+    	matrix_error_message("Недостачно места для хранения матрицы");
+    	return MATRIX_NULL;
+    }
 
     // Выделение памяти под данные матрицы
-    a.data = (matrix_item*)malloc(a.cols * a.rows * sizeof(matrix_item));
+    A.data = (MatrixItem*)malloc(A.cols * A.rows * sizeof(MatrixItem));
 
     // Проверка успешности выделения памяти
-    if (a.data == NULL) {
+    if (A.data == NULL) {
+    	matrix_error_message("Ошибка выделения матрицы");
         return MATRIX_NULL;
     }
-    return a;
+    return A;
 }
 
 // Создание единичной матрицы заданных размеров
-struct matrix matrix_make_ident(size_t rows, size_t cols) {
-    struct matrix I = matrix_init(rows, cols); // Создание матрицы заданных размеров
+struct Matrix matrix_make_ident(size_t rows, size_t cols) {
+    struct Matrix I = matrix_init(rows, cols); // Создание матрицы заданных размеров
     if (I.data == NULL) {
         return MATRIX_NULL; // Возвращение пустой матрицы в случае неудачи
     }
 
     // Заполнение элементов диагонали единицами, остальных элементов - нулями
-    for (size_t idx = 0; idx < rows * cols; idx++) {
-        if (idx % (rows + 1) == 0) {
+    memset(I.data, 0, sizeof(I.data) / sizeof(MatrixItem));
+    for (size_t idx = 0; idx < rows * cols; idx += cols + 1) {
             I.data[idx] = 1;
-        }
-        else {
-            I.data[idx] = 0;
-        }
     }
     return I;
 }
 
 // Освобождение памяти, выделенной под матрицу
-void matrix_free(struct matrix* matrix) {
-    if (matrix->data == NULL)
-        return;
-
+void matrix_free(struct Matrix* matrix) {
     free(matrix->data);
     *matrix = MATRIX_NULL;
     return;
 }
 
 // Заполнение матрицы случайными значениями
-void matrix_fill(struct matrix* A) {
+void matrix_fill(struct Matrix* A) {
     for (size_t idx = 0; idx < A->cols * A->rows; idx++) {
         A->data[idx] = ((int)rand() % 10);
     }
 }
 
 // Вывод матрицы на экран
-void matrix_print(const struct matrix A) {
+void matrix_print(const struct Matrix A) {
     printf("_____\n");
     for (size_t row = 0; row < A.rows; ++row) {
         for (size_t col = 0; col < A.cols; ++col) {
@@ -91,12 +88,12 @@ void matrix_print(const struct matrix A) {
     return;
 }
 
-// Сложение матриц A и B
-void matrix_add(const struct matrix A, const struct matrix B) {
+// A = A + B
+void matrix_add(const struct Matrix A, const struct Matrix B) {
     if (A.cols != B.cols || A.rows != B.rows)
         return;
 
-    if (A.data == NULL || B.data == NULL)
+    if (A.data == NULL)
         return;
 
     // Поэлементное сложение матриц
@@ -106,27 +103,12 @@ void matrix_add(const struct matrix A, const struct matrix B) {
     return;
 }
 
-// Вычисление суммы матриц A и B
-struct matrix matrix_sum(const struct matrix A, const struct matrix B) {
-    if (A.cols != B.cols || A.rows != B.rows)
-        return MATRIX_NULL;
-
-    struct matrix C = matrix_init(A.cols, A.rows);
-    if (C.data == NULL)
-        return C;
-
-    // Поэлементное сложение матриц
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
-        C.data[idx] = A.data[idx] + B.data[idx];
-    return C;
-}
-
 // Вычисление разности матриц A и B
-struct matrix matrix_sub(const struct matrix A, const struct matrix B) {
+struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B) {
     if (A.cols != B.cols || A.rows != B.rows)
         return MATRIX_NULL;
 
-    struct matrix C = matrix_init(A.cols, A.rows);
+    struct Matrix C = matrix_init(A.cols, A.rows);
     if (C.data == NULL)
         return C;
 
@@ -137,22 +119,23 @@ struct matrix matrix_sub(const struct matrix A, const struct matrix B) {
 }
 
 // Умножение каждого элемента матрицы на заданный коэффициент
-void matrix_mult_coeff(struct matrix A, const double coeff) {
+void matrix_mult_coeff(struct Matrix A, const double coeff) {
     if (A.data == NULL)
+    	matrix_error_message("Матрица пустая. Невозможно умножение на коэффицент");
         return;
 
     // Умножение каждого элемента матрицы на заданный коэффициент
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
         A.data[idx] = A.data[idx] * coeff;
-
     return;
 }
+
 // Вычисление произведения матриц A и B
-struct matrix matrix_mult(const struct matrix A, const struct matrix B) {
+struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B) {
     if (A.cols != B.rows)
         return MATRIX_NULL;
 
-    struct matrix C = matrix_init(A.cols, A.rows);
+    struct Matrix C = matrix_init(A.cols, A.rows);
     if (C.data == NULL)
         return MATRIX_NULL;
 
@@ -169,8 +152,8 @@ struct matrix matrix_mult(const struct matrix A, const struct matrix B) {
 }
 
 // Транспонирование матрицы
-struct matrix matrix_transp(struct matrix* A) {
-    struct matrix C = matrix_init(A->cols, A->rows);
+struct Matrix matrix_transp(struct Matrix* A) {
+    struct Matrix C = matrix_init(A->cols, A->rows);
 
     if (C.data == NULL) {
         return MATRIX_NULL;
@@ -185,11 +168,11 @@ struct matrix matrix_transp(struct matrix* A) {
 }
 
 // Вычисление определителя матрицы
-double matrix_det(struct matrix* A) {
+double matrix_det(struct Matrix* A) {
     if (A->cols != A->rows)
         return NAN;
 
-    struct matrix C = matrix_init(A->cols, A->rows);
+    struct Matrix C = matrix_init(A->cols, A->rows);
     if (C.data == NULL)
         return NAN;
 
@@ -211,71 +194,73 @@ double matrix_det(struct matrix* A) {
         matr_det -= ((A->data[2]) * (A->data[4]) * (A->data[6]) + (A->data[1]) * (A->data[3]) * (A->data[8]) + (A->data[0]) * (A->data[5]) * (A->data[7]));
         return matr_det;
     }
-    matrix_error_message();
     return NAN;
 }
 
 // Возведение матрицы в степень
-struct matrix sum_for_e(const size_t deg_acc, const struct matrix A) {
-    struct matrix E = matrix_init(A.cols, A.rows);
-
-    if (E.data == NULL) return MATRIX_NULL;
-
+struct Matrix sum_for_e( const struct Matrix A, const size_t deg_acc) {
     if (deg_acc == 1)
     {
-        struct matrix E = matrix_make_ident(A.cols, A.rows);
-        return E;
+        return matrix_make_ident(A.cols, A.rows);
     }
 
-    if (deg_acc == 2) return A;
+    struct Matrix E = matrix_init(A.cols, A.rows);
+    
+    if (E.data == NULL){
+    	matrix_free(&E);
+    	return MATRIX_NULL;
+    }
 
-    if (deg_acc > 2)
+    if (deg_acc == 2){
+    	matrix_free(&E);
+    	return A;
+    }
+
+    E = A;
+    for (size_t id = 2; id < deg_acc; ++id)
     {
-        E = A;
-        for (size_t id = 2; id < deg_acc; ++id)
+        struct Matrix power = E;
+        E = matrix_mult(power, A);
+        for (size_t idx = 0; idx < E.rows * E.cols; ++idx)
         {
-            struct matrix buf = E;
-            E = matrix_mult(buf, A);
-            for (size_t idx = 0; idx < E.rows * E.cols; ++idx)
-            {
-                E.data[idx] /= (id);
-            }
-            matrix_free(&buf);
+            E.data[idx] /= (id);
         }
+        matrix_free(&power);
     }
     return E;
 }
 
 // Вычисление экспоненты от матрицы
-struct matrix matrix_exp(struct matrix* A, const size_t accuracy) {
+struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy) {
     if (A->cols != A->rows) {
-        matrix_error_message();
+        matrix_error_message("У вас не квадратная матрица");
         return MATRIX_NULL;
     }
 
-    struct matrix E = matrix_init(A->rows, A->cols);
+    struct Matrix E = matrix_init(A->rows, A->cols);
 
     if (E.data == NULL) {
+    	matrix_free(&E);
         return MATRIX_NULL;
     }
-    struct matrix matrix_transfer;
+    struct Matrix MatrixTransfer;
 
     for (size_t deg_acc = 1; deg_acc <= accuracy; ++deg_acc) {
-        matrix_transfer = sum_for_e(deg_acc, *A);
-        struct matrix buf1 = E;
-        E = matrix_sum(buf1, matrix_transfer);
+        MatrixTransfer = sum_for_e(deg_acc, *A);
+        struct Matrix buf1 = E;
+        matrix_add(buf1, MatrixTransfer);
         matrix_free(&buf1);
-        matrix_free(&matrix_transfer);
+        matrix_free(&MatrixTransfer);
     }
     return E;
 }
 
 int main() {
-    struct matrix A, B, C;
+    struct Matrix A, B, C;
 
     double det;
 
-    A = matrix_init(3, 3);
+    A = matrix_init(0, 3);
     matrix_fill(&A);
     matrix_print(A);
 
@@ -283,7 +268,7 @@ int main() {
     matrix_fill(&B);
     matrix_print(B);
 
-    matrix_sum(B, A);
+    matrix_add(B, A);
     matrix_print(B);
 
     C = matrix_mult(A, B);
