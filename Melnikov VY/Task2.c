@@ -141,6 +141,7 @@ struct Matrix matrix_create(const size_t rows, const size_t cols, enum MatrixTyp
 
 void matrix_free(struct Matrix *M) {
     free(M->data);
+    M = MATRIX_NULL;
 }
 
 
