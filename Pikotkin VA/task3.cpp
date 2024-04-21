@@ -3,12 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <iostream>
-#include <vector>
-#include <string>
 #include <cstring>
-
-
-typedef double MatrixItem;
 
 
 class MatrixException : public std::exception
@@ -21,6 +16,7 @@ public:
     std::string what() { return message; }
 };
 
+
 MatrixException MESSAGE_ERROR("message error");
 MatrixException WRONG_CONDITIONS("wrong conditions");
 MatrixException MEMORY_NOT_ALLOCATED(" memory not allocated");
@@ -30,17 +26,14 @@ class Matrix
 private:
     size_t cols;
     size_t rows;
-    MatrixItem* data;
-
+    double* data;
 public:
     Matrix();
     Matrix(const size_t rows, const size_t cols, const double* values);
-    // Matrix(size_t cols, size_t rows, MatrixItem *data);
     Matrix(const size_t rows, const size_t cols);
     Matrix(const Matrix& A);
     Matrix(Matrix&& A);
     ~Matrix();
-
 public:
     Matrix& operator= (const Matrix& M);
     Matrix& operator= (Matrix&& M);
@@ -52,55 +45,31 @@ public:
     Matrix& operator-(const Matrix& M);
     Matrix& operator*(const Matrix& M);
     Matrix& operator*(const double k);
-
 public:
     void print();
     Matrix& make_ident(size_t rows, size_t cols);
-    Matrix& sum(const Matrix& A, const Matrix& B);
-    void add(const Matrix& B);
-    Matrix& mult(const Matrix& A);
     Matrix& transp();
     double matrix_det();
     Matrix& exp(Matrix& A, const size_t accuracy);
-
-private:
-    Matrix sum_for_e(const size_t deg_acc, const Matrix& A);
 };
 
 
-Matrix::Matrix()
+Matrix::Matrix() : cols(0), rows(0), data(nullptr) {}
+
+
+Matrix::Matrix(const size_t rows, const size_t cols) : cols(cols), rows(rows), data(new double[cols * rows])
 {
-    cols = 0;
-    rows = 0;
-    data = nullptr;
+    if (rows == 0 || cols == 0) throw MatrixException("The matrix is not initialized");
+    if (rows >= SIZE_MAX / sizeof(double) / cols) throw MatrixException("The matrix is not initialized");
 }
 
 
-Matrix::Matrix(const size_t rows, const size_t cols)
+Matrix::Matrix(const size_t rows, const size_t cols, const double* values): cols(cols), rows(rows), data(nullptr)
 {
-    if (rows == 0 || cols == 0)
-    {
-        throw MatrixException("The matrix is not initialized");
-    }
-
-    // rows * cols < MAX_SIZE / sizeof(MatrixItem)
-    if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols)
-    {
-        throw MatrixException("The matrix is not initialized");
-    }
-    this->cols = cols;
-    this->rows = rows;
-    data = new double[cols * rows * sizeof(MatrixItem)];
-}
-
-
-Matrix::Matrix(const size_t rows, const size_t cols, const double* values)
-{
-    this->cols = cols;
-    this->rows = rows;
-    this->data = nullptr;
-    this->data = new double[cols * rows * sizeof(MatrixItem)];
-    memcpy(this->data, values, rows * cols * sizeof(double));
+    data = new double[cols * rows];
+    if (values != nullptr) {
+        memcpy(data, values, rows * cols * sizeof(double));
+    } else throw MatrixException("message error");
 }
 
 
@@ -115,35 +84,37 @@ Matrix::Matrix(Matrix&& A) {
 }
 
 
+Matrix::Matrix(const Matrix& A)
+{
+    cols = A.cols;
+    rows = A.rows;
+    data = new double[cols * rows];
+    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) data[idx] = A.data[idx];
+}
+
+
 Matrix& Matrix::operator= (const Matrix& M) {
-    if (this == &M)
-    {
-        return *this;
-    }
+    if (this == &M) return *this;
     delete[] data;
 
     rows = M.rows;
     cols = M.cols;
 
-    data = new MatrixItem[rows * cols];
-    memcpy(data, M.data, cols * rows * sizeof(MatrixItem));
+    data = new double[rows * cols];
+    memcpy(data, M.data, cols * rows * sizeof(double));
 
     return *this;
 }
 
 
 Matrix& Matrix::operator= (Matrix&& M) {
-    if (this == &M)
-    {
-        return *this;
-    }
+    if (this == &M) return *this;
     delete[] data;
 
     rows = M.rows;
     cols = M.cols;
     data = M.data;
     M.data = nullptr;
-
     return *this;
 }
 
@@ -157,32 +128,10 @@ Matrix::~Matrix()
 }
 
 
-Matrix& Matrix::sum(const Matrix& A, const Matrix& B)
-{
-    if (A.cols != B.cols || A.rows != B.rows)
-    {
-        throw MatrixException("The matrices do not match in size");
-    }
-    Matrix* C = new Matrix(A.cols, A.rows);
-    for (size_t idx = 0; idx < C->cols * C->rows; ++idx)
-    {
-        C->data[idx] = A.data[idx] + B.data[idx];
-    }
-    return *C;
-}
-
-
 Matrix& Matrix::exp(Matrix& A, const size_t accuracy)
 {
-    if (data == nullptr)
-    {
-        throw MESSAGE_ERROR;
-    }
-    if (A.cols != A.rows)
-    {
-        throw MatrixException("Error! The matrix is not square!");
-    }
-
+    if (data == nullptr) throw MESSAGE_ERROR;
+    if (A.cols != A.rows) throw MatrixException("Error! The matrix is not square!");
     Matrix* exp = new Matrix(A.rows, A.cols);
     Matrix item = make_ident(A.rows, A.cols);
     for (double deg_acc = 1; deg_acc <= accuracy; ++deg_acc)
@@ -197,10 +146,7 @@ Matrix& Matrix::exp(Matrix& A, const size_t accuracy)
 Matrix& Matrix::make_ident(size_t rows, size_t cols)
 {
     Matrix* I = new Matrix(rows, cols);
-    if (I->data == nullptr)
-    {
-        throw MatrixException("The matrix is not initialized");
-    }
+    if (I->data == nullptr) throw MatrixException("The matrix is not initialized");
     for (size_t idx = 0; idx < rows * cols; idx++)
     {
         if (idx % (rows + 1) == 0)
@@ -213,48 +159,6 @@ Matrix& Matrix::make_ident(size_t rows, size_t cols)
         }
     }
     return *I;
-}
-
-
-void Matrix::add(const Matrix& B) // public
-{
-    if (cols != B.cols || rows != B.rows)
-    {
-        throw "The matrices do not match in size";
-    }
-    for (size_t idx = 0; idx < cols * rows; ++idx)
-    {
-        data[idx] += B.data[idx];
-    }
-}
-
-
-Matrix& Matrix::mult(const Matrix& A)
-{
-    if (A.cols != rows)
-    {
-        throw "Size mismatch for multiplication";
-    }
-    Matrix* C = new Matrix(A.cols, rows);
-
-    if (C->data == nullptr)
-    {
-        throw "The matrix is not initialized";
-    }
-
-    for (size_t rowA = 0; rowA < A.rows; ++rowA)
-    {
-        for (size_t colsB = 0; colsB < cols; ++colsB)
-        {
-            C->data[rowA * (A.cols) + colsB] = 0;
-            for (size_t idx = 0; idx < A.cols; ++idx)
-            {
-                C->data[rowA * (A.cols) + colsB] += (A.data[(rowA * A.cols) + idx]) * (data[(idx * cols) + colsB]);
-            }
-        }
-    }
-
-    return *C;
 }
 
 
@@ -303,22 +207,7 @@ void Matrix::print()
         }
         printf("\n");
     }
-    else
-    {
-        throw(WRONG_CONDITIONS);
-    }
-}
-
-
-Matrix::Matrix(const Matrix& A)
-{
-    cols = A.cols;
-    rows = A.rows;
-    data = new double[cols * rows * sizeof(MatrixItem)];
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
-    {
-        data[idx] = A.data[idx];
-    }
+    else throw(WRONG_CONDITIONS);
 }
 
 
@@ -338,49 +227,29 @@ Matrix& Matrix::transp()
 
 
 Matrix& Matrix::operator+= (const Matrix& M) {
-    if ((rows != M.rows) || (cols != M.cols))
-    {
-        throw MESSAGE_ERROR;
-    }
-    for (size_t idx = 0; idx < rows * cols; idx++) 
-    {
-        data[idx] += M.data[idx];
-    }
+    if ((rows != M.rows) || (cols != M.cols)) throw MESSAGE_ERROR;
+    for (size_t idx = 0; idx < rows * cols; idx++) data[idx] += M.data[idx];
     return *this;
 }
 
 
 Matrix& Matrix::operator-= (const Matrix& M) {
-    if ((rows != M.rows) || (cols != M.cols))
-    {
-        throw WRONG_CONDITIONS;
-    }
-    for (size_t idx = 0; idx < rows * cols; idx++) 
-    {
-        data[idx] -= M.data[idx];
-    }
+    if ((rows != M.rows) || (cols != M.cols)) throw WRONG_CONDITIONS;
+    for (size_t idx = 0; idx < rows * cols; idx++) data[idx] -= M.data[idx];
     return *this;
 }
 
 
 Matrix& Matrix::operator*= (const double k) {
-    if (data == nullptr)
-    {
-        throw MESSAGE_ERROR;
-    }
-    for (size_t idx = 0; idx < rows * cols; idx++) 
-    {
-        data[idx] *= k;
-    }
+    if (data == nullptr) throw MESSAGE_ERROR;
+    for (size_t idx = 0; idx < rows * cols; idx++) data[idx] *= k;
     return *this;
 }
 
 
 Matrix& Matrix::operator*= (const Matrix& M) {
-    if (cols != M.rows)
-    {
-        throw MESSAGE_ERROR;
-    }
+    if (cols != M.rows) throw MESSAGE_ERROR;
+
     Matrix R(rows, M.cols);
     for (size_t row = 0; row < R.rows; row++)
     {
@@ -402,36 +271,27 @@ Matrix& Matrix::operator*= (const Matrix& M) {
 
 
 Matrix& Matrix::operator+(const Matrix& M) {
-    Matrix* rez = new Matrix(M.cols, M.rows);
-    *rez = *this;
-    *rez += M;
-    return *rez;
+    *this += M ;
+    return *this;
 }
 
 
 Matrix& Matrix::operator-(const Matrix& M) {
-    Matrix* rez = new Matrix(M.cols, M.rows);
-    *rez = *this;
-    *rez -= M;
-    return *rez;
+    *this -= M;
+    return *this;
 }
 
 
 Matrix& Matrix::operator*(const Matrix& M) {
-    Matrix* rez = new Matrix(M.cols, M.rows);
-    *rez = *this;
-    *rez *= M;
-    return *rez;
+    *this *= M;
+    return *this;
 }
 
 
 Matrix& Matrix::operator*(const double k) {
-    Matrix* rez = new Matrix(cols, rows);
-    *rez = *this;
-    *rez *= k;
-    return *rez;
+    *this *= k;
+    return *this;
 }
-
 
 
 int main()
@@ -452,10 +312,7 @@ int main()
 
         A.print();
         B.print();
-        B.add(A);
-        B.print();
-
-        C = A.mult(B);
+        C = A + B;
         C.print();
 
         C = C.transp();
