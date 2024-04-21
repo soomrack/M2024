@@ -228,7 +228,7 @@ double matrix_det(struct Matrix* A)  // определитель матрицы
 }
 
 
-struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
+struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)  // сумма ряда Эйлера
 {
     struct Matrix E = matrix_init(A.rows, A.cols);
 
@@ -259,7 +259,7 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
 }
 
 
-struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy)
+struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy)  // экспонента
 {
     if (A->cols != A->rows) {
         matrix_error_message(NO_MEMORY);
@@ -305,7 +305,6 @@ int main()
     matrix_print(A);
     A = matrix_exp(&A, 3);
     matrix_print(A);
-
 
     matrix_free(&E);
     matrix_free(&A);
