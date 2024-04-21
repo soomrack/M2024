@@ -12,6 +12,7 @@ struct Matrix {
     MatrixItem* data;
 };
 
+
 const struct Matrix MATRIX_NULL = { .cols = 0, .rows = 0, .data = NULL }; 
 
 
@@ -39,24 +40,6 @@ struct Matrix matrix_initiation(const size_t rows, const size_t cols)
         return MATRIX_NULL;
     }
     return A;
-}
-
-
-struct Matrix matrix_make_ident(size_t rows, size_t cols)
-{
-    struct Matrix I = matrix_initiation(rows, cols);
-    if (I.data == NULL) {
-        return MATRIX_NULL;
-    }
-    for (size_t idx = 0; idx < rows * cols; idx++) {
-        if (idx % (rows + 1) == 0) {
-            I.data[idx] = 1.;
-        }
-        else {
-            I.data[idx] = 0;
-        }
-    }
-    return I;
 }
 
 
@@ -112,7 +95,9 @@ struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
 
 struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B) 
 {
-    if (A.cols != B.cols || A.rows != B.rows) return MATRIX_NULL;
+    if (A.cols != B.cols || A.rows != B.rows) {
+      return MATRIX_NULL;  
+    } 
 
     struct Matrix C = matrix_initiation(A.cols, A.rows);
     for (size_t idx = 0; idx < C.cols * C.rows; ++idx) {
@@ -137,7 +122,9 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
         for (size_t colsB = 0; colsB < B.cols; ++colsB) {
             C.data[rowA * (A.cols) + colsB] = 0;
             for (size_t idx = 0; idx < A.cols; ++idx) {
-                C.data[rowA * (A.cols) + colsB] += (A.data[(rowA * A.cols) + idx]) * (B.data[(idx * B.cols) + colsB]);
+                size_t W = (A.data[(rowA * A.cols) + idx]);
+                size_t V = (B.data[(idx * B.cols) + colsB]);
+                C.data[(rowA * A.cols) + colsB] += W * V;
             }
         }
     }
@@ -179,12 +166,34 @@ double matrix_det(struct Matrix* A) {
     }
 
     if (A->cols == 3) {
-        double matr_det = (A->data[0]) * (A->data[4]) * (A->data[8]) + (A->data[1]) * (A->data[5]) * (A->data[6]) + (A->data[3]) * (A->data[7]) * (A->data[2]);
-        matr_det -= ((A->data[2]) * (A->data[4]) * (A->data[6]) + (A->data[1]) * (A->data[3]) * (A->data[8]) + (A->data[0]) * (A->data[5]) * (A->data[7]));
+        double matr_det = (A->data[0]) * (A->data[4]) * (A->data[8]);
+        matr_det += (A->data[1]) * (A->data[5]) * (A->data[6]);
+        matr_det += (A->data[3]) * (A->data[7]) * (A->data[2]);
+        matr_det -= (A->data[1]) * (A->data[3]) * (A->data[8]);
+        matr_det -= (A->data[0]) * (A->data[5]) * (A->data[7]);
+        matr_det -= (A->data[2]) * (A->data[4]) * (A->data[6]);
         return matr_det;
     }
     matrix_error_message();
     return NAN;
+}
+
+
+struct Matrix matrix_make_ident(size_t rows, size_t cols)
+{
+    struct Matrix I = matrix_initiation(rows, cols);
+    if (I.data == NULL) {
+        return MATRIX_NULL;
+    }
+    for (size_t idx = 0; idx < rows * cols; idx++) {
+        if (idx % (rows + 1) == 0) {
+            I.data[idx] = 1.;
+        }
+        else {
+            I.data[idx] = 0;
+        }
+    }
+    return I;
 }
 
 
