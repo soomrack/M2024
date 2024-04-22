@@ -50,6 +50,23 @@ void matrix_free(struct Matrix* A)
 }
 
 
+struct Matrix matrix_copy(const struct Matrix A, struct Matrix* B) {
+    if (A.data == NULL || B->data == NULL) {
+        return MATRIX_NULL;
+    }
+
+    matrix_free(B);
+
+    *B = matrix_allocate(A.rows, A.cols);
+    if (B->data == NULL) {
+        return MATRIX_NULL;
+    }
+    memcpy(B->data, A.data, B->cols * B->rows * sizeof(MatrixItem));
+
+    return *B;
+}
+
+
 // A += B
 int matrix_add(const struct Matrix A, const struct Matrix B)
 {
@@ -180,47 +197,64 @@ struct Matrix matrix_E(const struct Matrix A)
     return E;
 }
 
- //C = e ^ (A)
+//C = e ^ (A)
 struct Matrix matrix_exp(struct Matrix A, unsigned long int level)
 {
-    struct Matrix sumexp;
-
-    if (A.rows != A.cols) return MATRIX_NULL;
-
-    sumexp = matrix_E(A);
-    matrix_add(sumexp, A);
-
-    struct Matrix C = matrix_allocate(A.rows, A.cols);
-    if (C.data == NULL) {
-        matrix_free(&sumexp);
+    if (A.data == NULL) {
         return MATRIX_NULL;
     }
 
-    for (unsigned int count = 2; count <= level; count++) {
-        matrix_free(&C);
-        memcpy(C.data, A.data, C.cols * C.rows * sizeof(MatrixItem));
+    if (A.rows != A.cols) {
+        return MATRIX_NULL;
+    }
 
-        for (unsigned int idx = 0; idx < count - 1; idx++) {
-            struct Matrix t = C;
-            C = matrix_mult(A, C);
-            matrix_free(&t);
-
-            struct Matrix t = C;
-            C = matrix_div_scalar(C, count);
-            matrix_free(&t);
-        }
-
-
-        if (C.data == NULL) {
-            matrix_free(&sumexp);
-            return MATRIX_NULL;
-        }
-        matrix_add(sumexp, C);
-        matrix_free(&C);
+    struct Matrix exponent = matrix_E(A);
+    struct Matrix summand = matrix_E(A);
+    struct Matrix temp = matrix_allocate(A.rows, A.cols);
+    if (exponent.data == NULL || summand.data == NULL || temp.data == NULL) {
+        matrix_free(&exponent);
+        matrix_free(&summand);
+        matrix_free(&temp);
+        return MATRIX_NULL;
     }
 
 
-    return sumexp;
+    for (unsigned int idx = 1; idx <= level; idx++) {
+        temp = matrix_mult(summand, A);
+        if (temp.data == NULL) {
+            matrix_free(&exponent);
+            matrix_free(&summand);
+            matrix_free(&temp);
+            return MATRIX_NULL;
+        }
+        matrix_copy(temp, &summand);
+        matrix_free(&temp);
+
+        temp = matrix_div_scalar(summand, idx);
+        if (temp.data == NULL) {
+            matrix_free(&exponent);
+            matrix_free(&summand);
+            matrix_free(&temp);
+            return MATRIX_NULL;
+        }
+        matrix_copy(temp, &summand);
+        matrix_free(&temp);
+
+        temp = matrix_sum(exponent, summand);
+        if (temp.data == NULL) {
+            matrix_free(&exponent);
+            matrix_free(&summand);
+            matrix_free(&temp);
+            return MATRIX_NULL;
+        }
+        matrix_copy(temp, &exponent);
+        matrix_free(&temp);
+    }
+
+    matrix_free(&summand);
+    matrix_free(&temp);
+
+    return exponent;
 }
 
 
