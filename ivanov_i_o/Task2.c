@@ -43,7 +43,7 @@ struct Matrix matrix_initiation(const size_t rows, const size_t cols)
 }
 
 
-struct Matrix matrix_create(const size_t rows, const size_t cols)
+struct Matrix matrix_create_random(const size_t rows, const size_t cols) 
 {
     struct Matrix A = matrix_initiation(rows, cols);
     for (size_t idx = 0; idx < A.cols * A.rows; idx++)
@@ -79,7 +79,7 @@ void matrix_print(const struct Matrix A)
 }
 
 
-struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B) 
+struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B) // null
 {
     if (A.cols != B.cols || A.rows != B.rows) {
         return MATRIX_NULL;
@@ -122,9 +122,9 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
         for (size_t colsB = 0; colsB < B.cols; ++colsB) {
             C.data[rowA * (A.cols) + colsB] = 0;
             for (size_t idx = 0; idx < A.cols; ++idx) {
-                size_t W = (A.data[(rowA * A.cols) + idx]);
-                size_t V = (B.data[(idx * B.cols) + colsB]);
-                C.data[(rowA * A.cols) + colsB] += W * V;
+                MatrixItem W = A.data[(rowA * A.cols) + idx]; // 
+                MatrixItem V = B.data[(idx * B.cols) + colsB];
+                C.data[(rowA * A.cols) + colsB] += W * V;    
             }
         }
     }
@@ -197,9 +197,14 @@ struct Matrix matrix_make_ident(size_t rows, size_t cols)
 }
 
 
-struct Matrix pow_matrix(const struct Matrix A, const size_t p) {
-    struct Matrix M = A;
+struct Matrix pow_matrix(struct Matrix A, const size_t p) {
+    struct Matrix M = matrix_initiation(A.rows, A.cols);
 
+    memcpy(M.data, A.data, A.rows * A.cols * sizeof(MatrixItem));
+
+    if (M.data == NULL) {
+        return MATRIX_NULL;
+    }
     if (p == 0) {
         return matrix_make_ident(A.cols, A.rows);
     }
@@ -207,7 +212,9 @@ struct Matrix pow_matrix(const struct Matrix A, const size_t p) {
         return M;
     }
     for (size_t i = 1; i < p; ++i) {
-        M = matrix_mult(M, A);
+        struct Matrix _ptr = M;
+        M = matrix_mult(M, A); 
+        matrix_free(&_ptr);
     }
     return M;
 }
@@ -229,36 +236,36 @@ struct Matrix el_sum_for_e(const struct Matrix A, const size_t k)
 
 struct Matrix exponent(const struct Matrix A, const size_t deg_acc)  
 {
-    if (A.data == NULL) {
-        return MATRIX_NULL;
-    }
+    
+    struct Matrix G = matrix_initiation(A.rows, A.cols);
 
-    struct Matrix S = matrix_initiation(A.rows, A.cols);
-
-    for (size_t id = 0; id < S.rows * S.cols; ++id) {
-        S.data[id] = 0;
+    for (size_t id = 0; id < G.rows * G.cols; ++id) {
+        G.data[id] = 0;
     }
 
     for (size_t i = 0; i <= deg_acc; ++i) {
-        S = matrix_sum(S, el_sum_for_e(A, i));
+        struct Matrix _ptr = G;
+        G = matrix_sum(G, el_sum_for_e(A, i)); 
+        matrix_free(&_ptr);
     }
 
-    return S;
+    return G;
 }
 
 
 int main(void)
 {
-    struct Matrix A, B, C, N, E, R, D;
+    struct Matrix A, B, C, N, E, R, D, M;
 
     double deter;
 
 
-    A = matrix_create(3, 3);
-    B = matrix_create(3, 3);
+    A = matrix_create_random(3, 3);
+    B = matrix_create_random(3, 3);
 
     matrix_print(A);
     matrix_print(B);
+
     R = matrix_sum(A, B);
     matrix_print(R);
     E = matrix_sub(B, A);
