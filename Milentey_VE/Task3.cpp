@@ -149,12 +149,13 @@ Matrix& Matrix::operator=(const Matrix& A)
     if (this == &A) return *this;
 
     if (items == nullptr) {
-        if (A.items == nullptr)
-            throw NULL_POINTER_REFERENCE;
-
-        items = new MatrixItem[A.rows * A.cols];
         rows = A.rows;
         cols = A.cols;
+        if (A.items == nullptr)
+             return *this;
+
+        items = new MatrixItem[A.rows * A.cols];
+
 
         memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
         return *this;
@@ -168,16 +169,14 @@ Matrix& Matrix::operator=(const Matrix& A)
         return *this;
     }
 
-    if (A.items == nullptr)
-        throw NULL_POINTER_REFERENCE;
-
     delete[] items;
 
-    items = new MatrixItem[A.rows * A.cols];
     rows = A.rows;
     cols = A.cols;
-
-    memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
+    if (A.items != nullptr) {
+        items = new MatrixItem[A.rows * A.cols];
+        memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
+    }
 
     return *this;
 }
