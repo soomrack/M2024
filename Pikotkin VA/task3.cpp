@@ -65,7 +65,9 @@ Matrix::Matrix(const size_t rows, const size_t cols) : cols(cols), rows(rows), d
 
 Matrix::Matrix(const size_t rows, const size_t cols, const double* values): cols(cols), rows(rows), data(nullptr)
 {
-    data = new double[cols * rows];
+    if (rows != 0 && cols != 0) {
+        data = new double[cols * rows];
+    }
     if (values != nullptr) {
         memcpy(data, values, rows * cols * sizeof(double));
     } else throw MatrixException("message error");
@@ -93,10 +95,11 @@ Matrix::Matrix(const Matrix& A) : cols(A.cols), rows(A.rows), data(nullptr) {
 
 Matrix& Matrix::operator= (const Matrix& M) {
     if (this == &M) return *this;
-    if (data == nullptr || M.data == nullptr) {
-        return;
+    if (data == nullptr || M.data == nullptr) { // вывод матрицы сделать, если матрица 0
+        throw MatrixException("data ptr is nullptr");
+        return *this;
     }
-    if (rows == M.rows && cols == M.cols){
+    if ( rows * cols == M.rows * M.cols){ // сделать другую  проверку
         std::memcpy(data, M.data, cols * rows * sizeof(double));
     }
     else { 
@@ -110,7 +113,7 @@ Matrix& Matrix::operator= (const Matrix& M) {
 } 
 
 
-Matrix& Matrix::operator= (Matrix&& M) {
+Matrix& Matrix::operator = (Matrix&& M) {
     delete[] data;
 
     rows = M.rows;
@@ -121,7 +124,6 @@ Matrix& Matrix::operator= (Matrix&& M) {
     M.data = nullptr;
     return *this;
 }
-
 
 
 Matrix::~Matrix()
