@@ -119,7 +119,7 @@ Matrix::Matrix(const Matrix& A)
 }
 
 
-Matrix::Matrix(Matrix&& A) : rows{ A.rows }, cols{ A.cols }, items{ A.items }
+Matrix::Matrix(Matrix&& A): rows{ A.rows }, cols{ A.cols }, items{ A.items }
 {
     A.set_null();
 }
@@ -149,12 +149,12 @@ Matrix& Matrix::operator=(const Matrix& A)
     if (this == &A) return *this;
 
     if (items == nullptr) {
+        if (A.items == nullptr)
+            throw NULL_POINTER_REFERENCE;
+
         items = new MatrixItem[A.rows * A.cols];
         rows = A.rows;
         cols = A.cols;
-
-        if (A.items == nullptr)
-            throw NULL_POINTER_REFERENCE;
 
         memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
         return *this;
@@ -168,15 +168,14 @@ Matrix& Matrix::operator=(const Matrix& A)
         return *this;
     }
 
+    if (A.items == nullptr)
+        throw NULL_POINTER_REFERENCE;
+
     delete[] items;
 
     items = new MatrixItem[A.rows * A.cols];
-
     rows = A.rows;
     cols = A.cols;
-
-    if (A.items == nullptr)
-        throw NULL_POINTER_REFERENCE;
 
     memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
 
@@ -236,7 +235,7 @@ Matrix& Matrix::operator+=(const Matrix& A)
     if ((rows != A.rows) || (cols != A.cols))
         throw BAD_REQUEST;
 
-    for (size_t idx = 0; idx < (rows * cols); idx++)
+    for (size_t idx = 0; idx < (rows * cols); idx += cols + 1)
         items[idx] += A.items[idx];
 
     return *this;
@@ -264,7 +263,7 @@ Matrix& Matrix::operator-=(const Matrix& A)
     if ((rows != A.rows) || (cols != A.cols))
         throw BAD_REQUEST;
 
-    for (size_t idx = 0; idx < (rows * cols); idx++)
+    for (size_t idx = 0; idx < (rows * cols); idx += cols + 1)
         items[idx] -= A.items[idx];
 
     return *this;
@@ -325,7 +324,7 @@ Matrix& Matrix::operator*=(const Matrix& A)
 
 Matrix& Matrix::operator*=(const MatrixItem& factor)
 {
-    for (size_t idx = 0; idx < (rows * cols); idx++)
+    for (size_t idx = 0; idx < (rows * cols); idx += cols + 1)
         items[idx] *= factor;
 
     return *this;
@@ -363,7 +362,7 @@ double Matrix::determinant() const
     Matrix mat = *this;
 
     double det = 1.0;
-    int pivot = 0;
+    size_t pivot = 0;
     double factor = 0;
 
     for (size_t num_col = 0; num_col < mat.cols; num_col++) {
@@ -532,6 +531,16 @@ int main()
         Matrix C;
         C = A + B;
         std::cout << C << std::endl;
+
+        std::cout << "----------" << std::endl;
+
+        Matrix&& Bb = std::move(B);
+        Matrix result = A + Bb;
+        std::cout << A << std::endl;
+        std::cout << B << std::endl;
+        std::cout << result << std::endl;
+
+
     }
     catch (MatrixException& ex)
     {
