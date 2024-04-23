@@ -11,6 +11,7 @@ struct Matrix {
     MatrixItem* data; // Указатель на данные матриц
 };
 
+const struct Matrix MATRIX_NULL = { 0, 0, NULL };
 
 void matrix_error_message(const char str[]) {
     printf("%s\n", str); // Сообщение об ошибке
@@ -32,7 +33,7 @@ struct Matrix matrix_init(const size_t cols, const size_t rows) {
     // Проверка на переполнение памяти при выделении памяти для хранения данных матрицы
     if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols) {
         matrix_error_message("Недостачно места для хранения матрицы");
-        return A;
+        return MATRIX_NULL;
     }
 
     // Выделение памяти под данные матрицы
@@ -42,7 +43,7 @@ struct Matrix matrix_init(const size_t cols, const size_t rows) {
     if (A.data == NULL) {
         matrix_error_message("Ошибка выделения матрицы");
     }
-    return A;
+    return MATRIX_NULL;
 }
 
 // Создание единичной матрицы заданных размеров
@@ -66,7 +67,7 @@ void matrix_free(struct Matrix* matrix) {
 }
 
 // Заполнение матрицы случайными значениями
-void matrix_fill(struct Matrix* A) {
+void matrix_random(struct Matrix* A) {
     for (size_t idx = 0; idx < A->cols * A->rows; idx++) {
         A->data[idx] = ((int)rand() % 10);
     }
@@ -130,7 +131,7 @@ void matrix_mult_coeff(struct Matrix A, const double coeff) {
 // Вычисление произведения матриц A и B
 struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B) {
     if (A.cols != B.rows)
-        return { 0, 0, NULL };
+        return MATRIX_NULL;
 
     struct Matrix C = matrix_init(A.cols, A.rows);
     if (C.data == NULL)
@@ -202,6 +203,7 @@ struct Matrix matrix_copy(const struct Matrix A) {
         return C;
     }
     memcpy(C.data, A.data, A.cols * A.rows * sizeof(MatrixItem));
+    return C;
 }
 
 // Возведение матрицы в степень
@@ -267,7 +269,7 @@ int main() {
     double det;
 
     A = matrix_init(0, 3);
-    matrix_fill(&A);
+    matrix_random(&A);
     matrix_print(A);
 
     B = matrix_init(3, 3);
