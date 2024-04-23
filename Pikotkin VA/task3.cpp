@@ -56,8 +56,8 @@ public:
 Matrix::Matrix() : cols(0), rows(0), data(nullptr) {}
 
 
-Matrix::Matrix(const size_t rows, const size_t cols) : cols(cols), rows(rows), data(nullptr) {
-    if (rows != 0 || cols != 0) {
+Matrix::Matrix(const size_t rows, const size_t cols) : cols(cols), rows(rows), data(nullptr) { 
+    if (rows != 0 && cols != 0) {
         data = new double[cols * rows];
     }
 }
@@ -93,18 +93,19 @@ Matrix::Matrix(const Matrix& A) : cols(A.cols), rows(A.rows), data(nullptr) {
 
 Matrix& Matrix::operator= (const Matrix& M) {
     if (this == &M) return *this;
-
-    if (rows == M.rows && cols == M.cols && data != nullptr && M.data != nullptr){
+    if (data == nullptr || M.data == nullptr) {
+        return;
+    }
+    if (rows == M.rows && cols == M.cols){
         std::memcpy(data, M.data, cols * rows * sizeof(double));
     }
-    else if ( data != nullptr && M.data != nullptr) { 
+    else { 
         delete[] data;
         rows = M.rows;
         cols = M.cols;
         data = new double[rows * cols];
         std::memcpy(data, M.data, cols * rows * sizeof(double));
     }
-
     return *this;
 } 
 
@@ -252,25 +253,27 @@ Matrix& Matrix::operator*= (const double k) {
 
 Matrix& Matrix::operator*= (const Matrix& M) { 
     if (cols != M.rows) throw MESSAGE_ERROR;
-
-    Matrix R(rows, M.cols);
-    memset(R.data, 0, R.rows * R.cols * sizeof(double));
-    for (size_t row = 0; row < R.rows; row++)
-    {
-        for (size_t col = 0; col < R.cols; col++) 
+    if (rows != 0 && cols != 0) {
+        Matrix R(rows, M.cols);
+        memset(R.data, 0, R.rows * R.cols * sizeof(double));
+        for (size_t row = 0; row < R.rows; row++)
         {
-            for (size_t idx = 0; idx < M.rows; idx++) 
+            for (size_t col = 0; col < R.cols; col++)
             {
-                R.data[row * R.cols + col] += data[row * cols + idx] * M.data[idx * M.cols + col];
+                for (size_t idx = 0; idx < M.rows; idx++)
+                {
+                    R.data[row * R.cols + col] += data[row * cols + idx] * M.data[idx * M.cols + col];
+                }
             }
         }
+        cols = R.cols;
+        rows = R.rows;
+        delete[] data;
+        data = R.data;
+        R.data = nullptr;
+        return *this;
     }
-    cols = R.cols;
-    rows = R.rows;
-    delete[] data;
-    data = R.data;
-    R.data = nullptr;
-    return *this;
+    else throw MESSAGE_ERROR;
 }
 
 
