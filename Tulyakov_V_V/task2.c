@@ -1,272 +1,314 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <math.h>
 
 typedef double MatrixItem;
 
 struct Matrix {
     size_t cols;
     size_t rows;
-    MatrixItem* data;
+    MatrixItem *data;
 };
 
-const struct Matrix MATRIX_NULL = { 0, 0, NULL };
+const struct Matrix MATRIX_NULL = {.cols = 0, .rows = 0, .data = NULL};
 
-void matrix_error_message()
-{
-    printf("Error! Enter the matrix! \n");
-}
-
-
-struct Matrix matrix_init(const size_t cols, const size_t rows)
-{
-    Matrix A;
-    A.cols = cols;
-    A.rows = rows;
-
+struct Matrix matrix_init(const size_t cols, const size_t rows) {
     if (cols == 0 || rows == 0) {
-    	return MATRIX_NULL;
+        struct Matrix A = {.cols = cols, .rows = rows, .data = NULL};
+        return A;
     }
 
-    if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols)
-    	return MATRIX_NULL;
-
+    if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols) 
+        return MATRIX_NULL;
+    
+    struct Matrix A = {.cols = cols, .rows = rows, .data = NULL};
     A.data = (MatrixItem*)malloc(A.cols * A.rows * sizeof(MatrixItem));
-
     if (A.data == NULL) {
-    	return MATRIX_NULL;
+        return MATRIX_NULL;
     }
     return A;
+
 }
-
-
-struct Matrix matrix_make_ident(size_t rows, size_t cols)
-{
-    struct Matrix I = matrix_init(rows, cols);
-    if (I.data == NULL) {
-    	return MATRIX_NULL;
-    }
-    for (size_t idx = 0; idx < rows * cols; idx++) {
-	    if (idx % (rows + 1) == 0) {
-	    	I.data[idx] = 1;
-	    }
-	    else {
-		    I.data[idx] = 0;
-	    }
-    }
-    return I;
-}
-
-void matrix_free(struct Matrix* matrix)
-{
+void matrix_free(struct Matrix *matrix) {
     if (matrix->data == NULL)
-    	return;
-
+        return;
+    
     free(matrix->data);
     *matrix = MATRIX_NULL;
     return;
 }
 
-void matrix_fill(Matrix* A)
-{
-    for (size_t idx = 0; idx < A->cols * A->rows; idx++) {
-    	A->data[idx] = ((int)rand() % 10);
-    }
-}
-
-
-void matrix_print(const struct Matrix A)
-{
-    printf("_____________________\n");
-    for (size_t row = 0; row < A.rows; ++row) {
-    	for (size_t col = 0; col < A.cols; ++col) {
-    		printf("%4.2f \t", A.data[A.cols * row + col]);
-		}
-    	printf("\n");
-	}
+void print_matrix(const struct Matrix A) {
+    printf("_____________________________________________ \n");
+    for (size_t idx = 1; idx <= A.cols * A.rows; ++idx) {
+        printf("%4.2f \t", A.data[idx-1]);
+        if (idx % A.cols == 0 && idx >= A.cols)
+            printf("\n");
+    };
     printf("\n");
     return;
 }
 
+void matrix_copy(struct Matrix dest, const struct Matrix src) {
+    size_t size = src.cols * src.rows * sizeof(MatrixItem);
+    memcpy(dest.data, src.data, size);
+}
 
-// A+B=C
+//    ާߧ ا֧ߧڧ   ާѧ  ڧ    ߧ    ܧѧݧ  
+void matrix_mult_by_coeff(struct Matrix A, const double coefficient)
+{
+    if (A.data == NULL)
+        return;
+
+    for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
+        A.data[idx] = A.data[idx] * coefficient;
+    
+    return;
+}
+
+//    ҧߧ ݧ֧ߧڧ   ާѧ  ڧ  
+void matrix_zero(struct Matrix A)
+{
+    memset(A.data, 0, A.cols * A.rows * sizeof(MatrixItem));
+    return;
+}
+
+//    ݧ ا֧ߧڧ   ާѧ  ڧ 
 struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows)
-    	return MATRIX_NULL;
+        return MATRIX_NULL;
 
     struct Matrix C = matrix_init(A.cols, A.rows);
     if (C.data == NULL)
-    	return C;
+        return C;
 
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
-		C.data[idx] = A.data[idx] + B.data[idx];
+        C.data[idx] = A.data[idx] + B.data[idx];
+
     return C;
 }
 
-//C=A-B
-struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B)
+//     ҧѧӧݧ֧ߧڧ   ާѧ  ڧ       է  ԧ    ާѧ  ڧ  
+void matrix_add(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows)
-    	return MATRIX_NULL;
+        return;
 
-    struct Matrix C = matrix_init(A.cols, A.rows);
-    if (C.data == NULL)
-    	return C;
-
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
-    	C.data[idx] = A.data[idx] - B.data[idx];
-    return C;
-}
-
-
-// coeff * A
-void matrix_mult_coeff(struct Matrix A, const double coeff)
-{
-    if (A.data == NULL)
-    	return;
+    if (A.data == NULL || B.data == NULL)
+        return;
 
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
-    	A.data[idx] = A.data[idx] * coeff;
+        A.data[idx] = A.data[idx] + B.data[idx];
 
     return;
 }
 
-
-// C=A*B
-struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
+//      ڧ ѧߧڧ   ާѧ  ڧ 
+struct Matrix matrix_substr(const struct Matrix A, const struct Matrix B)
 {
-    if (A.cols != B.rows)
-    	return MATRIX_NULL;
+    if (A.cols != B.cols || A.rows != B.rows)
+        return MATRIX_NULL;
 
     struct Matrix C = matrix_init(A.cols, A.rows);
     if (C.data == NULL)
-    {
-		return MATRIX_NULL;
-    }
-    for (size_t rowA = 0; rowA < A.rows; ++rowA) {
-    	for (size_t colB = 0; colB < B.cols; ++colB) {
-    		C.data[rowA * (A.cols) + colB] = 0;
-    		for (size_t idx = 0; idx < A.cols; ++idx) {
-    			C.data[rowA * (A.cols) + colB] += (A.data[(rowA * A.cols) + idx]) * (B.data[(idx * B.cols) + colB]);
-    		}
-    	}
-    }
-	return C;
-}
+        return C;
 
+    for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
+        C.data[idx] = A.data[idx] - B.data[idx];
 
-//A^T
-struct Matrix matrix_transp(struct Matrix* A)
-{
-    struct Matrix C = matrix_init(A->cols, A->rows);
-
-    if (C.data == NULL) {
-		return MATRIX_NULL;
-    }
-
-    for (size_t rowA = 0; rowA < A->rows; ++rowA) {
-	for (size_t colA = 0; colA < A->cols; ++colA) {
-			C.data[(A->rows) * colA + rowA] = A->data[colA + rowA * A->cols];
-		}
-    }
     return C;
 }
 
-
-//determinant
-double matrix_det(struct Matrix* A)
+//    ާߧ ا֧ߧڧ   ާѧ  ڧ 
+struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
 {
-    if (A->cols != A->rows)
-    	return NAN;
-
-    struct Matrix C = matrix_init(A->cols, A->rows);
+    if (A.cols != B.rows)
+        return MATRIX_NULL;
+    
+    struct Matrix C = matrix_init(B.cols, A.rows);
     if (C.data == NULL)
-		return NAN;
-    //matrix_copy(C, A);//
+        return C;
+    
+    matrix_zero(C);
 
-    if (A->cols == 1)
-    {
-    	matrix_free(&C);
-    	return A->data[0];
-    }
-
-    if (A->cols == 2)
-    {
-    	double matr_det = (A->data[0]) * (A->data[3]) - (A->data[1]) * (A->data[2]);
-    	return matr_det;
-    }
-
-    if (A->cols == 3)
-    {
-    	double matr_det = (A->data[0]) * (A->data[4]) * (A->data[8]) + (A->data[1]) * (A->data[5]) * (A->data[6]) + (A->data[3]) * (A->data[7]) * (A->data[2]);
-    	matr_det -= ((A->data[2]) * (A->data[4]) * (A->data[6]) + (A->data[1]) * (A->data[3]) * (A->data[8]) + (A->data[0]) * (A->data[5]) * (A->data[7]));
-    	return matr_det;
-    }
-    matrix_error_message();
-    return NAN;
+    for (size_t rowA = 0; rowA < A.rows; ++rowA)
+        for (size_t colB = 0; colB < B.cols; ++colB)
+            for (size_t colA = 0; colA < A.cols; ++colA)
+                C.data[C.cols * rowA + colB] += A.data[colA + rowA * A.cols] * B.data[B.cols * colA + colB];
+    
+    return C;
 }
 
+//     ٧ӧ֧է֧ߧڧ   ާѧ  ڧ         ֧ ֧ߧ 
+struct Matrix matrix_exponent(const struct Matrix A, const double accuracy)
+{ 
+    if (A.cols != A.rows)
+        return MATRIX_NULL;
 
-//e^A
-struct Matrix matrix_exp(struct Matrix *A, const size_t accuracy)
-{
-    if (A->cols != A->rows) {
-    	matrix_error_message();
-    	return MATRIX_NULL;
-    }
+    struct Matrix C = matrix_init(A.cols, A.rows);
+    if (C.data == NULL)
+        return C;
+    matrix_zero(C);
 
-    struct Matrix E = matrix_init(A->rows, A->cols);
+    struct Matrix B = matrix_init(A.cols, A.rows);
+    matrix_copy(B, A);
 
-    if (E.data == NULL) {
-    	return MATRIX_NULL;
-    }
-    struct Matrix matrix_transfer;
+    int degree;
+    degree = (int)(ceil(1.0 / accuracy));
 
-    for (size_t deg_acc = 1; deg_acc <= accuracy; ++deg_acc) {
-    	matrix_transfer = sum_for_e(deg_acc, *A);
-    	struct Matrix buf1 = E;
-    	E = matrix_sum(buf1, matrix_transfer);
-    	matrix_free(&buf1);
-    	matrix_free(&matrix_transfer);
-    }
-    return E;
-}
+    for (int trm = 2; trm <= degree; ++trm) {
+       matrix_add_mult(B, A);
+       matrix_mult_by_coeff(B, 1.0 / trm);
+       matrix_add(C, B);
+    };
 
+    matrix_add(C, A);
 
-int main()
-{
-    struct Matrix A, B, C;
-
-    double det;
-
-    A = matrix_init(3, 3);
-    matrix_fill(&A);
-    matrix_print(A);
-
-    B = matrix_init(3, 3);
-    matrix_fill(&B);
-    matrix_print(B);
-
-    matrix_sum(B, A);
-    matrix_print(B);
-
-    C = matrix_mult(A, B);
-    matrix_print(C);
-
-    C = matrix_transp(&C);
-    matrix_print(C);
-
-    det = matrix_det(&C);
-    printf("%f \n", det);
-
-    A = matrix_exp(&A, 3);
-    matrix_print(A);
-	
-    matrix_free(&A);
+    for (size_t diag = 0; diag < C.rows; ++diag)
+        C.data[diag * C.cols + diag] += 1;
+    
     matrix_free(&B);
+
+    return C;
+}
+
+//      ӧ֧ ܧ ,   ѧӧߧ   ݧ      ֧է֧ݧڧ ֧ݧ   ާѧ  ڧ    ߧ ݧ 
+int matrix_det_if_zero(const struct Matrix A)
+{
+    size_t count;
+
+    for (size_t row = 0; row < A.rows; ++row) {
+        count = 0;
+        for (size_t col = 0; col < A.cols; ++col) {
+            count += 1;
+            if (A.data[row * A.cols + col] != 0.0)
+                break;
+        };
+        
+        if (count == A.cols)
+            return 0;
+    };
+    
+    for (size_t col = 0; col < A.cols; ++col) {
+        count = 0;
+        for (size_t row = 0; row < A.rows; ++row) {
+            count += 1;
+            if (A.data[row * A.cols + col] != 0.0)
+                break;
+        };
+        
+        if (count == A.rows)
+            return 0;
+    };
+    
+    return 1;
+}
+
+//     էԧ   ӧܧ   ާѧ  ڧ       ӧ  ڧ ݧ֧ߧڧ      ֧է֧ݧڧ ֧ݧ 
+void matrix_det_prep(const struct Matrix A, size_t diag, double *coeff)
+{
+    size_t buff_one = diag;
+
+    if (A.data[diag * A.cols + diag] == 0.0) {
+        for (size_t row = diag; row < A.rows; ++row) {
+            buff_one += 1;
+            if (A.data[row * A.cols] != 0.0)
+                break;
+        };
+
+        double buff_two = 0;
+        
+        for (size_t col = diag; col < A.cols; ++col) {
+            buff_two = A.data[diag * A.cols + col];
+            A.data[diag * A.cols + col] = A.data[buff_one * A.cols + col];
+            A.data[buff_one * A.cols + col] = buff_two;
+        };
+
+        *coeff *= -1;
+    };
+
+    return;
+}
+
+//      ڧ ݧ֧ߧڧ      ֧է֧ݧڧ ֧ݧ   ާѧ  ڧ  
+double matrix_det(const struct Matrix A)
+{
+    if (A.cols != A.rows)
+        return NAN;
+    
+    struct Matrix C = matrix_init(A.cols, A.rows);
+    if (C.data == NULL)
+        return NAN;
+    matrix_copy(C, A);
+
+    if (A.cols == 1) {
+        matrix_free(&C);
+        return A.data[0];
+    }; 
+
+    if (matrix_det_if_zero(C) == 0) {
+        matrix_free(&C);
+        return 0.0;
+    };
+    
+    double coeff = 1.0;
+    double diagonal = 1.0;
+    double buff_one, buff_two;
+
+    for (size_t diag = 0; diag < A.rows - 1; ++diag) {
+        matrix_det_prep(C, diag, &coeff);
+        coeff *= C.data[diag * A.cols + diag];
+        buff_one = C.data[diag * A.cols + diag];
+for (size_t col = diag; col < A.cols; ++col)
+            C.data[diag * A.cols + col] /= buff_one;
+
+     for (size_t row = diag + 1; row < A.rows; ++row) {
+         buff_two = C.data[row * A.cols + diag];
+         for (size_t col = diag; col < A.cols; ++col) {
+             C.data[row * A.cols + col] = C.data[row * A.cols + col] - C.data[diag * A.cols + col] * buff_two;
+         };  
+     };
+ };
+
+    for (size_t diag = 0; diag < A.rows; ++diag)
+        diagonal *= C.data[diag * A.cols + diag];
+    
     matrix_free(&C);
 
-    return 0;
+    double result = coeff * diagonal;
+    
+    return result;
 }
+
+int main() {
+    struct Matrix A, B, F;
+
+    A = matrix_init(3, 3);
+    B = matrix_init(3, 3);
+    F = matrix_init(2, 2);
+
+    for (int k = 0; k <= A.cols * A.rows - 1; ++k)
+        A.data[k] = k+1;
+    A.data[3] = 20.0;
+    A.data[0] = 0.0;
+    print_matrix(A);
+
+    for (int k = 0; k <= B.cols * B.rows - 1; ++k)
+        B.data[k] = B.cols * B.rows - k;
+    print_matrix(B);
+
+    double a;
+    a = matrix_det(A);
+    printf("det A = %lf \n", a);
+
+    F.data[0] = 0.0; F.data[1] = 1.0; F.data[2] = 1.0; F.data[3] = 0.0;
+
+    matrix_free(&A);
+    matrix_free(&B);
+    matrix_free(&F);
+
+    return 0;
+} 
