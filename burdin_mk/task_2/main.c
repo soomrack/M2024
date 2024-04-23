@@ -64,6 +64,7 @@ struct Matrix matrix_make_ident(size_t rows, size_t cols) {
 // Освобождение памяти, выделенной под матрицу
 void matrix_free(struct Matrix* matrix) {
     free(matrix->data);
+    *matrix = MATRIX_NULL;
 }
 
 // Заполнение матрицы случайными значениями
@@ -103,7 +104,7 @@ void matrix_add(const struct Matrix A, const struct Matrix B) {
 // Вычисление разности матриц A и B
 struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B) {
     if (A.cols != B.cols || A.rows != B.rows)
-        return { 0, 0, NULL};
+        return MATRIX_NULL;
 
     struct Matrix C = matrix_init(A.cols, A.rows);
     if (C.data == NULL)
@@ -242,7 +243,7 @@ struct Matrix sum_for_e(const struct Matrix A, const size_t deg_acc) {
 struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy) {
     if (A->cols != A->rows) {
         matrix_error_message("У вас не квадратная матрица");  
-        return { 0, 0, NULL};
+        return MATRIX_NULL;
     }
 
     struct Matrix E = matrix_init(A->rows, A->cols);
@@ -263,7 +264,7 @@ struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy) {
 }
 
 int main() {
-    system("chcp 65001");
+    system("chcp 65001");Ы
     struct Matrix A, B, C;
 
     double det;
