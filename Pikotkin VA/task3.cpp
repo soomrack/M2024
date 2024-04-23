@@ -21,8 +21,7 @@ MatrixException MESSAGE_ERROR("message error");
 MatrixException WRONG_CONDITIONS("wrong conditions");
 MatrixException MEMORY_NOT_ALLOCATED(" memory not allocated");
 
-class Matrix
-{
+class Matrix{
 private:
     size_t cols;
     size_t rows;
@@ -41,26 +40,26 @@ public:
     Matrix& operator-= (const Matrix& M);
     Matrix& operator*= (const double k);
     Matrix& operator*= (const Matrix& M);
-    Matrix& operator+(const Matrix& M);
-    Matrix& operator-(const Matrix& M);
-    Matrix& operator*(const Matrix& M);
-    Matrix& operator*(const double k);
+    Matrix operator+(const Matrix& M);
+    Matrix operator-(const Matrix& M);
+    Matrix operator*(const Matrix& M);
+    Matrix operator*(const double k);
 public:
     void print();
-    Matrix& make_ident(size_t rows, size_t cols);
-    Matrix& transp();
+    Matrix make_ident(size_t rows, size_t cols);
+    Matrix transp();
     double matrix_det();
-    Matrix& exp(Matrix& A, const size_t accuracy);
+    Matrix exp(const Matrix& A, const size_t accuracy);
 };
 
 
 Matrix::Matrix() : cols(0), rows(0), data(nullptr) {}
 
 
-Matrix::Matrix(const size_t rows, const size_t cols) : cols(cols), rows(rows), data(new double[cols * rows])
-{
-    if (rows == 0 || cols == 0) throw MatrixException("The matrix is not initialized");
-    if (rows >= SIZE_MAX / sizeof(double) / cols) throw MatrixException("The matrix is not initialized");
+Matrix::Matrix(const size_t rows, const size_t cols) : cols(cols), rows(rows), data(nullptr) {
+    if (rows != 0 || cols != 0) {
+        data = new double[cols * rows];
+    }
 }
 
 
@@ -84,39 +83,44 @@ Matrix::Matrix(Matrix&& A) {
 }
 
 
-Matrix::Matrix(const Matrix& A)
-{
-    cols = A.cols;
-    rows = A.rows;
-    data = new double[cols * rows];
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) data[idx] = A.data[idx];
-}
+Matrix::Matrix(const Matrix& A) : cols(A.cols), rows(A.rows), data(nullptr) {
+    if (rows != 0 && cols != 0) {
+        data = new double[cols * rows];
+        std::memcpy(data, A.data, cols * rows * sizeof(double));
+    }
+} 
 
 
 Matrix& Matrix::operator= (const Matrix& M) {
     if (this == &M) return *this;
-    delete[] data;
 
-    rows = M.rows;
-    cols = M.cols;
-
-    data = new double[rows * cols];
-    memcpy(data, M.data, cols * rows * sizeof(double));
+    if (rows == M.rows && cols == M.cols && data != nullptr && M.data != nullptr){
+        std::memcpy(data, M.data, cols * rows * sizeof(double));
+    }
+    else if ( data != nullptr && M.data != nullptr) { 
+        delete[] data;
+        rows = M.rows;
+        cols = M.cols;
+        data = new double[rows * cols];
+        std::memcpy(data, M.data, cols * rows * sizeof(double));
+    }
 
     return *this;
-}
+} 
 
 
 Matrix& Matrix::operator= (Matrix&& M) {
-    if (this == &M) return *this;
     delete[] data;
 
     rows = M.rows;
     cols = M.cols;
     data = M.data;
+    M.rows = 0;
+    M.cols = 0;
     M.data = nullptr;
     return *this;
 }
+
 
 
 Matrix::~Matrix()
@@ -128,37 +132,36 @@ Matrix::~Matrix()
 }
 
 
-Matrix& Matrix::exp(Matrix& A, const size_t accuracy)
+Matrix Matrix::exp(const Matrix& A, const size_t accuracy)
 {
-    if (data == nullptr) throw MESSAGE_ERROR;
+    if (A.data == nullptr) throw MESSAGE_ERROR;
     if (A.cols != A.rows) throw MatrixException("Error! The matrix is not square!");
-    Matrix* exp = new Matrix(A.rows, A.cols);
+    Matrix exp(A.rows, A.cols);
     Matrix item = make_ident(A.rows, A.cols);
     for (double deg_acc = 1; deg_acc <= accuracy; ++deg_acc)
     {
         item = (item * A * (1 / deg_acc));
-        *exp += item;
+        exp += item;
     }
-    return *exp;
+    return exp;
 }
 
 
-Matrix& Matrix::make_ident(size_t rows, size_t cols)
+Matrix Matrix::make_ident(size_t rows, size_t cols)
 {
-    Matrix* I = new Matrix(rows, cols);
-    if (I->data == nullptr) throw MatrixException("The matrix is not initialized");
+    Matrix I(rows, cols);
     for (size_t idx = 0; idx < rows * cols; idx++)
     {
         if (idx % (rows + 1) == 0)
         {
-            I->data[idx] = 1.;
+            I.data[idx] = 1.0;
         }
         else
         {
-            I->data[idx] = 0;
+            I.data[idx] = 0.0;
         }
     }
-    return *I;
+    return I;
 }
 
 
@@ -211,18 +214,18 @@ void Matrix::print()
 }
 
 
-Matrix& Matrix::transp()
+Matrix Matrix::transp()
 {
-    Matrix* C = new Matrix(rows, cols);
+    Matrix C(cols, rows);
 
     for (size_t rowA = 0; rowA < rows; ++rowA)
     {
         for (size_t colsA = 0; colsA < cols; ++colsA)
         {
-            C->data[(rows)*colsA + rowA] = data[colsA + rowA * cols];
+            C.data[colsA * rows + rowA] = data[colsA + rowA * cols];
         }
     }
-    return *C;
+    return C;
 }
 
 
@@ -247,10 +250,11 @@ Matrix& Matrix::operator*= (const double k) {
 }
 
 
-Matrix& Matrix::operator*= (const Matrix& M) {
+Matrix& Matrix::operator*= (const Matrix& M) { 
     if (cols != M.rows) throw MESSAGE_ERROR;
 
     Matrix R(rows, M.cols);
+    memset(R.data, 0, R.rows * R.cols * sizeof(double));
     for (size_t row = 0; row < R.rows; row++)
     {
         for (size_t col = 0; col < R.cols; col++) 
@@ -270,27 +274,31 @@ Matrix& Matrix::operator*= (const Matrix& M) {
 }
 
 
-Matrix& Matrix::operator+(const Matrix& M) {
-    *this += M ;
-    return *this;
+Matrix Matrix::operator+(const Matrix& M) {
+    Matrix A(*this);
+    A += M ;
+    return A;
 }
 
 
-Matrix& Matrix::operator-(const Matrix& M) {
-    *this -= M;
-    return *this;
+Matrix Matrix::operator-(const Matrix& M) {
+    Matrix A(*this);
+    A -= M;
+    return A;
 }
 
 
-Matrix& Matrix::operator*(const Matrix& M) {
-    *this *= M;
-    return *this;
+Matrix Matrix::operator*(const Matrix& M) {
+    Matrix A(*this);
+    A *= M;
+    return A;
 }
 
 
-Matrix& Matrix::operator*(const double k) {
-    *this *= k;
-    return *this;
+Matrix Matrix::operator*(const double k) {
+    Matrix A(*this);
+    A *= k;
+    return A;
 }
 
 
