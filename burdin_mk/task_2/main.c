@@ -221,7 +221,8 @@ struct Matrix sum_for_e(const struct Matrix A, const size_t deg_acc) {
     }
 
     E = matrix_copy(A);
-
+    matrix_free(&A);
+    
     if (deg_acc == 2) {
         return E;
     }
@@ -256,7 +257,8 @@ struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy) {
     for (size_t deg_acc = 1; deg_acc <= accuracy; ++deg_acc) {
         MatrixTransfer = sum_for_e(*A, deg_acc);
         struct Matrix buf1 = E;
-        E = matrix_copy(matrix_add(buf1, MatrixTransfer));
+        matrix_add(buf1, MatrixTransfer);
+        E = matrix_copy(buf1);
         matrix_free(&buf1);
         matrix_free(&MatrixTransfer);
     }
