@@ -45,10 +45,10 @@ public:
     Matrix operator-(const Matrix& M) const;
     Matrix operator*(double scalar) const;
     Matrix operator*(const Matrix& M) const;
-    void operator+=(const Matrix& M);
-    void operator-=(const Matrix& M);
-    void operator*=(double scalar);
-    void operator*=(const Matrix& M);
+    Matrix& operator+=(const Matrix& M);
+    Matrix& operator-=(const Matrix& M);
+    Matrix& operator*=(double scalar);
+    Matrix& operator*=(const Matrix& M);
     Matrix T();
     double det();
     Matrix exp(unsigned int n = 100) const;
@@ -85,10 +85,10 @@ void Matrix::fill(enum MatrixType matrix_type) {
 
 
 Matrix::Matrix(const size_t n) {
-    if (n >= SIZE_MAX / sizeof(matrix_item) / n) throw MatrixException("Memory allocation error");
-
     if (n == 0) return;
-
+    
+    if (n >= SIZE_MAX / sizeof(matrix_item) / n) throw MatrixException("Memory allocation error");
+        
     rows = n;
     cols = n;
     data = new matrix_item[n * n];
@@ -96,10 +96,10 @@ Matrix::Matrix(const size_t n) {
 
 
 Matrix::Matrix(size_t rows_amount, size_t cols_amount, MatrixType matrix_type) {
+    if (rows_amount == 0 && cols_amount == 0) throw MatrixException("Bad matrix error");
+
     if (rows_amount >= SIZE_MAX / sizeof(matrix_item) / cols_amount)
         throw MatrixException("Memory allocation error");
-
-    if (rows_amount == 0 && cols_amount == 0) return;
 
     if (rows_amount == 0 || cols_amount == 0) {
         rows = rows_amount;
@@ -139,6 +139,8 @@ void Matrix::print() {
 
 
 Matrix::Matrix(const Matrix& M) {
+    if (rows == 0 && cols == 0) throw MatrixException("Bad matrix error");
+        
     if (rows >= SIZE_MAX / sizeof(matrix_item) / cols) throw MatrixException("Memory allocation error");
 
     rows = M.rows;
@@ -238,32 +240,35 @@ Matrix Matrix::operator*(const Matrix& M) const {
 }
 
 
-void Matrix::operator+=(const Matrix& M) {
+Matrix& Matrix::operator+=(const Matrix& M) {
     if (data == nullptr || M.data == nullptr) throw MatrixException("Bad matrix error");
 
     if (rows != M.rows || cols != M.cols) throw MatrixException("Matrix dimensions do not match");
 
     for (size_t idx = 0; idx < rows * cols; idx++) data[idx] += M.data[idx];
+    return *this;
 }
 
 
-void Matrix::operator-=(const Matrix& M) {
+Matrix& Matrix::operator-=(const Matrix& M) {
     if (data == nullptr || M.data == nullptr) throw MatrixException("Bad matrix error");
 
     if (rows != M.rows || cols != M.cols) throw MatrixException("Matrix dimensions do not match");
 
     for (size_t idx = 0; idx < rows * cols; ++idx) data[idx] -= M.data[idx];
+    return *this;
 }
 
 
-void Matrix::operator*=(double scalar) {
+Matrix& Matrix::operator*=(double scalar) {
     if (data == nullptr) throw MatrixException("Bad matrix error");
 
     for (size_t idx = 0; idx < rows * cols; idx++) data[idx] *= scalar;
+    return *this;
 }
 
 
-void Matrix::operator*=(const Matrix& M) {
+Matrix& Matrix::operator*=(const Matrix& M) {
     if (data == nullptr || M.data == nullptr)
         throw MatrixException("Bad matrix error");
 
@@ -279,6 +284,7 @@ void Matrix::operator*=(const Matrix& M) {
                 data[this_row * cols + idx] * M.data[idx * M.cols + M_col];
 
     *this = product;
+    return *this;
 }
 
 
