@@ -162,21 +162,21 @@ Matrix& Matrix::operator=(const Matrix& A)
     }
 
     if (rows * cols == A.cols * A.rows) {
-        if (A.items == nullptr)
-            throw NULL_POINTER_REFERENCE;
-
         memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
         return *this;
     }
 
     delete[] items;
 
+    items = new MatrixItem[A.rows * A.cols];
+
     rows = A.rows;
     cols = A.cols;
-    if (A.items != nullptr) {
-        items = new MatrixItem[A.rows * A.cols];
-        memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
-    }
+
+    if (A.items == nullptr)
+        throw NULL_POINTER_REFERENCE;
+
+    memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
 
     return *this;
 }
