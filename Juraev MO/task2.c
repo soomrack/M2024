@@ -70,7 +70,7 @@ struct Matrix matrix_make_ones(size_t rows, size_t cols)  // создание е
         return MATRIX_NULL;
     }
 
-    memset(O.data, 0, sizeof(O.data));
+    memset(O.data, 0, rows * cols * sizeof(double));
 
     for (size_t idx = 0; idx < rows * cols; idx++) {
         if (idx % (rows + 1) == 0) {
