@@ -96,17 +96,11 @@ Matrix::Matrix(const size_t n) {
 
 
 Matrix::Matrix(size_t rows_amount, size_t cols_amount, MatrixType matrix_type) {
-    if (rows_amount == 0 && cols_amount == 0) throw MatrixException("Bad matrix error");
+    if (rows_amount == 0 || cols_amount == 0) throw MatrixException("Bad matrix error");
 
     if (rows_amount >= SIZE_MAX / sizeof(matrix_item) / cols_amount)
         throw MatrixException("Memory allocation error");
-
-    if (rows_amount == 0 || cols_amount == 0) {
-        rows = rows_amount;
-        cols = cols_amount;
-        return;
-    }
-
+    
     rows = rows_amount;
     cols = cols_amount;
     data = new matrix_item[rows * cols];
@@ -139,7 +133,7 @@ void Matrix::print() {
 
 
 Matrix::Matrix(const Matrix& M) {
-    if (rows == 0 && cols == 0) throw MatrixException("Bad matrix error");
+    if (rows == 0 || cols == 0) throw MatrixException("Bad matrix error");
         
     if (rows >= SIZE_MAX / sizeof(matrix_item) / cols) throw MatrixException("Memory allocation error");
 
