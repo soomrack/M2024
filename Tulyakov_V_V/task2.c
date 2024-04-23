@@ -56,7 +56,7 @@ void matrix_copy(struct Matrix dest, const struct Matrix src) {
     memcpy(dest.data, src.data, size);
 }
 
-//    ާߧ ا֧ߧڧ   ާѧ  ڧ    ߧ    ܧѧݧ  
+//Умножение матрицы на скаляр
 void matrix_mult_by_coeff(struct Matrix A, const double coefficient)
 {
     if (A.data == NULL)
@@ -68,14 +68,14 @@ void matrix_mult_by_coeff(struct Matrix A, const double coefficient)
     return;
 }
 
-//    ҧߧ ݧ֧ߧڧ   ާѧ  ڧ  
+//Обнуление матрицы
 void matrix_zero(struct Matrix A)
 {
     memset(A.data, 0, A.cols * A.rows * sizeof(MatrixItem));
     return;
 }
 
-//    ݧ ا֧ߧڧ   ާѧ  ڧ 
+//Сложение матриц
 struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows)
@@ -91,7 +91,7 @@ struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
     return C;
 }
 
-//     ҧѧӧݧ֧ߧڧ   ާѧ  ڧ       է  ԧ    ާѧ  ڧ  
+//Добавление матрицы к другой матрице
 void matrix_add(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows)
@@ -106,7 +106,7 @@ void matrix_add(const struct Matrix A, const struct Matrix B)
     return;
 }
 
-//      ڧ ѧߧڧ   ާѧ  ڧ 
+//Вычитание матриц
 struct Matrix matrix_substr(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows)
@@ -122,7 +122,7 @@ struct Matrix matrix_substr(const struct Matrix A, const struct Matrix B)
     return C;
 }
 
-//    ާߧ ا֧ߧڧ   ާѧ  ڧ 
+//Умножение матриц
 struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.rows)
@@ -142,7 +142,7 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
     return C;
 }
 
-//     ٧ӧ֧է֧ߧڧ   ާѧ  ڧ         ֧ ֧ߧ 
+//Возведение матрицы в степень
 struct Matrix matrix_exponent(const struct Matrix A, const double accuracy)
 { 
     if (A.cols != A.rows)
@@ -175,7 +175,7 @@ struct Matrix matrix_exponent(const struct Matrix A, const double accuracy)
     return C;
 }
 
-//      ӧ֧ ܧ ,   ѧӧߧ   ݧ      ֧է֧ݧڧ ֧ݧ   ާѧ  ڧ    ߧ ݧ 
+//Проверка равен ли определитель 0
 int matrix_det_if_zero(const struct Matrix A)
 {
     size_t count;
@@ -207,7 +207,7 @@ int matrix_det_if_zero(const struct Matrix A)
     return 1;
 }
 
-//     էԧ   ӧܧ   ާѧ  ڧ       ӧ  ڧ ݧ֧ߧڧ      ֧է֧ݧڧ ֧ݧ 
+//Преобразование матрицы к верзнетреугольному виду
 void matrix_det_prep(const struct Matrix A, size_t diag, double *coeff)
 {
     size_t buff_one = diag;
@@ -233,7 +233,7 @@ void matrix_det_prep(const struct Matrix A, size_t diag, double *coeff)
     return;
 }
 
-//      ڧ ݧ֧ߧڧ      ֧է֧ݧڧ ֧ݧ   ާѧ  ڧ  
+//Вычисление определителя матрицы
 double matrix_det(const struct Matrix A)
 {
     if (A.cols != A.rows)
