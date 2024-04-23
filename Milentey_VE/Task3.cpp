@@ -174,7 +174,7 @@ Matrix& Matrix::operator=(const Matrix& A)
     cols = A.cols;
 
     if (A.items == nullptr)
-        throw NULL_POINTER_REFERENCE;
+        return *this;
 
     memcpy(items, A.items, rows * cols * sizeof(MatrixItem));
 
