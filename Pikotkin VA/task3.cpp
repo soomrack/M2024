@@ -46,8 +46,8 @@ public:
     Matrix operator*(const double k);
 public:
     void print();
-    Matrix& make_ident(size_t rows, size_t cols);
-    Matrix& transp();
+    Matrix make_ident(size_t rows, size_t cols);
+    Matrix transp();
     double matrix_det();
     Matrix exp(const Matrix& A, const size_t accuracy);
 };
@@ -56,7 +56,11 @@ public:
 Matrix::Matrix() : cols(0), rows(0), data(nullptr) {}
 
 
-Matrix::Matrix(const size_t rows, const size_t cols) : cols(cols), rows(rows), data(nullptr) {}
+Matrix::Matrix(const size_t rows, const size_t cols) : cols(cols), rows(rows), data(nullptr) {
+    if (rows != 0 || cols != 0) {
+        data = new double[cols * rows];
+    }
+}
 
 
 Matrix::Matrix(const size_t rows, const size_t cols, const double* values): cols(cols), rows(rows), data(nullptr)
@@ -84,16 +88,16 @@ Matrix::Matrix(const Matrix& A) : cols(A.cols), rows(A.rows), data(nullptr) {
         data = new double[cols * rows];
         std::memcpy(data, A.data, cols * rows * sizeof(double));
     }
-} //
+} 
 
 
 Matrix& Matrix::operator= (const Matrix& M) {
     if (this == &M) return *this;
 
-    if (rows == M.rows && cols == M.cols) {
+    if (rows == M.rows && cols == M.cols && data != nullptr && M.data != nullptr){
         std::memcpy(data, M.data, cols * rows * sizeof(double));
     }
-    else {
+    else if ( data != nullptr && M.data != nullptr) { 
         delete[] data;
         rows = M.rows;
         cols = M.cols;
@@ -102,11 +106,10 @@ Matrix& Matrix::operator= (const Matrix& M) {
     }
 
     return *this;
-} // 
+} 
 
 
-Matrix& Matrix::operator= (Matrix&& M) { // указание на ту же память и чистит ее
-    if (this == &M) return *this;
+Matrix& Matrix::operator= (Matrix&& M) {
     delete[] data;
 
     rows = M.rows;
@@ -128,7 +131,7 @@ Matrix::~Matrix()
     data = nullptr;
 }
 
-//без нью, убрать утечку и дикримент в заголовке и возвращать не ссылку
+
 Matrix Matrix::exp(const Matrix& A, const size_t accuracy)
 {
     if (A.data == nullptr) throw MESSAGE_ERROR;
@@ -144,21 +147,21 @@ Matrix Matrix::exp(const Matrix& A, const size_t accuracy)
 }
 
 
-Matrix& Matrix::make_ident(size_t rows, size_t cols)
+Matrix Matrix::make_ident(size_t rows, size_t cols)
 {
-    Matrix* I = new Matrix(rows, cols);
+    Matrix I(rows, cols);
     for (size_t idx = 0; idx < rows * cols; idx++)
     {
         if (idx % (rows + 1) == 0)
         {
-            I->data[idx] = 1.;
+            I.data[idx] = 1.0;
         }
         else
         {
-            I->data[idx] = 0;
+            I.data[idx] = 0.0;
         }
     }
-    return *I;
+    return I;
 }
 
 
@@ -211,18 +214,18 @@ void Matrix::print()
 }
 
 
-Matrix& Matrix::transp()
+Matrix Matrix::transp()
 {
-    Matrix* C = new Matrix(rows, cols);
+    Matrix C(cols, rows);
 
     for (size_t rowA = 0; rowA < rows; ++rowA)
     {
         for (size_t colsA = 0; colsA < cols; ++colsA)
         {
-            C->data[(rows)*colsA + rowA] = data[colsA + rowA * cols];
+            C.data[colsA * rows + rowA] = data[colsA + rowA * cols];
         }
     }
-    return *C;
+    return C;
 }
 
 
@@ -247,17 +250,11 @@ Matrix& Matrix::operator*= (const double k) {
 }
 
 
-Matrix& Matrix::operator*= (const Matrix& M) { //  обнулить перед циклом R
+Matrix& Matrix::operator*= (const Matrix& M) { 
     if (cols != M.rows) throw MESSAGE_ERROR;
 
     Matrix R(rows, M.cols);
-    for (size_t row = 0; row < R.rows; row++)
-    {
-        for (size_t col = 0; col < R.cols; col++)
-        {
-            R.data[row * R.cols + col] = 0;
-        }
-    }
+    memset(R.data, 0, R.rows * R.cols * sizeof(double));
     for (size_t row = 0; row < R.rows; row++)
     {
         for (size_t col = 0; col < R.cols; col++) 
@@ -277,7 +274,7 @@ Matrix& Matrix::operator*= (const Matrix& M) { //  обнулить перед �
 }
 
 
-Matrix Matrix::operator+(const Matrix& M) { // исправить везде по фотке
+Matrix Matrix::operator+(const Matrix& M) {
     Matrix A(*this);
     A += M ;
     return A;
