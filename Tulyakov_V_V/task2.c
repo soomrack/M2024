@@ -6,17 +6,14 @@
 
 typedef double MatrixItem;
 
-// Структура для представления матрицы
 struct Matrix {
-    size_t cols;     // Количество столбцов
-    size_t rows;     // Количество строк
-    MatrixItem *data; // Указатель на данные матрицы
+    size_t cols;     
+    size_t rows;    
+    MatrixItem *data; 
 };
 
-// Константа для обозначения пустой матрицы
 const struct Matrix MATRIX_NULL = {.cols = 0, .rows = 0, .data = NULL};
 
-// Функция инициализации матрицы
 struct Matrix matrix_init(const size_t cols, const size_t rows) {
     if (cols == 0 || rows == 0) {
         struct Matrix A = {.cols = cols, .rows = rows, .data = NULL};
@@ -35,23 +32,22 @@ struct Matrix matrix_init(const size_t cols, const size_t rows) {
 
 }
 
-// Функция освобождения памяти, занимаемой матрицей
 void matrix_free(struct Matrix *matrix) {
     if (matrix->data == NULL)
         return;
 
     free(matrix->data);
-    matrix->data = NULL; // Обнуляем указатель после освобождения памяти
-    matrix->cols = 0;    // Устанавливаем нулевые размеры
+    matrix->data = NULL; 
+    matrix->cols = 0;    
     matrix->rows = 0;
 }
 
-// Функция печати матрицы
+
 void print_matrix(const struct Matrix A) {
     printf("_____________________________________________ \n");
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) { // Исправлено с 1 на 0
+    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) { 
         printf("%4.2f \t", A.data[idx]);
-        if ((idx + 1) % A.cols == 0) // Исправлено условие для переноса строки
+        if ((idx + 1) % A.cols == 0)
             printf("\n");
     }
     printf("\n");
@@ -147,7 +143,7 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
     return C;
 }
 
-// Функция возведения матрицы в степень
+// Функция вычисления экспоненты матрицы
 struct Matrix matrix_exponent(const struct Matrix A, const double accuracy)
 { 
     if (A.cols != A.rows)
@@ -164,7 +160,7 @@ struct Matrix matrix_exponent(const struct Matrix A, const double accuracy)
     int degree = (int)(ceil(1.0 / accuracy));
 
     for (int trm = 2; trm <= degree; ++trm) {
-       matrix_add(B, A);            // Исправлено на matrix_add
+       matrix_add(B, A);          
        matrix_mult_by_coeff(B, 1.0 / trm);
        matrix_add(C, B);
     }
@@ -211,7 +207,7 @@ int matrix_det_if_zero(const struct Matrix A)
     return 1;
 }
 
-// Функция подготовки матрицы к вычислению определителя
+// Функция приведения к верхнетреугольному виду
 void matrix_det_prep(const struct Matrix A, size_t diag, double *coeff)
 {
     size_t buff_one = diag;
@@ -286,32 +282,26 @@ double matrix_det(const struct Matrix A)
     return result;
 }
 
-// Основная функция программы
 int main() {
     struct Matrix A, B, F;
 
-    // Инициализация матриц
-    A = matrix_init(3, 3);
+       A = matrix_init(3, 3);
     B = matrix_init(3, 3);
     F = matrix_init(2, 2);
 
-    // Заполнение матрицы A данными
     for (int k = 0; k <= A.cols * A.rows - 1; ++k)
         A.data[k] = k + 1;
     A.data[3] = 20.0;
     A.data[0] = 0.0;
     print_matrix(A);
 
-    // Заполнение матрицы B данными
     for (int k = 0; k <= B.cols * B.rows - 1; ++k)
         B.data[k] = B.cols * B.rows - k;
     print_matrix(B);
 
-    // Вычисление определителя матрицы A
     double a = matrix_det(A);
     printf("det A = %lf \n", a);
 
-    // Освобождение памяти, занимаемой матрицами
     matrix_free(&A);
     matrix_free(&B);
     matrix_free(&F);
