@@ -513,11 +513,11 @@ int main()
 {
     srand(time(NULL));
 
-    Matrix A(6, 4);
+    Matrix A(3, 4);
     init_matrix_as_random(&A);
     std::cout << A << std::endl;
 
-    Matrix B(6, 4);
+    Matrix B(3, 4);
     init_matrix_as_random(&B);
     std::cout << B << std::endl;
 
