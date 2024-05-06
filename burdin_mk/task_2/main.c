@@ -211,7 +211,7 @@ struct Matrix matrix_copy(const struct Matrix A) {
 
 // Возведение матрицы в степень
 struct Matrix sum_for_e(const struct Matrix A, const size_t deg_acc) {
-    if (deg_acc == 1)
+    if (deg_acc == 0)
     {
         return matrix_make_ident(A.cols, A.rows);
     }
@@ -224,7 +224,7 @@ struct Matrix sum_for_e(const struct Matrix A, const size_t deg_acc) {
 
     E = matrix_copy(A);
 
-    if (deg_acc == 2) {
+    if (deg_acc == 1) {
         return E;
     }
 
