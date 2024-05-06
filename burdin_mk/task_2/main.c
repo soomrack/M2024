@@ -64,6 +64,8 @@ struct Matrix matrix_make_ident(size_t rows, size_t cols) {
 // Освобождение памяти, выделенной под матрицу
 void matrix_free(struct Matrix* matrix) {
     free(matrix->data);
+    *matrix.rows = 0;
+    *matrix.cols = 0;
     *matrix = MATRIX_NULL;
 }
 
@@ -221,8 +223,7 @@ struct Matrix sum_for_e(const struct Matrix A, const size_t deg_acc) {
     }
 
     E = matrix_copy(A);
-    matrix_free(&A);
-    
+
     if (deg_acc == 2) {
         return E;
     }
@@ -243,7 +244,7 @@ struct Matrix sum_for_e(const struct Matrix A, const size_t deg_acc) {
 // Вычисление экспоненты от матрицы
 struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy) {
     if (A->cols != A->rows) {
-        matrix_error_message("У вас не квадратная матрица");  
+        matrix_error_message("У вас не квадратная матрица");
         return MATRIX_NULL;
     }
 
@@ -266,8 +267,8 @@ struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy) {
 }
 
 int main() {
-    system("chcp 65001");Ы
-    struct Matrix A, B, C;
+    system("chcp 65001"); Ы
+        struct Matrix A, B, C;
 
     double det;
 
