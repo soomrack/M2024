@@ -29,20 +29,20 @@ public:
     Matrix& operator+=(const Matrix& A);
     Matrix& operator-(const Matrix& A);
     Matrix& operator*(const Matrix& A);
+    Matrix& operator*(const MatrixItem A);
     Matrix& transposition();
     MatrixItem determinant();
     Matrix& exponent(unsigned int m);
     Matrix& set_zero();
     Matrix& set_one();
-    Matrix& operator*(const MatrixItem A);
 };
 
 
-class MatrixExeption : public std::exception {
+class MatrixException : public std::exception {
 protected:
     std::string msg;
 public:
-    MatrixExeption(std::string message_of_error) : msg{ message_of_error } {};
+    MatrixException(std::string message_of_error) : msg{ message_of_error } {};
 };
 
 
@@ -50,7 +50,7 @@ Matrix::Matrix(const size_t rows, const size_t cols)
     : rows(rows), cols(cols)
 {
     if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols)
-        throw MatrixExeption("too large object");
+        throw MatrixException("too large object");
     data = new MatrixItem[rows * cols];
 }
 
@@ -59,7 +59,7 @@ Matrix::Matrix(const size_t rows, const size_t cols, const MatrixItem* values)
     : rows(rows), cols(cols)
 {
     if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols)
-        throw MatrixExeption("too large object");
+        throw MatrixException("too large object");
     data = new MatrixItem[rows * cols];
     memcpy(data, values, rows * cols * sizeof(MatrixItem));
 }
@@ -142,7 +142,7 @@ Matrix& Matrix::operator=(Matrix&& A) noexcept
 // A += B
 Matrix& Matrix::operator+=(const Matrix& A) {
     if (A.cols != cols || A.rows != rows)
-        throw MatrixExeption("Operator+=: Incorrect sizes");
+        throw MatrixException("Operator+=: Incorrect sizes");
 
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
         data[idx] += A.data[idx];
@@ -155,7 +155,7 @@ Matrix& Matrix::operator+=(const Matrix& A) {
 Matrix& Matrix::operator+(const Matrix& A)
 {
     if (A.cols != this->cols || A.rows != this->rows)
-        throw MatrixExeption("Matrix A and B are not proportional");
+        throw MatrixException("Matrix A and B are not proportional");
 
     Matrix* C = new Matrix(A.cols, A.rows);
 
@@ -169,7 +169,7 @@ Matrix& Matrix::operator+(const Matrix& A)
 Matrix& Matrix::operator-(const Matrix& A)
 {
     if (A.cols != this->cols || A.rows != this->rows)
-        throw MatrixExeption("Matrix A and B are not proportional");
+        throw MatrixException("Matrix A and B are not proportional");
 
     Matrix* C = new Matrix(A.cols, A.rows);
 
@@ -183,7 +183,7 @@ Matrix& Matrix::operator-(const Matrix& A)
 Matrix& Matrix::operator*(const Matrix& A)
 {
     if (A.cols != this->rows)
-        throw MatrixExeption("The rows of the matrix A are not equal to the columns of matrix B");
+        throw MatrixException("The rows of the matrix A are not equal to the columns of matrix B");
 
     Matrix* C = new Matrix(this->rows, A.cols);
 
@@ -229,7 +229,7 @@ Matrix& Matrix::transposition()
 MatrixItem Matrix::determinant()
 {
     if (cols != rows)
-        throw MatrixExeption("the numbers of columns and rows of the matrix do not match");
+        throw MatrixException("the numbers of columns and rows of the matrix do not match");
     MatrixItem det;
     switch (rows)
     {
@@ -252,7 +252,7 @@ MatrixItem Matrix::determinant()
         return det;
         break;
     default:
-        throw MatrixExeption("valid matrix size 1x1, 2x2, 3x3");
+        throw MatrixException("valid matrix size 1x1, 2x2, 3x3");
         break;
     };
 }
@@ -276,14 +276,14 @@ Matrix& Matrix::set_one()
 
 
 // C = e^A
-Matrix& Matrix::exponent(unsigned int m = 5)
+Matrix& Matrix::exponent(unsigned int m)
 {
     if ((rows == 0) || (cols == 0))
     {
-        throw MatrixExeption("Can't find exponent matrix for zero matrix");
+        throw MatrixException("Can't find exponent matrix for zero matrix");
     }
     if (cols != rows)
-        throw MatrixExeption("the numbers of columns znd rows of the matrix do not match");
+        throw MatrixException("the numbers of columns and rows of the matrix do not match");
 
     Matrix* exp = new Matrix(rows, cols);
     exp->set_one();
@@ -301,7 +301,7 @@ Matrix& Matrix::exponent(unsigned int m = 5)
 
 
 int main() {
-    Matrix A, B, C, E, N;
+    Matrix A, B, C, E;
     double deter;
 
     try
@@ -327,10 +327,10 @@ int main() {
         printf("\n %f \n", deter);
 
         A.print();
-        A = A.exponent();
+        A = A.exponent(5);
         A.print();
     }
-    catch (MatrixExeption error)
+    catch (MatrixException error)
     {
         std::cerr << error.what() << std::endl;
     }
