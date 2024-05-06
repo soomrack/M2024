@@ -28,13 +28,8 @@ Matrix create_matrix(size_t rows, size_t cols) {
     matrix.rows = rows;
     matrix.cols = cols;
 
-    // Выделение памяти под данные матрицы
-    matrix.data = (double *)malloc(rows * cols * sizeof(double));
-
-    if (matrix.data == NULL) {
-        matrix_error(ERROR, "Ошибка выделения памяти");
-        matrix.cols = 0;
-        matrix.rows = 0;
+    if (SIZE_MAX / cols / rows < sizeof(double)){
+        return MATRIX_NULL;
     }
 
     if (rows * cols == 0) {
@@ -45,8 +40,13 @@ Matrix create_matrix(size_t rows, size_t cols) {
         return matrix; 
     }
 
-    if (SIZE_MAX / cols / rows < sizeof(double)){
-        return MATRIX_NULL;
+    // Выделение памяти под данные матрицы
+    matrix.data = (double *)malloc(rows * cols * sizeof(double));
+
+    if (matrix.data == NULL) {
+        matrix_error(ERROR, "Ошибка выделения памяти");
+        matrix.cols = 0;
+        matrix.rows = 0;
     }
 
     return matrix;
@@ -54,15 +54,20 @@ Matrix create_matrix(size_t rows, size_t cols) {
 
 
 // Функция для освобождения памяти, выделенной под матрицу
-void free_matrix(Matrix matrix) {
-    free(matrix.data);
-    matrix.data = NULL;
-    matrix.cols = 0;
-    matrix.rows = 0;
+void free_matrix(Matrix *matrix) {
+    free(matrix->data);
+    matrix->data = NULL;
+    matrix->cols = 0;
+    matrix->rows = 0;
 }
 
 
 Matrix sum(Matrix matrixA, Matrix matrixB) {
+    if (matrixA.data == NULL || matrixB.data == NULL) {
+         matrix_error(ERROR, "Невозможно сложить матрицы: матрицы пусты");
+        return MATRIX_NULL;
+    }
+
     if (matrixA.cols != matrixB.rows) {
         matrix_error(ERROR, "Невозможно сложить матрицы: неправильные размеры");
         return MATRIX_NULL;
@@ -79,6 +84,11 @@ Matrix sum(Matrix matrixA, Matrix matrixB) {
 
 
 Matrix sub(Matrix matrixA, Matrix matrixB) {
+    if (matrixA.data == NULL || matrixB.data == NULL) {
+         matrix_error(ERROR, "Невозможно вычесть матрицы: матрицы пусты");
+        return MATRIX_NULL;
+    }
+
     if (matrixA.cols != matrixB.rows) {
         matrix_error(ERROR, "Невозможно вычесть матрицы: неправильные размеры");
         return MATRIX_NULL;
@@ -95,6 +105,11 @@ Matrix sub(Matrix matrixA, Matrix matrixB) {
 
 
 Matrix mult_scalar(Matrix matrix, double scalar) {
+    if (matrix.data == NULL) {
+         matrix_error(ERROR, "Невозможно произвети умножение: матрица пуста");
+        return MATRIX_NULL;
+    }
+
     Matrix result = create_matrix(matrix.rows, matrix.cols);
 
     for (size_t idx = 0; idx < matrix.rows * matrix.cols; idx++) {
@@ -106,6 +121,11 @@ Matrix mult_scalar(Matrix matrix, double scalar) {
 
 
 Matrix mult(Matrix matrixA, Matrix matrixB) {
+    if (matrixA.data == NULL || matrixB.data == NULL) {
+         matrix_error(ERROR, "Невозможно перемножить матрицы: матрицы пусты");
+        return MATRIX_NULL;
+    }
+
     if (matrixA.cols != matrixB.rows) {
         matrix_error(ERROR, "Невозможно перемножить матрицы: неправильные размеры");
         return MATRIX_NULL;
@@ -214,12 +234,12 @@ int main() {
     printf("\nРезультат вычисления определителя:\n%0.1f \n", result_det);
     
     // Освобождение памяти
-    free_matrix(matrixA);
-    free_matrix(matrixB);
-    free_matrix(result_sum);
-    free_matrix(result_sub);
-    free_matrix(result_mult);
-    free_matrix(result_mult_scalar);
+    free_matrix(&matrixA);
+    free_matrix(&matrixB);
+    free_matrix(&result_sum);
+    free_matrix(&result_sub);
+    free_matrix(&result_mult);
+    free_matrix(&result_mult_scalar);
 
     return 0;
 }
