@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-// Все денежные переменные указываются в сумма/месяц, кроме CREDIT
 // Alice
 long FLAT_PRICE = 20 * 1000 * 1000;
 long CREDIT = 18 * 1000 * 1000;
@@ -10,12 +9,15 @@ long FLAT_RENOVATION = 100 * 1000;
 // Bob
 long FLAT_RENT = 25 * 1000;
 double DEPOSIT_RATE = 0.16;
-// Common Expenses
+// Common
 long WASTES = 30 * 1000;
-const double INFLATION = 0.04;
+const double INFLATION = 0.12;
 const int YEARS = 30;
 int MONTHS = 30 * 12;
 
+int START_YEAR = 2024;
+int END_YEAR = 2054;
+int END_FLAT_RENOVATION_YEAR = 2026;
 
 typedef struct{
     char* name;
@@ -23,9 +25,10 @@ typedef struct{
     long expenses;
     int flat_renovation_years;
     bool hasCredit;
+    long credit_payment;
 } Person;
-Person alice = {"Alice", 150 * 1000, 30 * 1000, 2, true};
-Person bob = { "Bob", 150 * 1000, 30 * 1000 + 20 * 1000, 0, false};
+Person alice = {"Alice", 150 * 1000, 30 * 1000, 2, true, 0};
+Person bob = { "Bob", 150 * 1000, 30 * 1000 + 20 * 1000, 0, false, 0};
 
 // Считает степень
 double recursive(double base, int exponent){
@@ -35,7 +38,7 @@ double recursive(double base, int exponent){
         return base * recursive(base, exponent - 1);
 }
 
-// Ежемесячная плата по кредиту при аннуитентном плетеже
+// Ежемесячная плата по кредиту при аннуитентном платеже
 void annuity_monthly_payment(long *monthly_payment){
     double monthly_credit_rate = CREDIT_RATE / 12;
     double all_credit_time_inflation = \
@@ -45,65 +48,106 @@ void annuity_monthly_payment(long *monthly_payment){
     (all_credit_time_inflation - 1);
 
     *monthly_payment = (long)(CREDIT * K);
-    printf("%s в месяц будет платить по кредиту: %ld у.е.\n", alice.name, *monthly_payment);
 }
 
-// Функция считает сумму всех значений, повышенных на инфляцию
-long percentage_calculation(long  value, long time_unit){
-    value = value * 12;
-    long sum = 0;
-    for (long i=0; i<time_unit; i++){
-        value = value * (1 + INFLATION);
-        sum = sum + value;
-    }
-    return sum;
+// Функция считает повышение на процент
+long percent_calculation(long  value, int rate){
+    value = value * (1 + rate);
+    return value;
 }
 
-void how_much_person_will_pay_for_YEARS(Person person, long value, long time_unit, long *monthly_payment){
-    // В зависимости от того, есть ли плата по кредиту, меняется вывод общих трат за YEARS
-    if (person.hasCredit == true){
-        printf("%s потратил(-а) на жизнь за %d лет: %ld у.е.\n", 
-            person.name,
-            time_unit,
-            // Считается расходы + ремонт + оплата по кредиту 
-            (percentage_calculation(value, time_unit) + \
-            percentage_calculation(FLAT_RENOVATION, person.flat_renovation_years) + \
-            (*monthly_payment * 12 * YEARS)));
-    }
-    else{
-        printf("%s потратил(-а) на жизнь за %d лет: %ld у.е.\n", 
-            person.name,
-            time_unit,
-            // Считается расходы + ремонт + оплата по кредиту 
-            (percentage_calculation(value, time_unit) + \
-            percentage_calculation(FLAT_RENOVATION, person.flat_renovation_years)));
+
+// Остаток год
+long person_year_balance(Person person){
+    long person_year_balance = (person.salary - person.expenses - person.credit_payment) * 12;
+    return person_year_balance;
+}
+
+// Траты в год
+long person_year_expenses(Person person){
+    long person_year_expenses = \
+        (person.expenses + person.credit_payment + FLAT_RENOVATION * person.flat_renovation_years) * 12;
+
+    return person_year_expenses;
+}
+
+// Сколько всего денег потратил person за весь период
+long person_expenses_entire_period(Person person){
+    int CURRENT_YEAR = START_YEAR;
+    while (CURRENT_YEAR != END_YEAR)
+    {
+        CURRENT_YEAR = START_YEAR + 1;
+        person_year_expenses(person) * (1 + INFLATION);
     }
 }
 
-long how_much_flat_will_cost(){
-    // стоимость * на 30летнию инфляцию
-    long flat_will_cost = FLAT_PRICE * (recursive((1 + INFLATION), YEARS));
-    printf("Через %d лет квартира будет стоит: %ld\n", YEARS, flat_will_cost);
-    return flat_will_cost;
+int who_paid_more(){
+    if (person_expenses_entire_period(alice) != person_expenses_entire_period(bob)){
+        if (person_expenses_entire_period(alice) < person_expenses_entire_period(bob)){
+            return 1;
+        }
+        else return 2;
+    }
+    else return 0;
+    
 }
 
-long entire_period_deposit_balance(Person person){
-    long margin = (person.salary - person.expenses);
-    long balance = margin * 12 * recursive((1 + DEPOSIT_RATE), YEARS);
-    printf("На балансе у %s за %d лет накопилось: %ld\n", person.name, YEARS, balance);
+// Сколько будет стоить квартира
+long final_flat_cost_func(){
+    int CURRENT_YEAR = START_YEAR;
+    while (CURRENT_YEAR != END_YEAR );
+    {
+        CURRENT_YEAR = START_YEAR + 1;
+        long final_flat_cost = 0;
+        long month_flat_cost = percent_calculation(FLAT_PRICE, INFLATION);
+        final_flat_cost += percent_calculation(FLAT_PRICE, INFLATION);
+    }
+}
 
-    return balance;
+// Сколько у Боба на вкладе накопилось
+long bob_deposit_balance(){
+    int CURRENT_YEAR = START_YEAR;
+    long deposit_balance = 0;
+    while (CURRENT_YEAR != END_YEAR );
+    {
+        deposit_balance += person_year_balance(bob);
+        deposit_balance = percent_calculation(deposit_balance, DEPOSIT_RATE);
+
+        return deposit_balance;
+    }
+}
+
+int can_bob_buy_flat(){
+    if (bob_deposit_balance() < final_flat_cost_func())
+        return 0;
+    else
+        return 1;
+}
+
+void print_func(){
+    if (can_bob_buy_flat() == 0)
+        printf("Bob can't buy a flat!\n");
+    else printf("Bob bougth a flat.\n");
+    switch (who_paid_more()){
+    case 1:
+        printf("Bob paid more.\n");
+        break;
+    case 2:
+        printf("Alice paid more.\n");
+    default:
+        printf("No one paid more.\n");
+        break;
+    }
 }
 
 long main() {
-    long monthly_payment;
-    annuity_monthly_payment(&monthly_payment);
-    how_much_person_will_pay_for_YEARS(alice, alice.expenses, YEARS, &monthly_payment);
-    how_much_person_will_pay_for_YEARS(bob, bob.expenses, YEARS, &monthly_payment);
-    if (entire_period_deposit_balance(bob) < how_much_flat_will_cost())
-        printf("Боб не сможет купить квартиру.\n");
-    else
-        printf("Боб может купить  квартиру.\n");
+//  В alice_year_balance передавать посчитанную месячную плату предиту
+    person_expenses_entire_period(alice);
+    person_expenses_entire_period(bob);
+    who_paid_more();
+    can_bob_buy_flat();
+
+    print_func();
 
     return 0;    
 }
