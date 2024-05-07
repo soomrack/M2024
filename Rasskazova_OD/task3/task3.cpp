@@ -25,17 +25,17 @@ public:
     Matrix(Matrix&& A);
     ~Matrix();
 
-    Matrix& operator=(const Matrix& other);
+    Matrix& operator=(const Matrix& M);
     size_t rows() const { return rows_; }
     size_t cols() const { return cols_; }
 
     double& operator()(size_t row, size_t col);
     const double& operator()(size_t row, size_t col) const;
 
-    Matrix operator+(const Matrix& other) const;
-    Matrix operator-(const Matrix& other) const;
+    Matrix operator+(const Matrix& M) const;
+    Matrix operator-(const Matrix& M) const;
     Matrix operator*(double scalar) const;
-    Matrix operator*(const Matrix& other) const;
+    Matrix operator*(const Matrix& M) const;
 
     double determinant() const;
     void print() const;
@@ -53,9 +53,9 @@ Matrix::Matrix(const size_t rows, const size_t cols, const double* values)
     std::copy(values, values + (rows * cols), data_);
 }
 
-Matrix::Matrix(const Matrix& other) : rows_(other.rows_), cols_(other.cols_) {
+Matrix::Matrix(const Matrix& M) : rows_(M.rows_), cols_(M.cols_) {
     data_ = new double[rows_ * cols_];
-    std::copy(other.data_, other.data_ + (rows_ * cols_), data_);
+    std::copy(M.data_, M.data_ + (rows_ * cols_), data_);
 }
 
 Matrix::Matrix(Matrix&& A) : rows_(A.rows_), cols_(A.cols_), data_(A.data_) {
@@ -68,13 +68,13 @@ Matrix::~Matrix() {
     delete[] data_;
 }
 
-Matrix& Matrix::operator=(const Matrix& other) {
-    if (this != &other) {
+Matrix& Matrix::operator=(const Matrix& M) {
+    if (this != &M) {
         delete[] data_;
-        rows_ = other.rows_;
-        cols_ = other.cols_;
+        rows_ = M.rows_;
+        cols_ = M.cols_;
         data_ = new double[rows_ * cols_];
-        std::copy(other.data_, other.data_ + (rows_ * cols_), data_);
+        std::copy(M.data_, M.data_ + (rows_ * cols_), data_);
     }
     return *this;
 }
@@ -87,28 +87,28 @@ const double& Matrix::operator()(size_t row, size_t col) const {
     return data_[row * cols_ + col];
 }
 
-Matrix Matrix::operator+(const Matrix& other) const {
-    if (rows_ != other.rows_ || cols_ != other.cols_) {
+Matrix Matrix::operator+(const Matrix& M) const {
+    if (rows_ != M.rows_ || cols_ != M.cols_) {
         matrix_error(ErrorType::ERROR, "Невозможно сложить матрицы: неправильные размеры");
         return Matrix(0, 0);
     }
 
     Matrix result(rows_, cols_);
     for (size_t idx = 0; idx < (rows_ * cols_); ++idx) {
-        result.data_[idx] = data_[idx] + other.data_[idx];
+        result.data_[idx] = data_[idx] + M.data_[idx];
     }
     return result;
 }
 
-Matrix Matrix::operator-(const Matrix& other) const {
-    if (rows_ != other.rows_ || cols_ != other.cols_) {
+Matrix Matrix::operator-(const Matrix& M) const {
+    if (rows_ != M.rows_ || cols_ != M.cols_) {
         matrix_error(ErrorType::ERROR, "Невозможно вычесть матрицы: неправильные размеры");
         return Matrix(0, 0);
     }
 
     Matrix result(rows_, cols_);
     for (size_t idx = 0; idx < (rows_ * cols_); ++idx) {
-        result.data_[idx] = data_[idx] - other.data_[idx];
+        result.data_[idx] = data_[idx] - M.data_[idx];
     }
     return result;
 }
@@ -121,18 +121,18 @@ Matrix Matrix::operator*(double scalar) const {
     return result;
 }
 
-Matrix Matrix::operator*(const Matrix& other) const {
-    if (cols_ != other.rows_) {
+Matrix Matrix::operator*(const Matrix& M) const {
+    if (cols_ != M.rows_) {
         matrix_error(ErrorType::ERROR, "Невозможно перемножить матрицы: неправильные размеры");
         return Matrix(0, 0);
     }
 
-    Matrix result(rows_, other.cols_);
+    Matrix result(rows_, M.cols_);
     for (size_t rows_A = 0; rows_A < rows_; ++rows_A) {
-        for (size_t cols_B = 0; cols_B < other.cols_; ++cols_B) {
+        for (size_t cols_B = 0; cols_B < M.cols_; ++cols_B) {
             double sum = 0.0;
             for (size_t cols_A = 0; cols_A < cols_; ++cols_A) {
-                sum += (*this)(rows_A, cols_A) * other(cols_A, cols_B);
+                sum += (*this)(rows_A, cols_A) * M(cols_A, cols_B);
             }
             result(rows_A, cols_B) = sum;
         }
