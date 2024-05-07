@@ -18,7 +18,6 @@ struct Matrix
 
 const struct Matrix MATRIX_NULL = {.cols = 0, .rows = 0, .data = NULL};
 
-
 struct Matrix matrix_init(const size_t rows, const size_t cols)
 {
     if (cols == 0 || rows == 0)
@@ -41,7 +40,6 @@ struct Matrix matrix_init(const size_t rows, const size_t cols)
 
 void matrix_form(struct Matrix *A)
 {
-    // srand(time(NULL));
     for (size_t idx = 0; idx < A->cols * A->rows; idx++)
     {
         A->data[idx] = ((int)rand() % 10);
@@ -54,7 +52,6 @@ void matrix_free(struct Matrix *A)
     A->cols = 0;
     A->rows = 0;
     free(A->data);
-    *A = MATRIX_NULL;
 }
 
 
@@ -165,20 +162,20 @@ double matrix_determinant(const struct Matrix A)
                 return A.data[0];
 
             size_t minor_row = 0, minor_col = 0;
-            for (size_t jdx = 1; jdx < A.rows; jdx++)
+            for (size_t row = 1; row < A.rows; row++)
             {
-                for (size_t k = 0; k < A.cols; k++)
+                for (size_t col = 0; col < A.cols; col++)
                 {
-                    if (k == idx)
+                    if (col == idx)
                         continue;
-                    minor.data[minor_row * minor.cols + minor_col] = A.data[jdx * A.cols + k];
+                    minor.data[minor_row * minor.cols + minor_col] = A.data[row * A.cols + col];
                     minor_col++;
                 }
                 minor_row++;
                 minor_col = 0;
             }
             // Рекурсивно вычисляем детерминант минора и суммируем с учетом знака
-            det += (idx % 2 == 0 ? 1 : -1) * A.data[0 * A.cols + idx] * matrix_determinant(minor);
+            det += (idx % 2 == 0 ? 1 : -1) * A.data[idx] * matrix_determinant(minor);
             matrix_free(&minor);
         }
         return det;
@@ -186,20 +183,91 @@ double matrix_determinant(const struct Matrix A)
 }
 
 
-// C = e ^ (A) https://portal.tpu.ru/SHARED/k/KONVAL/Sites/Russian_sites/1/22.html
-// https://www.wolframalpha.com/input?i2d=true&i=Power%5Be%2C%7B%7B1%2C7%7D%2C%7B4%2C0%7D%7D%5D
-struct Matrix matrix_exp(struct Matrix A)
+struct Matrix matrix_identity(size_t rows, size_t cols)
+{
+    struct Matrix identity = matrix_init(rows, cols);
+    if (identity.data == NULL)
+    {
+        return MATRIX_NULL;
+    }
+    for (size_t idx = 0; idx < rows * cols; idx++)
+    {
+        if (idx % (rows + 1) == 0)
+        {
+            identity.data[idx] = 1.;
+        }
+        else
+        {
+            identity.data[idx] = 0;
+        }
+    }
+    return identity;
+}
+
+
+struct Matrix matrix_power(struct Matrix A, const size_t pow)
+{
+    struct Matrix C = matrix_init(A.rows, A.cols);
+
+    memcpy(C.data, A.data, A.rows * A.cols * sizeof(double));
+
+    if (C.data == NULL)
+    {
+        return MATRIX_NULL;
+    }
+    if (pow == 0)
+    {
+        return matrix_identity(A.rows, A.cols);
+    }
+    if (pow == 1)
+    {
+        return C;
+    }
+    for (size_t idx = 1; idx < pow; ++idx)
+    {
+        struct Matrix temp = C;
+        C = matrix_mult(temp, A);
+        matrix_free(&temp);
+    }
+    return C;
+}
+
+
+int factorial(int index)
+{
+    int F = 1;
+
+    for (int idx = 1; idx <= index; ++idx)
+    {
+        F *= idx;
+    }
+    return F;
+}
+
+
+// C = e ^ (A) https://portal.tpu.ru/SHARED/k/KONVAL/Sites/Russian_sites/1/22.htm
+struct Matrix matrix_exp(struct Matrix A, size_t N)
 {
     if (A.rows != A.cols)
         return MATRIX_NULL;
 
     struct Matrix C = matrix_init(A.cols, A.rows);
-    if (C.data == NULL)
-        return C;
+    struct Matrix C_power = matrix_init(A.cols, A.rows);
 
-    for (size_t idx = 0; idx < A.cols * A.rows; idx++)
+    for (size_t idx = 0; idx < N; ++idx)
     {
-        C.data[idx] += exp(A.data[idx]);
+        C_power = matrix_power(A, idx);
+        double factor = 1.0 / factorial(idx);
+
+        for (size_t row = 0; row < A.rows; ++row)
+        {
+            for (size_t col = 0; col < A.cols; ++col)
+            {
+                double value = C_power.data[row * C_power.cols + col] * factor;
+                C.data[row * A.cols + col] = C.data[row * A.cols + col] + value;
+            }
+        }
+        matrix_free(&C_power);
     }
     return C;
 }
@@ -222,7 +290,9 @@ void matrix_print(const struct Matrix A)
 
 int main()
 {
-    struct Matrix A, B, C, D;
+    struct Matrix A, B, C, D, G;
+
+    srand(time(NULL));
 
     printf("\nFirst matrix\n");
     A = matrix_init(2, 2);
@@ -258,13 +328,18 @@ int main()
     matrix_determinant(A);
     printf("%4.2f \n", matrix_determinant(A));
 
+    // printf("\nPower of the first matrix\n");
+    // G = matrix_power(A, 3);
+    // matrix_print(G);
+
     printf("\nExponent of the first matrix\n");
-    D = matrix_exp(A);
+    D = matrix_exp(A, 3);
     matrix_print(D);
 
     matrix_free(&A);
     matrix_free(&B);
     matrix_free(&C);
+    // matrix_free(&G);
     matrix_free(&D);
 
     return 0;
