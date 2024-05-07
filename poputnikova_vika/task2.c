@@ -29,8 +29,7 @@ struct Matrix matrix_init(const size_t rows, const size_t cols)
     struct Matrix A = {.cols = cols, .rows = rows, .data = NULL};
 
     A.data = (double *)malloc(A.cols * A.rows * sizeof(double));
-    if (A.data == NULL)
-    {
+    if (A.data == NULL) {
         return MATRIX_NULL;
     }
 
@@ -38,10 +37,9 @@ struct Matrix matrix_init(const size_t rows, const size_t cols)
 }
 
 
-void matrix_form(struct Matrix *A)
+void matrix_form_random(struct Matrix *A)
 {
-    for (size_t idx = 0; idx < A->cols * A->rows; idx++)
-    {
+    for (size_t idx = 0; idx < A->cols * A->rows; idx++) {
         A->data[idx] = ((int)rand() % 10);
     }
 }
@@ -65,8 +63,7 @@ struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
     if (C.data == NULL)
         return MATRIX_NULL;
 
-    for (size_t idx = 0; idx < A.cols * A.rows; idx++)
-    {
+    for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
         C.data[idx] = A.data[idx] + B.data[idx];
     }
 
@@ -75,7 +72,7 @@ struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
 
 
 // C = A - B
-struct Matrix matrix_diff(const struct Matrix A, const struct Matrix B)
+struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B)
 {
     if (A.rows != B.rows || A.cols != B.cols)
         return MATRIX_NULL;
@@ -84,8 +81,7 @@ struct Matrix matrix_diff(const struct Matrix A, const struct Matrix B)
     if (C.data == NULL)
         return MATRIX_NULL;
 
-    for (size_t idx = 0; idx < A.cols * A.rows; idx++)
-    {
+    for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
         C.data[idx] = A.data[idx] - B.data[idx];
     }
 
@@ -100,8 +96,7 @@ struct Matrix matrix_mult_scalar(const struct Matrix A, const double scalar)
     if (C.data == NULL)
         return MATRIX_NULL;
 
-    for (size_t idx = 0; idx < A.cols * A.rows; idx++)
-    {
+    for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
         C.data[idx] = scalar * A.data[idx];
     }
     return C;
@@ -119,8 +114,7 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
         return MATRIX_NULL;
 
     for (size_t rowA = 0; rowA < A.rows; rowA++)
-        for (size_t colB = 0; colB < B.cols; colB++)
-        {
+        for (size_t colB = 0; colB < B.cols; colB++) {
             C.data[rowA * B.cols + colB] = 0;
 
             for (size_t idx = 0; idx < A.cols; idx++)
@@ -164,8 +158,7 @@ double matrix_determinant(const struct Matrix A)
             size_t minor_row = 0, minor_col = 0;
             for (size_t row = 1; row < A.rows; row++)
             {
-                for (size_t col = 0; col < A.cols; col++)
-                {
+                for (size_t col = 0; col < A.cols; col++) {
                     if (col == idx)
                         continue;
                     minor.data[minor_row * minor.cols + minor_col] = A.data[row * A.cols + col];
@@ -186,18 +179,14 @@ double matrix_determinant(const struct Matrix A)
 struct Matrix matrix_identity(size_t rows, size_t cols)
 {
     struct Matrix identity = matrix_init(rows, cols);
-    if (identity.data == NULL)
-    {
+    if (identity.data == NULL) {
         return MATRIX_NULL;
     }
-    for (size_t idx = 0; idx < rows * cols; idx++)
-    {
-        if (idx % (rows + 1) == 0)
-        {
+    for (size_t idx = 0; idx < rows * cols; idx++) {
+        if (idx % (rows + 1) == 0) {
             identity.data[idx] = 1.;
         }
-        else
-        {
+        else {
             identity.data[idx] = 0;
         }
     }
@@ -211,20 +200,16 @@ struct Matrix matrix_power(struct Matrix A, const size_t pow)
 
     memcpy(C.data, A.data, A.rows * A.cols * sizeof(double));
 
-    if (C.data == NULL)
-    {
+    if (C.data == NULL) {
         return MATRIX_NULL;
     }
-    if (pow == 0)
-    {
+    if (pow == 0) {
         return matrix_identity(A.rows, A.cols);
     }
-    if (pow == 1)
-    {
+    if (pow == 1) {
         return C;
     }
-    for (size_t idx = 1; idx < pow; ++idx)
-    {
+    for (size_t idx = 1; idx < pow; ++idx) {
         struct Matrix temp = C;
         C = matrix_mult(temp, A);
         matrix_free(&temp);
@@ -237,8 +222,7 @@ int factorial(int index)
 {
     int F = 1;
 
-    for (int idx = 1; idx <= index; ++idx)
-    {
+    for (int idx = 1; idx <= index; ++idx) {
         F *= idx;
     }
     return F;
@@ -252,17 +236,21 @@ struct Matrix matrix_exp(struct Matrix A, size_t N)
         return MATRIX_NULL;
 
     struct Matrix C = matrix_init(A.cols, A.rows);
-    struct Matrix C_power = matrix_init(A.cols, A.rows);
+    struct Matrix C_power;
 
-    for (size_t idx = 0; idx < N; ++idx)
-    {
+    if (C.data || C_power.data == NULL) 
+        return MATRIX_NULL;
+
+    for (size_t idx = 0; idx < N; ++idx) {
         C_power = matrix_power(A, idx);
+
+        if (C_power.data == NULL) 
+            return MATRIX_NULL;
+
         double factor = 1.0 / factorial(idx);
 
-        for (size_t row = 0; row < A.rows; ++row)
-        {
-            for (size_t col = 0; col < A.cols; ++col)
-            {
+        for (size_t row = 0; row < A.rows; ++row) {
+            for (size_t col = 0; col < A.cols; ++col) {
                 double value = C_power.data[row * C_power.cols + col] * factor;
                 C.data[row * A.cols + col] = C.data[row * A.cols + col] + value;
             }
@@ -275,11 +263,9 @@ struct Matrix matrix_exp(struct Matrix A, size_t N)
 
 void matrix_print(const struct Matrix A)
 {
-    for (size_t row = 0; row < A.rows; ++row)
-    {
+    for (size_t row = 0; row < A.rows; ++row) {
         printf("[ ");
-        for (size_t col = 0; col < A.cols; ++col)
-        {
+        for (size_t col = 0; col < A.cols; ++col) {
             printf("%4.2f ", A.data[A.cols * row + col]);
         }
         printf("]\n");
@@ -296,12 +282,12 @@ int main()
 
     printf("\nFirst matrix\n");
     A = matrix_init(2, 2);
-    matrix_form(&A);
+    matrix_form_random(&A);
     matrix_print(A);
 
     printf("Second matrix\n");
     B = matrix_init(2, 2);
-    matrix_form(&B);
+    matrix_form_random(&B);
     matrix_print(B);
 
     printf("Sum of matrices\n");
@@ -309,7 +295,7 @@ int main()
     matrix_print(C);
 
     printf("Sub of matrices\n");
-    C = matrix_diff(A, B);
+    C = matrix_sub(A, B);
     matrix_print(C);
 
     printf("Multiplying the first matrix by a scalar\n");
