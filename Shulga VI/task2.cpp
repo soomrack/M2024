@@ -159,18 +159,18 @@ struct Matrix matrix_exponent(const struct Matrix A, const double accuracy)
 
     int degree = (int)(ceil(1.0 / accuracy));
 
-    for (int trm = 2; trm <= degree; ++trm) {
-        matrix_add(B, A);
-        matrix_mult_by_coeff(B, 1.0 / trm);
-        matrix_add(C, B);
+    struct Matrix term = matrix_init(A.cols, A.rows);
+    matrix_copy(term, B);
+
+    matrix_zero(C);
+    for (int trm = 0; trm <= degree; ++trm) {
+        matrix_add(C, term);
+        matrix_mult_by_coeff(term, 1.0 / (trm + 1));
+        matrix_mult(term, B);
     }
 
-    matrix_add(C, A);
-
-    for (size_t diag = 0; diag < C.rows; ++diag)
-        C.data[diag * C.cols + diag] += 1;
-
     matrix_free(&B);
+    matrix_free(&term);
 
     return C;
 }
