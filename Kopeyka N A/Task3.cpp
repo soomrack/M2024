@@ -32,7 +32,7 @@ public:
     Matrix operator*(const MatrixItem A);
     Matrix transposition();
     MatrixItem determinant();
-    Matrix& exponent(unsigned int m);
+    Matrix exponent(unsigned int m);
     Matrix& set_zero();
     Matrix& set_one();
 };
@@ -285,7 +285,7 @@ Matrix& Matrix::set_one()
 
 
 // C = e^A
-Matrix& Matrix::exponent(unsigned int m)
+Matrix Matrix::exponent(unsigned int m)
 {
     if ((rows == 0) || (cols == 0))
     {
@@ -294,8 +294,8 @@ Matrix& Matrix::exponent(unsigned int m)
     if (cols != rows)
         throw MatrixException("the numbers of columns and rows of the matrix do not match");
 
-    Matrix* exp = new Matrix(rows, cols);
-    exp->set_one();
+    Matrix exp = Matrix(rows, cols);
+    exp.set_one();
 
     Matrix step(rows, cols);
     step.set_one();
@@ -303,9 +303,9 @@ Matrix& Matrix::exponent(unsigned int m)
     for (unsigned int k = 1; k <= m; ++k) {
 
         step = (step * *this) * (MatrixItem)(1. / k);
-        *exp = *exp + step;
+        exp = exp + step;
     };
-    return *exp;
+    return exp;
 }
 
 
