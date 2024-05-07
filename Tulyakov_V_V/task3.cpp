@@ -56,11 +56,12 @@ public:
     string get_message() const { return message; }
 };
 
-MatrixException SQUARE_ERROR("\nMatrix must be square!\n\n");
-MatrixException SIZE_ERROR("\nError: matrices should have the same size\n\n");
-MatrixException SHAPE_ERROR("\nError: first matrix columns not equal to second matrix row\n\n");
-MatrixException NULL_MATRIX("\nError: your matrix is empty\n\n");
-MatrixException OTHER_ERROR("\nError: an unfamiliar error\n\n");
+MatrixException SQUARE_ERROR("\nОшибка: матрица должна быть квадратной!\n\n");
+MatrixException SIZE_ERROR("\nОшибка: матрицы должны иметь одинаковый размер\n\n");
+MatrixException SHAPE_ERROR("\nОшибка: количество столбцов первой матрицы не совпадает с количеством строк во второй матрице\n\n");
+MatrixException NULL_MATRIX("\nОшибка: матрица пуста\n\n");
+MatrixException OTHER_ERROR("\nОшибка: неизвестная ошибка\n\n");
+
 
 void Matrix::print() {
     if (data == nullptr) throw NULL_MATRIX;
