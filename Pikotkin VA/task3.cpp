@@ -95,11 +95,15 @@ Matrix::Matrix(const Matrix& A) : cols(A.cols), rows(A.rows), data(nullptr) {
 
 Matrix& Matrix::operator= (const Matrix& M) {
     if (this == &M) return *this;
-    if (data == nullptr || M.data == nullptr) { // вывод матрицы сделать, если матрица 0
-        throw MatrixException("data ptr is nullptr");
+    if (M.data == nullptr) { // 
+        rows = M.rows;
+        cols = M.cols;
+        if (data != nullptr) delete[] data;
+        data = M.data;
         return *this;
     }
-    if ( rows * cols == M.rows * M.cols){ // сделать другую  проверку
+    if ( rows * cols == M.rows * M.cols){ 
+        if (data == nullptr)  data = new double[rows * cols];
         std::memcpy(data, M.data, cols * rows * sizeof(double));
     }
     else { 
