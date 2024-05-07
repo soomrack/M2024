@@ -12,10 +12,11 @@ void matrix_error(ErrorType type, const std::string& message) {
 }
 
 class Matrix {
+
 private:
-    size_t rows_;
-    size_t cols_;
-    double* data_;
+    size_t rows;
+    size_t cols;
+    double* data;
 
 public:
     Matrix();
@@ -26,8 +27,9 @@ public:
     ~Matrix();
 
     Matrix& operator=(const Matrix& M);
-    size_t rows() const { return rows_; }
-    size_t cols() const { return cols_; }
+    Matrix& operator=(const Matrix&& M);
+    size_t get_rows() const { return rows; }
+    size_t get_cols() const { return cols; }
 
     double& operator()(size_t row, size_t col);
     const double& operator()(size_t row, size_t col) const;
@@ -41,97 +43,97 @@ public:
     void print() const;
 };
 
-Matrix::Matrix() : rows_(0), cols_(0), data_(nullptr) {}
+Matrix::Matrix() : rows(0), cols(0), data(nullptr) {}
 
-Matrix::Matrix(const size_t rows, const size_t cols) : rows_(rows), cols_(cols) {
-    data_ = new double[rows * cols]();
+Matrix::Matrix(const size_t rows, const size_t cols) : rows(rows), cols(cols) {
+    data = new double[rows * cols];
 }
 
 Matrix::Matrix(const size_t rows, const size_t cols, const double* values)
-    : rows_(rows), cols_(cols) {
-    data_ = new double[rows * cols];
-    std::copy(values, values + (rows * cols), data_);
+    : rows(rows), cols(cols) {
+    data = new double[rows * cols];
+    std::copy(values, values + (rows * cols), data);
 }
 
-Matrix::Matrix(const Matrix& M) : rows_(M.rows_), cols_(M.cols_) {
-    data_ = new double[rows_ * cols_];
-    std::copy(M.data_, M.data_ + (rows_ * cols_), data_);
+Matrix::Matrix(const Matrix& M) : rows(M.rows), cols(M.cols) {
+    data = new double[rows * cols];
+    std::copy(M.data, M.data + (rows * cols), data);
 }
 
-Matrix::Matrix(Matrix&& A) : rows_(A.rows_), cols_(A.cols_), data_(A.data_) {
-    A.rows_ = 0;
-    A.cols_ = 0;
-    A.data_ = nullptr;
+Matrix::Matrix(Matrix&& A) : rows(A.rows), cols(A.cols), data(A.data) {
+    A.rows = 0;
+    A.cols = 0;
+    A.data = nullptr;
 }
 
 Matrix::~Matrix() {
-    delete[] data_;
+    delete[] data;
 }
 
 Matrix& Matrix::operator=(const Matrix& M) {
     if (this != &M) {
-        delete[] data_;
-        rows_ = M.rows_;
-        cols_ = M.cols_;
-        data_ = new double[rows_ * cols_];
-        std::copy(M.data_, M.data_ + (rows_ * cols_), data_);
+        delete[] data;
+        rows = M.rows;
+        cols = M.cols;
+        data = new double[rows * cols];
+        std::copy(M.data, M.data + (rows * cols), data);
     }
     return *this;
 }
 
 double& Matrix::operator()(size_t row, size_t col) {
-    return data_[row * cols_ + col];
+    return data[row * cols + col];
 }
 
 const double& Matrix::operator()(size_t row, size_t col) const {
-    return data_[row * cols_ + col];
+    return data[row * cols + col];
 }
 
 Matrix Matrix::operator+(const Matrix& M) const {
-    if (rows_ != M.rows_ || cols_ != M.cols_) {
+    if (rows != M.rows || cols != M.cols) {
         matrix_error(ErrorType::ERROR, "Невозможно сложить матрицы: неправильные размеры");
         return Matrix(0, 0);
     }
 
-    Matrix result(rows_, cols_);
-    for (size_t idx = 0; idx < (rows_ * cols_); ++idx) {
-        result.data_[idx] = data_[idx] + M.data_[idx];
+    Matrix result(rows, cols);
+    for (size_t idx = 0; idx < (rows * cols); ++idx) {
+        result.data[idx] = data[idx] + M.data[idx];
     }
     return result;
 }
 
 Matrix Matrix::operator-(const Matrix& M) const {
-    if (rows_ != M.rows_ || cols_ != M.cols_) {
+    if (rows != M.rows || cols != M.cols) {
         matrix_error(ErrorType::ERROR, "Невозможно вычесть матрицы: неправильные размеры");
         return Matrix(0, 0);
     }
 
-    Matrix result(rows_, cols_);
-    for (size_t idx = 0; idx < (rows_ * cols_); ++idx) {
-        result.data_[idx] = data_[idx] - M.data_[idx];
+    Matrix result(rows, cols);
+    for (size_t idx = 0; idx < (rows * cols); ++idx) {
+        result.data[idx] = data[idx] - M.data[idx];
     }
     return result;
 }
 
 Matrix Matrix::operator*(double scalar) const {
-    Matrix result(rows_, cols_);
-    for (size_t idx = 0; idx < (rows_ * cols_); ++idx) {
-        result.data_[idx] = data_[idx] * scalar;
+    Matrix result(rows, cols);
+    for (size_t idx = 0; idx < (rows * cols); ++idx) {
+        result.data[idx] = data[idx] * scalar;
     }
     return result;
 }
 
 Matrix Matrix::operator*(const Matrix& M) const {
-    if (cols_ != M.rows_) {
+    if (cols != M.rows) {
         matrix_error(ErrorType::ERROR, "Невозможно перемножить матрицы: неправильные размеры");
         return Matrix(0, 0);
     }
 
-    Matrix result(rows_, M.cols_);
-    for (size_t rows_A = 0; rows_A < rows_; ++rows_A) {
-        for (size_t cols_B = 0; cols_B < M.cols_; ++cols_B) {
+    Matrix result(rows, M.cols);
+    for (size_t rows_A = 0; rows_A < rows; ++rows_A) {
+        for (size_t cols_B = 0; cols_B < M.cols; ++cols_B) {
             double sum = 0.0;
-            for (size_t cols_A = 0; cols_A < cols_; ++cols_A) {
+            for (size_t cols_A = 0; cols_A < cols; ++cols_A) {
                 sum += (*this)(rows_A, cols_A) * M(cols_A, cols_B);
             }
             result(rows_A, cols_B) = sum;
@@ -141,12 +143,12 @@ Matrix Matrix::operator*(const Matrix& M) const {
 }
 
 double Matrix::determinant() const {
-    if (rows_ != cols_) {
+    if (rows != cols) {
         matrix_error(ErrorType::ERROR, "Невозможно вычислить определитель: матрица не квадратная");
         return NAN;
     }
 
-    size_t n = rows_;
+    size_t n = rows;
     if (n == 1) {
         return (*this)(0, 0);
     }
@@ -168,8 +170,8 @@ double Matrix::determinant() const {
 }
 
 void Matrix::print() const {
-    for (size_t rows_A = 0; rows_A < rows_; ++rows_A) {
-        for (size_t cols_B = 0; cols_B < cols_; ++cols_B) {
+    for (size_t rows_A = 0; rows_A < rows; ++rows_A) {
+        for (size_t cols_B = 0; cols_B < cols; ++cols_B) {
             std::cout << (*this)(rows_A, cols_B) << " ";
         }
         std::cout << std::endl;
