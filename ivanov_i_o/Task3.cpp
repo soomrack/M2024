@@ -27,11 +27,11 @@ public:
     Matrix& operator-= (const Matrix& M);
     Matrix& operator*= (const double k);
     Matrix& operator*= (const Matrix& M);
-    friend Matrix operator+(const Matrix& M, const Matrix& K);
-    friend Matrix operator-(const Matrix& M, const Matrix& K);
-    friend Matrix operator*(const Matrix& M, const Matrix& K);
-    friend Matrix operator*(const Matrix& M, const double k);
-	friend Matrix operator& (const unsigned int accuracy, const Matrix& matrix);
+    Matrix Matrix::operator+(const Matrix& M); //
+    Matrix Matrix::operator-(const Matrix& M);
+    Matrix Matrix::operator*(const Matrix& M);
+    Matrix Matrix::operator*(const Matrix& M);
+	Matrix Matrix::exponent(const unsigned int accuracy);
 
 public:
     void print();
@@ -58,14 +58,15 @@ Matrix_Exception NULL_MATRIX("Your matrix is empty\n");
 Matrix_Exception OTHER_ERROR("An unfamiliar error\n");
 
 
-Matrix::Matrix() {
+Matrix::Matrix() 
+{
     rows = 0;
     cols = 0;
     data = nullptr;
 }
 
 
-Matrix::Matrix(const size_t n)
+Matrix::Matrix(const size_t n) 
 {
     rows = n;
     cols = n;
@@ -87,14 +88,13 @@ Matrix::Matrix(const Matrix& M)
 {
 	
 	if (rows * cols == M.rows * M.cols) {
-        std::memcpy(data, M.data, M.rows * M.cols * sizeof(MatrixItem));
+        std::memcpy(data, M.data, M.rows * M.cols * sizeof(MatrixItem)); 
         return;
 	}
 	
     rows = M.rows;
     cols = M.cols;
 
-    delete[] data;
     data = new MatrixItem[rows * cols];
     std::memcpy(data, M.data, M.rows * M.cols * sizeof(MatrixItem));
 }
@@ -122,9 +122,7 @@ Matrix::~Matrix()
 
 void Matrix::zeros_fill()
 {
-    for (size_t index = 0; index < cols * rows; index++) {
-        data[index] = 0.0;
-    }
+   std::memset(data, 0, cols * rows * sizeof(MatrixItem));
 }
 
 
@@ -200,7 +198,7 @@ double Matrix::determinant(void)
 Matrix& Matrix::operator= (const Matrix& M)
 {
     if (this == &M) return *this;    
-    if (data != nullptr) delete data;
+    if (data != nullptr) delete[] data;
 
     rows = M.rows;
     cols = M.cols;
@@ -274,6 +272,10 @@ Matrix& Matrix::operator*= (const Matrix& M)
             for (size_t idx = 0; idx < M.rows; idx++)
                 R.data[row * R.cols + col] += data[row * cols + idx] * M.data[idx * M.cols + col]; 
     
+    if (data != nullptr){
+        delete[] data;
+    }
+
     cols = R.cols;
     rows = R.rows;
     data = R.data;
@@ -285,60 +287,60 @@ Matrix& Matrix::operator*= (const Matrix& M)
 }
 
 
-Matrix operator& (const unsigned int accuracy, const Matrix& matrix)
+Matrix Matrix::exponent(const unsigned int accuracy)
 {
-    if (matrix.rows != matrix.cols) {
+    if (rows != cols) {
         throw std::runtime_error("ERROR: the matrix size isn't square\n");
         Matrix null_matrix;
         return null_matrix;
     }
 
-    Matrix new_matrix(matrix.cols, matrix.rows);
+    Matrix new_matrix(cols, rows);
     new_matrix.identity_fill();
 
-    Matrix submatrix(matrix.cols, matrix.rows);
+    Matrix submatrix(cols, rows);
     submatrix.identity_fill();
 
     for (unsigned int index = 1; index <= accuracy; index++) {
-		new_matrix = new_matrix * matrix * (1.0 / index);
+		new_matrix = new_matrix * (*this) * (1.0 / index);
 		submatrix += new_matrix;
     }
     return submatrix;
 }
 
 
-Matrix operator+(const Matrix& M, const Matrix& K)
+Matrix Matrix::operator+(const Matrix& M)
 {
     Matrix rez = Matrix(M.rows, M.cols);
     rez = M;
-    rez += K;
+    rez += *this;
     return rez;
 }
 
 
-Matrix operator-(const Matrix& M, const Matrix& K)
+Matrix Matrix::operator-(const Matrix& M)
 {
     Matrix rez = Matrix(M.rows, M.cols);
     rez = M;
-    rez -= K;
+    rez -= *this;
     return rez;
 }
 
 
-Matrix operator*(const Matrix& M, const double k)
+Matrix Matrix::operator*(const Matrix& M)
 {
     Matrix rez = Matrix(M.rows, M.cols);
     rez = M;
-    rez *= k;
+    rez *= *this;
     return rez;
 }
 
 
-Matrix operator*(const Matrix& M, const Matrix& K)
+Matrix Matrix::operator*(const Matrix& M)
 {
     Matrix rez = Matrix(M.rows, M.cols);
     rez = M;
-    rez *= K;
+    rez *= *this;
     return rez;
 }
 
@@ -392,7 +394,7 @@ int main(void)
         double det = A.determinant();
         std::cout << det << '\n';
         
-        C = 3 & A;
+        C = A.exponent(3);
         C.print();
 
         return 0;
