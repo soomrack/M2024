@@ -183,10 +183,12 @@ struct Matrix matrix_identity(size_t rows, size_t cols)
         return MATRIX_NULL;
     }
     for (size_t idx = 0; idx < rows * cols; idx++) {
-        if (idx % (rows + 1) == 0) {
+        if (idx % (rows + 1) == 0)
+        {
             identity.data[idx] = 1.;
         }
-        else {
+        else
+        {
             identity.data[idx] = 0;
         }
     }
@@ -238,7 +240,7 @@ struct Matrix matrix_exp(struct Matrix A, size_t N)
     struct Matrix C = matrix_init(A.cols, A.rows);
     struct Matrix C_power;
 
-    if (C.data || C_power.data == NULL) 
+    if (C.data == NULL || C_power.data == NULL) 
         return MATRIX_NULL;
 
     for (size_t idx = 0; idx < N; ++idx) {
