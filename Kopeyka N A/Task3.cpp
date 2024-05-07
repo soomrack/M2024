@@ -25,12 +25,12 @@ public:
 public:
     Matrix& operator=(const Matrix& A);
     Matrix& operator=(Matrix&& A) noexcept;
-    Matrix& operator+(const Matrix& A);
+    Matrix operator+(const Matrix& A);
     Matrix& operator+=(const Matrix& A);
-    Matrix& operator-(const Matrix& A);
-    Matrix& operator*(const Matrix& A);
-    Matrix& operator*(const MatrixItem A);
-    Matrix& transposition();
+    Matrix operator-(const Matrix& A);
+    Matrix operator*(const Matrix& A);
+    Matrix operator*(const MatrixItem A);
+    Matrix transposition();
     MatrixItem determinant();
     Matrix& exponent(unsigned int m);
     Matrix& set_zero();
@@ -112,16 +112,19 @@ Matrix& Matrix::operator=(const Matrix& A)
 {
     if (&A == this) return *this;
 
-    cols = A.cols;
-    rows = A.rows;
-
     if (A.data == nullptr) {
+        delete[] data;
         data = nullptr;
         return *this;
     }
 
-    delete[] data;
-    data = new MatrixItem[rows * cols];
+    if (A.cols * A.rows != cols * rows)
+    {
+        delete[] data;
+        data = new MatrixItem[A.rows * A.cols];
+    }
+    cols = A.cols;
+    rows = A.rows;
     memcpy(this->data, A.data, rows * cols * sizeof(MatrixItem));
     return *this;
 }
@@ -129,12 +132,17 @@ Matrix& Matrix::operator=(const Matrix& A)
 
 Matrix& Matrix::operator=(Matrix&& A) noexcept
 {
-    cols = A.cols;
-    rows = A.rows;
-    data = A.data;
-    A.rows = 0;
-    A.cols = 0;
-    A.data = nullptr;
+    if (this != &A) {
+        delete[] data;
+
+        cols = A.cols;
+        rows = A.rows;
+        data = A.data;
+
+        A.rows = 0;
+        A.cols = 0;
+        A.data = nullptr;
+    }
     return *this;
 }
 
@@ -152,76 +160,77 @@ Matrix& Matrix::operator+=(const Matrix& A) {
 
 
 // C = A + B
-Matrix& Matrix::operator+(const Matrix& A)
+Matrix Matrix::operator+(const Matrix& A)
 {
     if (A.cols != this->cols || A.rows != this->rows)
         throw MatrixException("Matrix A and B are not proportional");
 
-    Matrix* C = new Matrix(A.cols, A.rows);
+    Matrix C(this->rows, this->cols);
 
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
-        C->data[idx] = A.data[idx] + this->data[idx];
-    return *C;
+    for (size_t idx = 0; idx < this->cols * this->rows; ++idx)
+        C.data[idx] = A.data[idx] + this->data[idx];
+    return C;
 }
 
 
+
 // C = A - B
-Matrix& Matrix::operator-(const Matrix& A)
-{
+Matrix Matrix::operator-(const Matrix& A) {
     if (A.cols != this->cols || A.rows != this->rows)
         throw MatrixException("Matrix A and B are not proportional");
 
-    Matrix* C = new Matrix(A.cols, A.rows);
+    Matrix C(this->rows, this->cols);
 
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
-        C->data[idx] = A.data[idx] - this->data[idx];
-    return *C;
+    for (size_t idx = 0; idx < this->cols * this->rows; ++idx)
+        C.data[idx] = this->data[idx] - A.data[idx];
+
+    return C;
 }
 
 
 // C = A * B
-Matrix& Matrix::operator*(const Matrix& A)
+Matrix Matrix::operator*(const Matrix& A)
 {
     if (A.cols != this->rows)
         throw MatrixException("The rows of the matrix A are not equal to the columns of matrix B");
 
-    Matrix* C = new Matrix(this->rows, A.cols);
+    Matrix C = Matrix(this->rows, A.cols);
 
     for (size_t C_col = 0; C_col < this->rows; ++C_col) {
         for (size_t C_row = 0; C_row < A.cols; ++C_row) {
-            C->data[C_row + C_col * A.cols] = 0;
+            C.data[C_row + C_col * A.cols] = 0;
             for (size_t idx = 0; idx < this->cols; ++idx) {
-                C->data[C_row + C_col * A.cols] += this->data[idx + (C_col * this->cols)]
+                C.data[C_row + C_col * A.cols] += this->data[idx + (C_col * this->cols)]
                     * A.data[idx * A.cols + C_row];
             };
         };
     };
-    return *C;
+    return C;
 }
 
 
-Matrix& Matrix::operator*(const MatrixItem A)
+Matrix Matrix::operator*(const MatrixItem A)
 {
 
-    Matrix* C = new Matrix(rows, cols);
+    Matrix C(this->rows, this->cols);
 
     for (unsigned int idx = 0; idx < cols * rows; ++idx)
-        C->data[idx] = this->data[idx] / A;
+        C.data[idx] = this->data[idx] / A;
 
-    return *C;
+    return C;
 }
 
 
 // C = A^T
-Matrix& Matrix::transposition()
+Matrix Matrix::transposition()
 {
-    Matrix* C = new Matrix(rows, cols);
+    Matrix C(this->rows, this->cols);
     for (size_t C_row = 0; C_row < cols; ++C_row) {
         for (size_t C_col = 0; C_col < rows; ++C_col) {
-            C->data[C_col + C_row * rows] = data[C_col * cols + C_row];
+            C.data[C_col + C_row * rows] = data[C_col * cols + C_row];
         };
     };
-    return *C;
+    return C;
 }
 
 
