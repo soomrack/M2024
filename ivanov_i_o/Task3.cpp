@@ -27,11 +27,11 @@ public:
     Matrix& operator-= (const Matrix& M);
     Matrix& operator*= (const double k);
     Matrix& operator*= (const Matrix& M);
-    Matrix Matrix::operator+(const Matrix& M);
-    Matrix Matrix::operator-(const Matrix& M);
-    Matrix Matrix::operator*(const Matrix& M);
-    Matrix Matrix::operator*(const Matrix& M);
-	Matrix Matrix::exponent(const unsigned int accuracy);
+    Matrix operator+(const Matrix& M);
+    Matrix operator-(const Matrix& M);
+    Matrix operator*(const Matrix& M);
+    Matrix operator*(const Matrix& M);
+	Matrix exponent(const unsigned int accuracy);
 
 public:
     void print();
@@ -267,6 +267,8 @@ Matrix& Matrix::operator*= (const Matrix& M)
         throw INCORRECT_DIMENTION_OF_MATRIX;
 
     Matrix R(rows, M.cols);
+    std::memset(R.data, 0, cols * rows * sizeof(MatrixItem));
+
     for (size_t row = 0; row < R.rows; row++)
         for (size_t col = 0; col < R.cols; col++)
             for (size_t idx = 0; idx < M.rows; idx++)
@@ -311,7 +313,7 @@ Matrix Matrix::exponent(const unsigned int accuracy)
 
 Matrix Matrix::operator+(const Matrix& M)
 {
-    Matrix rez = Matrix(M.rows, M.cols);
+    Matrix rez = M;
     rez = M;
     rez += *this;
     return rez;
@@ -320,7 +322,7 @@ Matrix Matrix::operator+(const Matrix& M)
 
 Matrix Matrix::operator-(const Matrix& M)
 {
-    Matrix rez = Matrix(M.rows, M.cols);
+    Matrix rez = M;
     rez = M;
     rez -= *this;
     return rez;
@@ -329,7 +331,7 @@ Matrix Matrix::operator-(const Matrix& M)
 
 Matrix Matrix::operator*(const Matrix& M)
 {
-    Matrix rez = Matrix(M.rows, M.cols);
+    Matrix rez = M;
     rez = M;
     rez *= *this;
     return rez;
@@ -338,7 +340,7 @@ Matrix Matrix::operator*(const Matrix& M)
 
 Matrix Matrix::operator*(const Matrix& M)
 {
-    Matrix rez = Matrix(M.rows, M.cols);
+    Matrix rez = M;
     rez = M;
     rez *= *this;
     return rez;
