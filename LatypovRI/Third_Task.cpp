@@ -45,7 +45,13 @@ public:
 
     Matrix operator*(const MatrixItem& factor);
     Matrix& operator*=(const MatrixItem& factor);
+    
+    Matrix operator+(const Matrix& A, const Matrix& B);
+    Matrix operator+(const Matrix& A, Matrix&& B);
 
+    Matrix operator-(const Matrix& A, const Matrix& B);
+    Matrix operator-(const Matrix& A, Matrix&& B);
+    
 
     void set(size_t row, size_t col, MatrixItem value);
     MatrixItem get(size_t row, size_t col) const;
@@ -59,19 +65,7 @@ public:
 
     ~Matrix();
 };
-
-Matrix operator+(const Matrix& A, const Matrix& B);
-Matrix operator+(const Matrix& A, Matrix&& B);
-
-Matrix operator-(const Matrix& A, const Matrix& B);
-Matrix operator-(const Matrix& A, Matrix&& B);
-
 std::ostream& operator<<(std::ostream& os, const Matrix& A);
-
-
-
-
-
 
 class MatrixException : public std::exception {
 private:
@@ -196,6 +190,7 @@ Matrix& Matrix::operator=(Matrix&& A)
 void Matrix::clear_items_to_zero()
 {
     memset(items, 0, sizeof(MatrixItem) * cols * rows);
+    
 }
 
 
