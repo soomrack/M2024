@@ -27,7 +27,7 @@ public:
     Matrix& operator-= (const Matrix& M);
     Matrix& operator*= (const double k);
     Matrix& operator*= (const Matrix& M);
-    Matrix Matrix::operator+(const Matrix& M); //
+    Matrix Matrix::operator+(const Matrix& M);
     Matrix Matrix::operator-(const Matrix& M);
     Matrix Matrix::operator*(const Matrix& M);
     Matrix Matrix::operator*(const Matrix& M);
