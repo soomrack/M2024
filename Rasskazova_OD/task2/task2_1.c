@@ -203,7 +203,7 @@ Matrix pow_matrix(Matrix matrix, size_t p) {
     Matrix mat = create_matrix(matrix.rows, matrix.cols);
     
     if (mat.data == NULL) {
-         matrix_error(ERROR, "Матрицы пуста");
+         matrix_error(ERROR, "Матрицa пуста");
         return MATRIX_NULL;
     }
 
@@ -224,13 +224,13 @@ Matrix pow_matrix(Matrix matrix, size_t p) {
 }
 
 
-Matrix el_sum_for_e(Matrix A, size_t k)  
+Matrix el_sum_for_e(Matrix matrix, size_t iterations)  
 {
-    Matrix el = pow_matrix(A, k);
+    Matrix el = pow_matrix(matrix, iterations);
 
-    for (size_t i = 1; i <= k; ++i) {
+    for (size_t k = 1; k <= iterations; ++k) {
         for (size_t idx = 0; idx < el.rows * el.cols; ++idx) {
-            el.data[idx] /= i;
+            el.data[idx] /= k;
         }
     }
 
@@ -238,17 +238,17 @@ Matrix el_sum_for_e(Matrix A, size_t k)
 }
 
 
-Matrix matrix_exp(Matrix A, int deg_acc)  
+Matrix matrix_exp(Matrix matrix, int num_iterations)  
 {
-    Matrix result = create_matrix(A.rows, A.cols);
+    Matrix result = create_matrix(matrix.rows, matrix.cols);
 
     for (size_t idx = 0; idx < result.rows * result.cols; ++idx) {
         result.data[idx] = 0;
     }
 
-    for (int i = 0; i <= deg_acc; ++i) {
+    for (int idx = 0; idx <= num_iterations; ++idx) {
         Matrix ptr = result;
-        Matrix temp = el_sum_for_e(A, i);
+        Matrix temp = el_sum_for_e(matrix, idx);
         result = sum(ptr, temp); 
         free_matrix(&ptr);
         free_matrix(&temp);
