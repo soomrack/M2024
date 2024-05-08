@@ -5,14 +5,17 @@
 
 enum class ErrorType { ERROR };
 
-void matrix_error(ErrorType type, const std::string& message) {
-    if (type == ErrorType::ERROR) {
-        std::cerr << "Ошибка! " << message << std::endl;
-    }
-}
+class Matrix_Exception : public std::exception
+{
+private:
+    std::string message;
+public:
+    Matrix_Exception(std::string msg) : message { msg } {}
+    std::string get_message() const { return message; }
+};
 
-class Matrix {
-
+class Matrix 
+{
 private:
     size_t rows;
     size_t cols;
@@ -27,7 +30,7 @@ public:
     ~Matrix();
 
     Matrix& operator=(const Matrix& M);
-    Matrix& operator=(const Matrix&& M);
+    Matrix& operator=(Matrix&& M);
     size_t get_rows() const { return rows; }
     size_t get_cols() const { return cols; }
 
@@ -38,27 +41,36 @@ public:
     Matrix operator-(const Matrix& M) const;
     Matrix operator*(double scalar) const;
     Matrix operator*(const Matrix& M) const;
-
+    Matrix exp(size_t iterations) const;
     double determinant() const;
+
     void print() const;
 };
 
+
 Matrix::Matrix() : rows(0), cols(0), data(nullptr) {}
 
+
 Matrix::Matrix(const size_t rows, const size_t cols) : rows(rows), cols(cols) {
+    if (SIZE_MAX / cols / rows < sizeof(double)) throw Matrix_Exception("Ошибка выделения памяти");
+
     data = new double[rows * cols];
 }
+
 
 Matrix::Matrix(const size_t rows, const size_t cols, const double* values)
     : rows(rows), cols(cols) {
+    if (SIZE_MAX / cols / rows < sizeof(double)) throw Matrix_Exception("Ошибка выделения памяти");
     data = new double[rows * cols];
     std::copy(values, values + (rows * cols), data);
 }
+
 
 Matrix::Matrix(const Matrix& M) : rows(M.rows), cols(M.cols) {
     data = new double[rows * cols];
     std::copy(M.data, M.data + (rows * cols), data);
 }
+
 
 Matrix::Matrix(Matrix&& A) : rows(A.rows), cols(A.cols), data(A.data) {
     A.rows = 0;
@@ -66,34 +78,52 @@ Matrix::Matrix(Matrix&& A) : rows(A.rows), cols(A.cols), data(A.data) {
     A.data = nullptr;
 }
 
+
 Matrix::~Matrix() {
     delete[] data;
 }
 
+
 Matrix& Matrix::operator=(const Matrix& M) {
-    if (this != &M) {
-        delete[] data;
-        rows = M.rows;
-        cols = M.cols;
-        data = new double[rows * cols];
-        std::copy(M.data, M.data + (rows * cols), data);
-    }
+    if (this == &M) return *this;    
+    if (data != nullptr) delete[] data;
+
+    rows = M.rows;
+    cols = M.cols;
+    this->data = new double[rows * cols];
+    std::copy(M.data, M.data + (rows * cols), data);
+
     return *this;
 }
+
+
+Matrix& Matrix::operator=(Matrix&& M) {
+    delete[] data;
+
+    rows = M.rows;
+    cols = M.cols;
+    data = M.data;
+
+    M.rows = 0;
+    M.cols = 0;
+    M.data = nullptr;
+    
+    return *this;
+}
+
 
 double& Matrix::operator()(size_t row, size_t col) {
     return data[row * cols + col];
 }
 
+
 const double& Matrix::operator()(size_t row, size_t col) const {
     return data[row * cols + col];
 }
 
+
 Matrix Matrix::operator+(const Matrix& M) const {
-    if (rows != M.rows || cols != M.cols) {
-        matrix_error(ErrorType::ERROR, "Невозможно сложить матрицы: неправильные размеры");
-        return Matrix(0, 0);
-    }
+    if (rows != M.rows || cols != M.cols) throw Matrix_Exception ("Невозможно сложить матрицы: неправильные размеры");
 
     Matrix result(rows, cols);
     for (size_t idx = 0; idx < (rows * cols); ++idx) {
@@ -102,11 +132,9 @@ Matrix Matrix::operator+(const Matrix& M) const {
     return result;
 }
 
+
 Matrix Matrix::operator-(const Matrix& M) const {
-    if (rows != M.rows || cols != M.cols) {
-        matrix_error(ErrorType::ERROR, "Невозможно вычесть матрицы: неправильные размеры");
-        return Matrix(0, 0);
-    }
+    if (rows != M.rows || cols != M.cols) throw Matrix_Exception ("Невозможно вычесть матрицы: неправильные размеры");
 
     Matrix result(rows, cols);
     for (size_t idx = 0; idx < (rows * cols); ++idx) {
@@ -114,6 +142,7 @@ Matrix Matrix::operator-(const Matrix& M) const {
     }
     return result;
 }
+
 
 Matrix Matrix::operator*(double scalar) const {
     Matrix result(rows, cols);
@@ -123,11 +152,9 @@ Matrix Matrix::operator*(double scalar) const {
     return result;
 }
 
+
 Matrix Matrix::operator*(const Matrix& M) const {
-    if (cols != M.rows) {
-        matrix_error(ErrorType::ERROR, "Невозможно перемножить матрицы: неправильные размеры");
-        return Matrix(0, 0);
-    }
+    if (cols != M.rows) throw Matrix_Exception ("Невозможно перемножить матрицы: неправильные размеры");
 
     Matrix result(rows, M.cols);
     for (size_t rows_A = 0; rows_A < rows; ++rows_A) {
@@ -142,12 +169,10 @@ Matrix Matrix::operator*(const Matrix& M) const {
     return result;
 }
 
-double Matrix::determinant() const {
-    if (rows != cols) {
-        matrix_error(ErrorType::ERROR, "Невозможно вычислить определитель: матрица не квадратная");
-        return NAN;
-    }
 
+double Matrix::determinant() const {
+    if (cols != rows) throw Matrix_Exception("Невозможно вычислить определитель: матрица не квадратная");
+    
     size_t n = rows;
     if (n == 1) {
         return (*this)(0, 0);
@@ -169,6 +194,25 @@ double Matrix::determinant() const {
     return NAN;
 }
 
+
+Matrix Matrix::exp(size_t iterations) const {
+    if (rows != cols) throw Matrix_Exception("Невозможно вычислить экспоненту матрицы: матрица не квадратная");
+
+    Matrix result(rows, cols);
+    Matrix term(rows, cols);
+
+    double factorial = 1.0;
+
+    for (size_t k = 0; k < iterations; ++k) {
+        term = term + ((*this) * (1.0 / factorial));
+        result = result + term;
+        factorial *= (k + 1);
+    }
+
+    return result;
+}
+
+
 void Matrix::print() const {
     for (size_t rows_A = 0; rows_A < rows; ++rows_A) {
         for (size_t cols_B = 0; cols_B < cols; ++cols_B) {
@@ -177,6 +221,7 @@ void Matrix::print() const {
         std::cout << std::endl;
     }
 }
+
 
 int main() {
     // Создание матрицы 1
@@ -197,6 +242,7 @@ int main() {
     Matrix result_scalar_mult = matrixA * 5;
     Matrix result_mult = matrixA * matrixB;
     double result_det = matrixA.determinant();
+    Matrix result_exp = matrixA.exp(5);
 
     // Вывод результатов
     std::cout << "Матрица 1:\n";
@@ -212,6 +258,6 @@ int main() {
     std::cout << "\nРезультат перемножения матриц:\n";
     result_mult.print();
     std::cout << "\nРезультат вычисления определителя:\n" << result_det << std::endl;
-
-    return 0;
+    std::cout << "\nРезультат нахождния экспоненты матрицы:\n";
+    result_exp.print();
 }
