@@ -5,6 +5,11 @@
 
 typedef double Matrixoject;
 
+Matrix operator+(const Matrix& M, const Matrix& K);
+Matrix operator-(const Matrix& M, const Matrix& K);
+Matrix operator*(const Matrix& M, const Matrix& K);
+Matrix operator*(const double k, const Matrix& M);
+
 class Matrix {
 private:
     size_t rows;
@@ -26,7 +31,7 @@ public:
     Matrix& operator-= (const Matrix& M);
     Matrix& operator*= (const double k);
     Matrix& operator*= (const Matrix& M);
-	friend Matrix operator ^ (const double base, const Matrix& matrix);
+	Matrix operator ^ (const double base, const Matrix& matrix);
 
 public:
     void print();
@@ -36,13 +41,6 @@ public:
 	void identity_fill();
 	void zeros_fill();
 };
-
-
-Matrix operator+(const Matrix& M, const Matrix& K);
-Matrix operator-(const Matrix& M, const Matrix& K);
-Matrix operator*(const Matrix& M, const Matrix& K);
-Matrix operator*(const double k, const Matrix& M);
-
 
 class Matrix_Exception : public std::exception
 {
@@ -218,29 +216,29 @@ double Matrix::determinant(void)
     return det;
 }
 
-Matrix& Matrix::operator= (const Matrix& M) {
+Matrix& Matrix::operator=(const Matrix& M) {
     if (this == &M) return *this;    
-    if (data != nullptr) delete data;
+
+    if (data!= nullptr) delete[] data; 
 
     rows = M.rows;
     columns = M.columns;
 
-    this->data = new Matrixoject[rows * columns];
-    memcpy(data, M.data, columns * rows * sizeof(Matrixoject));
+    data = new MatrixObject[rows * columns];
+    memcpy(data, M.data, columns * rows * sizeof(MatrixObject));
 
     return *this;
 }
 
 
-Matrix& Matrix::operator= (Matrix&& M) {
-  //  if (this == &M) return *this;
-    delete[] data;
-
-    rows = M.rows;
-    columns = M.columns;
-    data = M.data;
-    M.data = nullptr;
-
+Matrix& Matrix::operator=(Matrix&& M) noexcept {
+    if (this != &M) { 
+        delete[] data;
+        rows = M.rows;
+        columns = M.columns;
+        data = M.data;
+        M.data = nullptr;
+    }
     return *this;
 }
 
