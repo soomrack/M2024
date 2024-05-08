@@ -48,6 +48,11 @@ struct Matrices matrix_create_random(const size_t rows, const size_t columns)
     struct Matrices A = matrix_initialization(rows, columns);
     for (size_t idx = 0; idx < A.columns * A.rows; idx++)
         A.data[idx] = (MatrixObject)(rand() % 10);
+
+    if (A.data == NULL) {
+        Matrix_warning();
+        return MATRIX_NULL;
+    }
     return A;
 }
 
@@ -199,13 +204,12 @@ struct Matrices matrix_make_ident(size_t rows, size_t columns)
 
 struct Matrices pow_matrix(struct Matrices A, const size_t p) {
     struct Matrices M = matrix_initialization(A.rows, A.columns);
-
-    memcpy(M.data, A.data, A.rows * A.columns * sizeof(MatrixObject));
-
     if (M.data == NULL) {
         return MATRIX_NULL;
     }
+    memcpy(M.data, A.data, A.rows * A.columns * sizeof(MatrixObject));
     if (p == 0) {
+        matrix_free(&M);
         return matrix_make_ident(A.columns, A.rows);
     }
     if (p == 1) {
@@ -214,7 +218,7 @@ struct Matrices pow_matrix(struct Matrices A, const size_t p) {
     for (size_t i = 1; i < p; ++i) {
         struct Matrices ptr = M;
         M = matrix_mult(ptr, A);
-        matrix_free(&ptr);
+        matrix_free(&ptr); // free ptr explicitly
     }
     return M;
 }
@@ -223,7 +227,9 @@ struct Matrices pow_matrix(struct Matrices A, const size_t p) {
 struct Matrices el_sum_for_e(const struct Matrices A, const size_t k)
 {
     struct Matrices P = pow_matrix(A, k);
-
+    if (P.data == NULL) {
+        return MATRIX_NULL;
+    }
     for (size_t i = 1; i <= k; ++i) {
         for (size_t id = 0; id < P.rows * P.columns; ++id) {
             P.data[id] /= (double)i;
