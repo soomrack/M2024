@@ -23,7 +23,7 @@ void Matrix_fill_factorial(Matrix &mat) {
     }
 }
 
-void printMatrix(const Matrix &mat) {
+void Matrix_print(const Matrix &mat) {
     for (size_t i = 0; i < mat.rows; ++i) {
         for (size_t j = 0; j < mat.cols; ++j) {
            std::cout << std::fixed << std::setprecision(3) << mat.data[i * mat.cols + j] << "\t";
@@ -32,33 +32,29 @@ void printMatrix(const Matrix &mat) {
     }
 }
 
-Matrix matrixSum(const Matrix &mat1, const Matrix &mat2) {
+Matrix Matrix_Sum(const Matrix &mat1, const Matrix &mat2) {
     if (mat1.rows != mat2.rows || mat1.cols != mat2.cols) {
         throw std::invalid_argument("Matrix dimensions must be the same for addition.");
     }
     Matrix result{mat1.rows, mat1.cols, std::vector<double>(mat1.rows * mat1.cols)};
-    for (size_t i = 0; i < mat1.rows; ++i) {
-        for (size_t j = 0; j < mat1.cols; ++j) {
-            result.data[i * mat1.cols + j] = mat1.data[i * mat1.cols + j] + mat2.data[i * mat1.cols + j];
-        }
+    for (size_t i = 0; i < mat1.rows * mat1.cols; ++i) {
+    result.data[i] = mat1.data[i] + mat2.data[i];
     }
     return result;
 }
 
-Matrix matrixDifference(const Matrix &mat1, const Matrix &mat2) {
+Matrix Matrix_Difference(const Matrix &mat1, const Matrix &mat2) {
     if (mat1.rows != mat2.rows || mat1.cols != mat2.cols) {
         throw std::invalid_argument("Matrix dimensions must be the same for subtraction.");
     }
     Matrix result{mat1.rows, mat1.cols, std::vector<double>(mat1.rows * mat1.cols)};
-    for (size_t i = 0; i < mat1.rows; ++i) {
-        for (size_t j = 0; j < mat1.cols; ++j) {
-            result.data[i * mat1.cols + j] = mat1.data[i * mat1.cols + j] - mat2.data[i * mat1.cols + j];
-        }
+    for (size_t i = 0; i < mat1.rows * mat1.cols; ++i) {
+    result.data[i] = mat1.data[i] - mat2.data[i];
     }
     return result;
 }
 
-Matrix matrixProduct(const Matrix &mat1, const Matrix &mat2) {
+Matrix Matrix_Product(const Matrix &mat1, const Matrix &mat2) {
     if (mat1.cols != mat2.rows) {
         throw std::invalid_argument("Number of columns of the first matrix must be equal to the number of rows of the second matrix for matrix multiplication.");
     }
@@ -75,17 +71,15 @@ Matrix matrixProduct(const Matrix &mat1, const Matrix &mat2) {
     return result;
 }
 
-Matrix matrixScalarMultiplication(const Matrix &mat, double scalar) {
+Matrix Matrix_Scalar_Multiplication(const Matrix &mat, double scalar) {
     Matrix result{mat.rows, mat.cols, std::vector<double>(mat.rows * mat.cols)};
-    for (size_t i = 0; i < mat.rows; ++i) {
-        for (size_t j = 0; j < mat.cols; ++j) {
-            result.data[i * mat.cols + j] = mat.data[i * mat.cols + j] * scalar;
-        }
+    for (size_t i = 0; i < mat.rows * mat.cols; ++i) {
+    result.data[i] = mat.data[i] * scalar;
     }
     return result;
 }
 
-Matrix matrixDivision(const Matrix &mat1, const Matrix &mat2) {
+Matrix Matrix_Division(const Matrix &mat1, const Matrix &mat2) {
     if (mat1.rows != mat2.rows || mat1.cols != mat2.cols) {
         throw std::invalid_argument("Matrix dimensions must be the same for division.");
     }
@@ -101,7 +95,7 @@ Matrix matrixDivision(const Matrix &mat1, const Matrix &mat2) {
     return result;
 }
 
-Matrix createIdentityMatrix(size_t size) {
+Matrix Matrix_Identity(size_t size) {
     Matrix identity{size, size, std::vector<double>(size * size, 0.0)};
     for (size_t i = 0; i < size; ++i) {
         identity.data[i * size + i] = 1.0;
@@ -109,25 +103,24 @@ Matrix createIdentityMatrix(size_t size) {
     return identity;
 }
 
-Matrix matrixPower(const Matrix &mat, int power) {
+Matrix Matrix_Power(const Matrix &mat, int power) {
     if (mat.rows != mat.cols) {
         throw std::invalid_argument("Matrix must be square to be raised to a power.");
     }
     if (power == 0) {
-        // Возврат единичной матрицы той же размерности, что и исходная
-        return createIdentityMatrix(mat.rows);
+        return Matrix_Identity(mat.rows);
     }
     if (power < 0) {
         throw std::invalid_argument("Matrix exponentiation with negative powers is not supported.");
     }
     Matrix result = mat;
     for (int i = 1; i < power; ++i) {
-        result = matrixProduct(result, mat);
+        result = Matrix_Product(result, mat);
     }
     return result;
 }
 
-Matrix matrixExponential(const Matrix &mat, int power) {
+Matrix Matrix_Exponential(const Matrix &mat, int power) {
     if (mat.rows != mat.cols) {
         throw std::invalid_argument("Matrix must be square to compute its exponential.");
     }
@@ -138,14 +131,14 @@ Matrix matrixExponential(const Matrix &mat, int power) {
     Matrix result{mat.rows, mat.cols, std::vector<double>(mat.rows * mat.cols, 0.0)};
     Matrix term = mat;
     for (int i = 0; i <= power; ++i) {
-        result = matrixSum(result, term);
-        term = matrixProduct(term, mat);
-        term = matrixScalarMultiplication(term, 1.0 / (i + 1));
+        result = Matrix_Sum(result, term);
+        term = Matrix_Product(term, mat);
+        term = Matrix_Scalar_Multiplication(term, 1.0 / (i + 1));
     }
     return result;
 }
 
-double matrixDeterminant(const Matrix &mat) {
+double Matrix_Determinant(const Matrix &mat) {
     if (mat.rows != mat.cols) {
         throw std::invalid_argument("Matrix must be square to find its determinant.");
     }
@@ -170,7 +163,7 @@ double matrixDeterminant(const Matrix &mat) {
                 }
             }
         }
-        determinant += sign * mat.data[i] * matrixDeterminant(subMat);
+        determinant += sign * mat.data[i] * Matrix_Determinant(subMat);
         sign = -sign;
     }
 
@@ -183,7 +176,6 @@ int main() {
 
     Matrix mat1{rows, cols, std::vector<double>(rows * cols)};
     Matrix mat2{rows, cols, std::vector<double>(rows * cols)};
-
     Matrix mat3{2, 2, std::vector<double>(rows * cols)};
 
     Matrix_fill_factorial(mat1);
@@ -191,34 +183,34 @@ int main() {
     Matrix_fill_factorial(mat3);
 
     std::cout << "matrix1:" << std::endl;
-    printMatrix(mat1);
+    Matrix_print(mat1);
     std::cout << std::endl;
     std::cout << "matrix2:" << std::endl;
-    printMatrix(mat2);
+    Matrix_print(mat2);
     std::cout << std::endl;
 
     try {
-        Matrix sum = matrixSum(mat1, mat2);
+        Matrix sum = Matrix_Sum(mat1, mat2);
         std::cout << "Sum:" << std::endl;
-        printMatrix(sum);
+        Matrix_print(sum);
         std::cout << std::endl;
     } catch (const std::invalid_argument &e) {
         std::cerr << "Error during addition: " << e.what() << std::endl;
     }
 
     try {
-        Matrix diff = matrixDifference(mat1, mat2);
+        Matrix diff = Matrix_Difference(mat1, mat2);
         std::cout << "Difference:" << std::endl;
-        printMatrix(diff);
+        Matrix_print(diff);
         std::cout << std::endl;
     } catch (const std::invalid_argument &e) {
         std::cerr << "Error during subtraction: " << e.what() << std::endl;
     }
 
     try {
-        Matrix prod = matrixProduct(mat1, mat2);
+        Matrix prod = Matrix_Product(mat1, mat2);
         std::cout << "Product:" << std::endl;
-        printMatrix(prod);
+        Matrix_print(prod);
         std::cout << std::endl;
     } catch (const std::invalid_argument &e) {
         std::cerr << "Error during multiplication: " << e.what() << std::endl;
@@ -226,9 +218,9 @@ int main() {
 
     double scalar = 2.0;
     try {
-        Matrix scaledMat = matrixScalarMultiplication(mat1, scalar);
+        Matrix scaledMat = Matrix_Scalar_Multiplication(mat1, scalar);
         std::cout << "Scalar multiplication:" << std::endl;
-        printMatrix(scaledMat);
+        Matrix_print(scaledMat);
         std::cout << std::endl;
     } catch (const std::invalid_argument &e) {
         std::cerr << "Error during scalar multiplication: " << e.what() << std::endl;
@@ -236,28 +228,28 @@ int main() {
 
 
     try {
-        Matrix div = matrixDivision(mat1, mat2);
+        Matrix div = Matrix_Division(mat1, mat2);
         std::cout << "Division:" << std::endl;
-        printMatrix(div);
+        Matrix_print(div);
         std::cout << std::endl;
     } catch (const std::invalid_argument &e) {
         std::cerr << "Error during division: " << e.what() << std::endl;
     }
     
     std::cout << "matrix3:" << std::endl;
-    printMatrix(mat3);
+    Matrix_print(mat3);
     std::cout << std::endl;
     try {
-            Matrix matSquared = matrixPower(mat3, 2);
+            Matrix matSquared = Matrix_Power(mat3, 2);
             std::cout << "Matrix power:" << std::endl;
-            printMatrix(matSquared);
+            Matrix_print(matSquared);
             std::cout << std::endl;
         } catch (const std::invalid_argument &e) {
             std::cerr << "Error during matrix exponentiation: " << e.what() << std::endl;
         }
 
     try {
-            double determinant = matrixDeterminant(mat3);
+            double determinant = Matrix_Determinant(mat3);
             std::cout << "Determinant of the matrix:" << determinant << std::endl;
             std::cout << std::endl;
         } catch (const std::invalid_argument &e) {
@@ -265,9 +257,9 @@ int main() {
         }
 
     try {
-            Matrix matExp = matrixExponential(mat3, 3);
+            Matrix matExp = Matrix_Exponential(mat3, 3);
             std::cout << "Matrix exponential:" << std::endl;
-            printMatrix(matExp);
+            Matrix_print(matExp);
             std::cout << std::endl;
         } catch (const std::invalid_argument &e) {
             std::cerr << "Error during matrix exponentiation: " << e.what() << std::endl;
