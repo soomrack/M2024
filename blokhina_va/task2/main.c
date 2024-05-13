@@ -167,7 +167,7 @@ void subtraction(Matrix *frst, Matrix *scnd){
 }
 
 // Умножение матриц
-Matrix multiplication(Matrix *frst, Matrix *scnd){
+void multiplication(Matrix *frst, Matrix *scnd){
     if (frst->cols != scnd->rows){
         handle_error(FIRST_MATCOLS_IS_NOT_EQUAL_SECOND_MATROWS);
     }
@@ -186,7 +186,19 @@ Matrix multiplication(Matrix *frst, Matrix *scnd){
             result_mat.data[rows * scnd->cols + s_cols] = sum;
         }
     }
-    return result_mat;
+
+    if (result_mat.data <= frst->data){
+        // Указатель на первый участок памяти, не содержащий актуальное значение рез. матрицы
+        for (size_t cell_to_free = (result_mat.rows * result_mat.cols); cell_to_free < (frst->rows * frst->cols); cell_to_free++) {
+            free(&frst->data[cell_to_free]);
+        }
+    }
+    if (result_mat.data != frst->data)
+        // Подгоняю размер первой под результирующую матрицу
+        realloc(frst->data, result_mat.rows * result_mat.cols * sizeof(double));
+    frst->data = result_mat.data;
+    matrix_free(&result_mat);
+    // Что делать с освободившимися участками памяти?
 }
 
 // Функция для вычисления экспоненты матрицы
@@ -211,7 +223,7 @@ Matrix matrix_exponential(Matrix *mat) {
 
     // Расчёт экспоненциального ряда
     for (size_t k = 1; k <= 10; k++) {
-        temp = multiplication(&temp, mat);
+        multiplication(&temp, mat);
         multiplication_by_number(&temp, 1. / k);
         summation(&result, &temp);
     }
