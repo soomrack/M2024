@@ -53,7 +53,7 @@ void print_matrix(const struct Matrix A) {
     printf("\n");
 }
 
-// Копированик данных из одной матрицы в другую
+// РљРѕРїРёСЂРѕРІР°РЅРёРє РґР°РЅРЅС‹С… РёР· РѕРґРЅРѕР№ РјР°С‚СЂРёС†С‹ РІ РґСЂСѓРіСѓСЋ 
 void matrix_copy(struct Matrix dest, const struct Matrix src) {
     if (dest.data == NULL || src.data == NULL || dest.cols != src.cols || dest.rows != src.rows)
         return;
@@ -62,17 +62,17 @@ void matrix_copy(struct Matrix dest, const struct Matrix src) {
     memcpy(dest.data, src.data, size);
 }
 
-// Умножение матрицы на скаляр
+// РЈРјРЅРѕР¶РµРЅРёРµ РјР°С‚СЂРёС†С‹ РЅР° СЃРєР°Р»СЏСЂ
 void matrix_mult_by_coeff(struct Matrix A, const double coefficient)
 {
     if (A.data == NULL)
         return;
 
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
-        A.data[idx] *= coefficient; // Умножаем значение на коэф.
+        A.data[idx] *= coefficient; // Г“Г¬Г­Г®Г¦Г ГҐГ¬ Г§Г­Г Г·ГҐГ­ГЁГҐ Г­Г  ГЄГ®ГЅГґ.
 }
 
-// Оббнуление матрицы
+// РћР±РЅСѓР»РµРЅРёРµ РјР°С‚СЂРёС†С‹
 void matrix_zero(struct Matrix A)
 {
     if (A.data == NULL)
@@ -81,7 +81,7 @@ void matrix_zero(struct Matrix A)
     memset(A.data, 0, A.cols * A.rows * sizeof(MatrixItem));
 }
 
-// Сложение двух матриц
+// РЎР»РѕР¶РµРЅРёРµ РґРІСѓС… РјР°С‚СЂРёС†
 struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows)
@@ -97,7 +97,7 @@ struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
     return C;
 }
 
-// Добавленик одной матрицы к другой
+// Р”РѕР±Р°РІР»РµРЅРёРµ РѕРґРЅРѕР№ РјР°С‚СЂРёС†С‹ Рє РґСЂСѓРіРѕР№
 void matrix_add(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows || A.data == NULL || B.data == NULL)
@@ -107,7 +107,7 @@ void matrix_add(const struct Matrix A, const struct Matrix B)
         A.data[idx] += B.data[idx];
 }
 
-// Вычитаник одной матрицы из другой
+// Р’С‹С‡РёС‚Р°РЅРёРµ РѕРґРЅРѕР№ РјР°С‚СЂРёС†С‹ РёР· РґСЂСѓРіРѕР№
 struct Matrix matrix_substr(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows)
@@ -123,7 +123,7 @@ struct Matrix matrix_substr(const struct Matrix A, const struct Matrix B)
     return C;
 }
 
-// Умножение двух матриц
+// РџРµСЂРµРјРЅРѕР¶РµРЅРёРµ РјР°С‚СЂРёС† 
 struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.rows)
@@ -143,7 +143,7 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
     return C;
 }
 
-// Вычисление экспоненты матрицы
+// Р’С‹С‡РёСЃР»РµРЅРёРµ СЌРєСЃРїРѕРЅРµРЅС‚С‹ РјР°С‚СЂРёС†С‹
 struct Matrix matrix_exponent(const struct Matrix A, const double accuracy)
 {
     if (A.cols != A.rows)
@@ -175,7 +175,7 @@ struct Matrix matrix_exponent(const struct Matrix A, const double accuracy)
     return C;
 }
 
-// Проверка, равен ли определитель нулю
+// РџСЂРѕРІРµСЂРєР° СЂР°РІРµРЅСЃС‚РІР° РѕРїСЂРµРґРµР»РёС‚РµР»СЏ РЅСѓР»СЋ
 int matrix_det_if_zero(const struct Matrix A)
 {
     size_t count;
@@ -207,7 +207,7 @@ int matrix_det_if_zero(const struct Matrix A)
     return 1;
 }
 
-// Приведение к верхнетреугольному виду
+// РџСЂРёРІРµРґРµРЅРёРµ Рє РІРµСЂС…РЅРµС‚СЂРµСѓРіРѕР»СЊРЅРѕРјСѓ РІРёРґСѓ
 void matrix_det_prep(const struct Matrix A, size_t diag, double* coeff)
 {
     size_t buff_one = diag;
@@ -231,7 +231,7 @@ void matrix_det_prep(const struct Matrix A, size_t diag, double* coeff)
     }
 }
 
-// Вычисление определителя матрицы
+// Р’С‹С‡РёСЃР»РµРЅРёРµ РѕРїСЂРµРґРµР»РёС‚РµР»СЏ РјР°С‚СЂРёС†С‹
 double matrix_det(const struct Matrix A)
 {
     if (A.cols != A.rows)
