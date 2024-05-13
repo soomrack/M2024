@@ -167,19 +167,26 @@ void subtraction(Matrix *frst, Matrix *scnd){
 }
 
 // Умножение матриц
-void multiplication(Matrix *frst, Matrix *scnd){
+Matrix multiplication(Matrix *frst, Matrix *scnd){
     if (frst->cols != scnd->rows){
         handle_error(FIRST_MATCOLS_IS_NOT_EQUAL_SECOND_MATROWS);
     }
-    for (size_t frst_rows = 0; frst_rows < frst->rows; frst_rows++) {
-        for (size_t scnd_mat_cols = 0; scnd_mat_cols < scnd->cols; scnd_mat_cols++) {
+    Matrix result_mat = matrix_create(frst->rows, scnd->cols);
+    if (result_mat.data == NULL) {
+        handle_error(MEMORY_ALLOCATION_ERROR);
+        return MATRIX_NULL;
+    }
+    for (size_t rows = 0; rows < frst->rows; rows++) {
+        for (size_t s_cols = 0; s_cols < scnd->cols; s_cols++) {
             double sum = 0;
             for (size_t elmnts = 0; elmnts < frst->cols; ++elmnts) {
-                sum += frst->data[frst_rows * frst->cols + elmnts] *\
-                    scnd->data[elmnts * scnd->cols + scnd_mat_cols];
+                sum += frst->data[rows * frst->cols + elmnts] *
+                    scnd->data[elmnts * scnd->cols + s_cols];
             }
+            result_mat.data[rows * scnd->cols + s_cols] = sum;
         }
     }
+    return result_mat;
 }
 
 // Функция для вычисления экспоненты матрицы
@@ -204,7 +211,7 @@ Matrix matrix_exponential(Matrix *mat) {
 
     // Расчёт экспоненциального ряда
     for (size_t k = 1; k <= 10; k++) {
-        multiplication(&temp, mat);
+        temp = multiplication(&temp, mat);
         multiplication_by_number(&temp, 1. / k);
         summation(&result, &temp);
     }
