@@ -131,18 +131,33 @@ void Matrix::fill(enum MatrixType mat_type) {
 //Оператор присваивания
 Matrix& Matrix::operator=(const Matrix& A) {
     if (this == &A) return *this;
-    if (cols != A.cols || rows != A.rows) {
-        delete[] data;
-        cols = A.cols;
-        rows = A.rows;
-        if (A.data == nullptr) {
-            data = nullptr;
-            return *this;
-        }
-        data = A.data;
-    } else {
-        memcpy(data, A.data, sizeof(MatrixItem) * A.rows * A.cols);
+
+    // Если размеры матриц совпадают копируем данные
+    if (cols == A.cols && rows == A.rows) {
+        memcpy(data, A.data, rows * cols * sizeof(MatrixItem));
+        return *this;
     }
+    
+    // Если текущий объект пустой но объект A не пустой копируем данные из A и возвращаем *this
+    if (data == nullptr) {
+        rows = A.rows;
+        cols = A.cols;
+        if (A.data == nullptr)
+            return *this;
+
+        data = new MatrixItem[A.rows * A.cols];
+        memcpy(data, A.data, rows * cols * sizeof(MatrixItem));
+        return *this;
+    }
+
+    // Иначе освобождаем текущую память и выделяем новую и копируем данные
+    delete[] data;
+    rows = A.rows;
+    cols = A.cols;
+    data = new MatrixItem[A.rows * A.cols];
+    
+        memcpy(data, A.data, rows * cols * sizeof(MatrixItem));
+
     return *this;
 }
 
