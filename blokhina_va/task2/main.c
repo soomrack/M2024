@@ -186,9 +186,10 @@ void multiplication(Matrix *frst, Matrix *scnd){
         }
     }
 
-    matrix_free(frst->data);
-    frst = result_mat;
-    result_mat.data = NULL;
+    free(frst);
+    frst->rows = result_mat.rows;
+    frst->cols = result_mat.cols;
+    frst->data = result_mat.data;
 }
 
 // Функция для вычисления экспоненты матрицы
