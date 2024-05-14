@@ -6,7 +6,7 @@
 
 typedef double MatrixItem;
 
-class Matrix  //класс с характеристиками
+class Matrix  
 {
 private:
     size_t rows;
@@ -15,8 +15,8 @@ private:
 
     void set_null();
      
-public: // конструкторы
-    Matrix(); // пустой массив, с размерами, как у прошлой матрицы, следующая матрица отдаст данные новой и освобождается, деструктор = освобождение опер памяти
+public: 
+    Matrix(); 
     Matrix(const size_t a, const size_t b);
     Matrix(const Matrix& A);
     Matrix(Matrix&& A);
@@ -28,25 +28,25 @@ public:
     size_t get_rows() const;
     size_t get_cols() const;
 
-    MatrixItem& operator[](const size_t idx); //обращение к индексу элемента (не обращаясь к матрице) 
+    MatrixItem& operator[](const size_t idx); 
 
-    Matrix& operator=(std::initializer_list<MatrixItem> lst); // создание матрицы по введённым числам
-    Matrix& operator=(const Matrix& A); // копирование данных из одной матрицы в другую
-    Matrix& operator=(Matrix&& A); // перемещение данных в новую матрицу
+    Matrix& operator=(std::initializer_list<MatrixItem> lst); 
+    Matrix& operator=(const Matrix& A);
+    Matrix& operator=(Matrix&& A); 
 
-    Matrix& operator+=(const Matrix& A); // А += В  ----  А = А+В
+    Matrix& operator+=(const Matrix& A); 
     Matrix& operator-=(const Matrix& A);
-    bool operator==(const Matrix& A) const; // оператор сравнения - если одинаковые, то true
+    bool operator==(const Matrix& A) const; 
 
-    Matrix operator*(const Matrix& A) const; // матрица*матрица = новая матрица
+    Matrix operator*(const Matrix& A) const; 
     Matrix& operator*=(const Matrix& A); 
 
-    Matrix operator*(const MatrixItem& coefficient); //  матрица*коэффициент = новые значения в старой матрице
+    Matrix operator*(const MatrixItem& coefficient); 
     Matrix& operator*=(const MatrixItem& coefficient); 
 
 
-    void set(size_t row, size_t col, MatrixItem value); //установить значения
-    MatrixItem get(size_t row, size_t col) const; // забрать значения
+    void set(size_t row, size_t col, MatrixItem value); 
+    MatrixItem get(size_t row, size_t col) const; 
 
 
     Matrix transposed(); 
@@ -61,10 +61,10 @@ public:
 Matrix operator+(const Matrix& A, const Matrix& B);
 Matrix operator-(const Matrix& A, const Matrix& B);
 
-std::ostream& operator<<(std::ostream& os, const Matrix& A); //оператор вывода - матрица в консоль в виде текста
+std::ostream& operator<<(std::ostream& os, const Matrix& A); 
 
 
-class MatrixException : public std::exception { //если непредвиденное действие = как деление на 0, отработка ошибки
+class MatrixException : public std::exception { 
 private:
     const char* message;
 
@@ -72,31 +72,31 @@ public:
     MatrixException(std::string msg) : message(msg.c_str()) {}
     const char* what() { return message; }
 };
-MatrixException ERROR_MATRIX("Error matrix!");   //класс с экземплярами 
-MatrixException OUT_OF_SIZE("Out of size!"); //выход за пределы массива
-MatrixException NO_MEMORY_ALLOCATED("No memory allocated!"); //не выделяется память
+MatrixException ERROR_MATRIX("Error matrix!");   
+MatrixException OUT_OF_SIZE("Out of size!"); 
+MatrixException NO_MEMORY_ALLOCATED("No memory allocated!"); 
 MatrixException NULL_POINTER_REFERENCE("Null pointer!");
 
 
-Matrix::Matrix() : rows{ 0 }, cols{ 0 }, data{ nullptr } {}  //нулевая матрица
-const MatrixItem epsilon = 0.001; //погрешность в экспоненциальной матрице
+Matrix::Matrix() : rows{ 0 }, cols{ 0 }, data{ nullptr } {}  
+const MatrixItem epsilon = 0.001; 
 
-Matrix::Matrix(const size_t a, const size_t b) //создание матрицы
+Matrix::Matrix(const size_t a, const size_t b) 
     : rows{ a }, cols{ b }, data{ nullptr }
 {
-    if (rows == 0 && cols == 0) // если всё 0, пустая матрица - возврат назад
+    if (rows == 0 && cols == 0) 
         return;
 
     if (rows == 0 || cols == 0)
         throw ERROR_MATRIX;
 
-    if (rows >= _CRT_SIZE_MAX / cols / sizeof(MatrixItem)) // проверка размерности, нельзя выделить оперативную память, тк размерность больше
+    if (rows >= _CRT_SIZE_MAX / cols / sizeof(MatrixItem)) 
         throw NO_MEMORY_ALLOCATED;
 
-    data = new MatrixItem[rows * cols];  // выделяем память new
+    data = new MatrixItem[rows * cols];  
 }
 
-Matrix::Matrix(const Matrix& A) //конструктор копирования
+Matrix::Matrix(const Matrix& A) 
     : rows{ A.rows }, cols{ A.cols }, data{ nullptr }
 {
     if (A.data == nullptr) return;
@@ -106,13 +106,13 @@ Matrix::Matrix(const Matrix& A) //конструктор копирования
 
     data = new MatrixItem[rows * cols];
 
-    memcpy(data, A.data, rows* cols * sizeof(MatrixItem)); //копирование матрицы
+    memcpy(data, A.data, rows* cols * sizeof(MatrixItem)); 
 }
 
 
-Matrix::Matrix(Matrix&& A) : rows{ A.rows }, cols{ A.cols }, data{ A.data } // конструктор переноса - копирование ссылки, прошлой матрицы нет
+Matrix::Matrix(Matrix&& A) : rows{ A.rows }, cols{ A.cols }, data{ A.data } 
 {
-    A.set_null(); // обнуление матрицы, которую передали
+    A.set_null(); 
 }
 
 
@@ -124,18 +124,17 @@ void Matrix::set_null()
 }
 
 
-Matrix& Matrix::operator=(std::initializer_list<MatrixItem> lst) //присваивание из списка
-{
+Matrix& Matrix::operator=(std::initializer_list<MatrixItem> lst) 
     if (lst.size() != rows * cols)
         throw OUT_OF_SIZE;
 
     std::copy(lst.begin(), lst.end(), data);
 
-    return *this; // this = матрица слева А*=В, А= 1 2 3 4 
+    return *this;  
 }
 
 
-Matrix& Matrix::operator=(const Matrix& A) // копирование данных из матрицы А в матрицу В
+Matrix& Matrix::operator=(const Matrix& A) 
 {
     if (this == &A) return *this;
 
@@ -159,7 +158,7 @@ Matrix& Matrix::operator=(const Matrix& A) // копирование данны�
 
     delete[] data; //если А не пустая, то очистить 
 
-    data = new MatrixItem[A.rows * A.cols];  //выделение памяти, если есть ланные - копировать
+    data = new MatrixItem[A.rows * A.cols];  //выделение памяти
 
     rows = A.rows;
     cols = A.cols;
@@ -167,28 +166,27 @@ Matrix& Matrix::operator=(const Matrix& A) // копирование данны�
     if (A.data == nullptr) // возврат матрицы
         return *this;
 
-    memcpy(data, A.data, rows * cols * sizeof(MatrixItem)); //обе матрицы копируются, перестаёт существовать
+    memcpy(data, A.data, rows * cols * sizeof(MatrixItem)); 
      
-    return *this; //возврат матрицы слева
+    return *this; 
 }
 
 
-Matrix& Matrix::operator=(Matrix&& A) // перенос справа влево, и справа зачистка
+Matrix& Matrix::operator=(Matrix&& A)
 {
     if (data != nullptr)
-        delete[] data; // если что-то было слева, то очистка. всё справа перенесём влево
+        delete[] data; 
 
     rows = A.rows;
     cols = A.cols;
     data = A.data;
 
-    A.set_null(); // очистка справа. все данные справа перешли в лево
-
-    return *this; // возврат из лева
+    A.set_null(); 
+    return *this; 
 }
 
 
-void Matrix::clear_data_to_zero() //очистка всей опер памяти = обнуление матрицы = заполнение нулями
+void Matrix::clear_data_to_zero() //обнуление матрицы = заполнение нулями
 {
     memset(data, 0, sizeof(MatrixItem) * cols * rows);
 }
@@ -223,7 +221,7 @@ MatrixItem& Matrix::operator[](const size_t idx) // проверка индек�
 }
 
 
-Matrix& Matrix::operator+=(const Matrix& A) // суммирование с присваиванием
+Matrix& Matrix::operator+=(const Matrix& A) 
 {
     if ((rows != A.rows) || (cols != A.cols))
         throw ERROR_MATRIX;
@@ -293,7 +291,7 @@ Matrix& Matrix::operator*=(const Matrix& A)
 }
 
 
-Matrix& Matrix::operator*=(const MatrixItem& coefficient) //умножение на коэффициент с присваиванием
+Matrix& Matrix::operator*=(const MatrixItem& coefficient) 
 {
     for (size_t idx = 0; idx < (rows * cols); idx += cols + 1)
         data[idx] *= coefficient;
@@ -346,7 +344,7 @@ Matrix Matrix::minor(const size_t minor_row, const size_t minor_col)
             minor.data[current_col * minor.rows + current_row] = data[origin_index];
             origin_index += 1;
         }
-        if (minor_row == minor.rows) {  // иначе не обрабатывается последний столбец
+        if (minor_row == minor.rows) { 
             origin_index += 1;
         }
     }
@@ -394,7 +392,7 @@ Matrix Matrix::exponential(const int iterations) const
     Matrix sum(rows, cols);
     Matrix term(rows, cols);
 
-    term.set_as_identity(); // переменная наращивания (с факториалами и тд)
+    term.set_as_identity(); 
     sum.set_as_identity(); // для суммирования
 
     for (size_t count = 1; count < iterations; count++) {
@@ -440,7 +438,7 @@ bool Matrix::operator==(const Matrix& A) const
 }
 
 
-std::ostream& operator<<(std::ostream& os, const Matrix& A)  //вывод данных во встроенную функцию, вывод с табуляцией
+std::ostream& operator<<(std::ostream& os, const Matrix& A)  
 {
     for (size_t row = 0; row < A.get_rows(); row++) {
         for (size_t col = 0; col < A.get_cols(); col++) {
@@ -455,14 +453,14 @@ std::ostream& operator<<(std::ostream& os, const Matrix& A)  //вывод дан
 }
 
 
-Matrix::~Matrix() //очищение
+Matrix::~Matrix()
 {
     if (data != nullptr) { 
         delete[] data;
     }
 }
 
-int get_rand_integer(int start = 0, int end = 20) { //генерация цифр для рандома
+int get_rand_integer(int start = 0, int end = 20) { 
 
     if (start > end) {
         std::swap(start, end);
@@ -472,7 +470,7 @@ int get_rand_integer(int start = 0, int end = 20) { //генерация циф�
 }
 
 
-void init_matrix_as_random(Matrix* M) { //заполнение матрицы рандомом
+void init_matrix_as_random(Matrix* M) { 
     size_t rows = M->get_rows();
     size_t cols = M->get_cols();
 
