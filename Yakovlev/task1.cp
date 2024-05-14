@@ -158,6 +158,8 @@ void Alice_inflation_march()
 {
     if (yaer == 2028 && month == 3){
         INFLIATION*=2;
+        Alice.home_price*=2;
+        
     }
 }
 
@@ -217,6 +219,7 @@ void Bob_inflation_march()
 {
     if (yaer == 2028 && month == 3){
         INFLIATION*=2;
+        Bob.home_price*=2;
         
     }
         
