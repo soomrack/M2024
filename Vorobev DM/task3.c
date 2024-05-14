@@ -343,6 +343,61 @@ Matrix operator ^ (const double base, const Matrix& matrix)
     return new_matrix;
 }
 
+Matrix Matrix::operator+(const Matrix& M) const {
+    if (rows != M.rows || cols != M.cols) {
+        throw std::invalid_argument("Matrices have different dimensions");
+    }
+
+    Matrix C(rows, cols);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            C(i, j) = data[i][j] + M.data[i][j];
+        }
+    }
+    return C;
+}
+
+Matrix Matrix::operator-(const Matrix& M) const {
+    if (rows != M.rows || cols != M.cols) {
+        throw std::invalid_argument("Matrices have different dimensions");
+    }
+
+    Matrix C(rows, cols);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            C(i, j) = data[i][j] - M.data[i][j];
+        }
+    }
+    return C;
+}
+
+Matrix Matrix::operator*(const Matrix& M) const {
+    if (cols != M.rows) {
+        throw std::invalid_argument("Matrices have incompatible dimensions");
+    }
+
+    Matrix C(rows, M.cols);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < M.cols; j++) {
+            double sum = 0;
+            for (int k = 0; k < cols; k++) {
+                sum += data[i][k] * M.data[k][j];
+            }
+            C(i, j) = sum;
+        }
+    }
+    return C;
+}
+
+Matrix Matrix::operator*(double k) const {
+    Matrix C(rows, cols);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            C(i, j) = data[i][j] * k;
+        }
+    }
+    return C;
+}
 
 int main(void)
 {
