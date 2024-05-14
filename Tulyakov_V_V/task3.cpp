@@ -139,11 +139,9 @@ Matrix& Matrix::operator=(const Matrix& A) {
             data = nullptr;
             return *this;
         }
-        data = new MatrixItem[rows * cols];
+        data = A.data;
+    } else {
         memcpy(data, A.data, sizeof(MatrixItem) * A.rows * A.cols);
-    }
-    else {
-        memcpy(data, A.data, cols * rows * sizeof(MatrixItem));
     }
     return *this;
 }
