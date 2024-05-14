@@ -154,7 +154,6 @@ Matrix& Matrix::operator=(const Matrix & A)
         data = A.data;
         memcpy(data, A.data, cols * rows * sizeof(MatrixItem));
     }
-        
     return *this;
 }
 
@@ -205,7 +204,7 @@ Matrix& Matrix::operator-(const Matrix& A)
     Matrix result(*this);
 
     for (size_t idx = 0; idx < cols * rows; ++idx)
-        result->data[idx] -= A.data[idx];
+        result.data[idx] -= A.data[idx];
 
     return result;
 }
