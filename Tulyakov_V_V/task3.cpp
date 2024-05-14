@@ -8,7 +8,7 @@
 
 typedef double MatrixItem;
 using namespace std;
-enum MatrixType { ZERO, ONES, RANDOM, IDENTITY};
+enum MatrixType { ZERO, ONES, RANDOM, IDENTITY };
 
 
 class Matrix {
@@ -23,7 +23,7 @@ public:
     Matrix(Matrix&& A);
 public:
     Matrix& operator=(const Matrix& A);
-    Matrix& operator=(Matrix && A);
+    Matrix& operator=(Matrix&& A);
     Matrix& operator+(const Matrix& A);
     Matrix& operator+=(const Matrix& A);
     Matrix& operator-(const Matrix& A);
@@ -69,12 +69,12 @@ void Matrix::print() {
     for (size_t row = 0; row < rows; row++) {
         cout << "[";
         for (size_t column = 0; column < cols; column++) {
-           cout << data[column + row * cols];
-           if (cols != cols - 1) cout << "\t";
+            cout << data[column + row * cols];
+            if (cols != cols - 1) cout << "\t";
         }
         cout << "]\n";
     }
-    cout <<"\n";
+    cout << "\n";
 }
 
 
@@ -144,10 +144,10 @@ void Matrix::fill(enum MatrixType mat_type)
 }
 
 //Оператор присваивания матрицы
-Matrix& Matrix::operator=(const Matrix & A)
+Matrix& Matrix::operator=(const Matrix& A)
 {
     if (this == &A) return *this;
-    if (cols !=A.cols || A.rows != rows) {
+    if (cols != A.cols || A.rows != rows) {
         delete[] data;
         cols = A.cols;
         rows = A.rows;
@@ -158,7 +158,7 @@ Matrix& Matrix::operator=(const Matrix & A)
 }
 
 //Оператор перемещения матрицы
-Matrix& Matrix::operator=(Matrix && A)
+Matrix& Matrix::operator=(Matrix&& A)
 {
     if (this == &A) return *this;
 
@@ -229,9 +229,9 @@ Matrix& Matrix::operator*(const Matrix& B)
 
     for (size_t rowA = 0; rowA < rows; ++rowA)
         for (size_t colB = 0; colB < B.cols; ++colB) {
-            result->data[result->cols * rowA + colB] = 0.0;
+            result.data[result.cols * rowA + colB] = 0.0;
             for (size_t colA = 0; colA < cols; ++colA)
-                result->data[result->cols * rowA + colB] += data[colA + rowA * cols] * B.data[B.cols * colA + colB];
+                result.data[result.cols * rowA + colB] += data[colA + rowA * cols] * B.data[B.cols * colA + colB];
         };
 
     return result;
@@ -251,9 +251,9 @@ Matrix& Matrix::operator*(const double& coeff)
     Matrix result(*this);
 
     for (size_t idx = 0; idx < cols * rows; ++idx)
-        result->data[idx] = data[idx] * coeff;
+        result.data[idx] = data[idx] * coeff;
 
-    return *result;
+    return result;
 }
 
 
