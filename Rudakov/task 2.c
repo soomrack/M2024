@@ -144,8 +144,7 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
 }
 
 // Вычисление экспоненты матрицы
-struct Matrix matrix_exponent(const struct Matrix A, const double accuracy)
-{
+struct Matrix matrix_exponent(const struct Matrix A, const int iterations) {
     if (A.cols != A.rows)
         return MATRIX_NULL;
 
@@ -155,22 +154,29 @@ struct Matrix matrix_exponent(const struct Matrix A, const double accuracy)
     matrix_zero(C);
 
     struct Matrix B = matrix_init(A.cols, A.rows);
+    if (B.data == NULL) {
+        matrix_free(&C);
+        return B;
+    }
     matrix_copy(B, A);
 
-    int degree = (int)(ceil(1.0 / accuracy));
+    struct Matrix term = matrix_init(A.cols, A.rows);
+     if (term.data == NULL) {
+        matrix_free(&B);
+        return term;
+    }
+    matrix_copy(term, B);
 
-    for (int trm = 2; trm <= degree; ++trm) {
-        matrix_add(B, A);
-        matrix_mult_by_coeff(B, 1.0 / trm);
-        matrix_add(C, B);
+    matrix_zero(C);
+
+    for (int trm = 0; trm < iterations; ++trm) {
+        matrix_add(C, term);
+        matrix_mult_by_coeff(term, 1.0 / (trm + 1));
+        matrix_mult(term, B);
     }
 
-    matrix_add(C, A);
-
-    for (size_t diag = 0; diag < C.rows; ++diag)
-        C.data[diag * C.cols + diag] += 1;
-
     matrix_free(&B);
+    matrix_free(&term);
 
     return C;
 }
