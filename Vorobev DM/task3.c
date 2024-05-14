@@ -6,7 +6,11 @@
 typedef double Matrixoject;
 
 class Matrix {
-    Matrix operator(const Matrix& M, const Matrix& K, char operation);
+   
+    Matrix operator+(const Matrix& M) const;
+    Matrix operator-(const Matrix& M) const;
+    Matrix operator*(const Matrix& M) const;
+    Matrix operator*(double k) const;
 
 private:
     size_t rows;
