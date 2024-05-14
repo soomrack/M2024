@@ -4,12 +4,11 @@
 #include <stdlib.h>
 #include <string>
 #include <stdint.h>
-
+#include <cstring>
 
 typedef double MatrixItem;
 using namespace std;
 enum MatrixType { ZERO, ONES, RANDOM, IDENTITY };
-
 
 class Matrix {
 private:
@@ -35,8 +34,8 @@ public:
 public:
     void fill(enum MatrixType mat_type);
     void print();
-    Matrix transpose(const Matrix& A);
-    Matrix exponent(const unsigned int level) const;
+    static Matrix transpose(const Matrix& A);
+    static Matrix exponent(const unsigned int level, const Matrix& A);
     double determinant() const;
 
     ~Matrix() {
@@ -46,9 +45,7 @@ public:
     }
 };
 
-
-class MatrixException : public exception
-{
+class MatrixException : public exception {
 private:
     string message;
 public:
@@ -62,7 +59,6 @@ MatrixException SHAPE_ERROR("\nОшибка: количество столбцо
 MatrixException NULL_MATRIX("\nОшибка: матрица пуста\n\n");
 MatrixException OTHER_ERROR("\nОшибка: неизвестная ошибка\n\n");
 
-
 void Matrix::print() {
     if (data == nullptr) throw NULL_MATRIX;
     cout << "\n";
@@ -70,17 +66,15 @@ void Matrix::print() {
         cout << "[";
         for (size_t column = 0; column < cols; column++) {
             cout << data[column + row * cols];
-            if (cols != cols - 1) cout << "\t";
+            if (column != cols - 1) cout << "\t"; // исправлено условие
         }
         cout << "]\n";
     }
     cout << "\n";
 }
 
-
 Matrix::Matrix(const size_t cols, const size_t rows)
-    : cols(cols), rows(rows), data(nullptr)
-{
+    : cols(cols), rows(rows), data(nullptr) {
     if (cols == 0 || rows == 0) {
         data = nullptr;
         return;
@@ -106,8 +100,7 @@ Matrix::Matrix(const Matrix& A) {
     memcpy(data, A.data, sizeof(MatrixItem) * A.rows * A.cols);
 }
 
-Matrix::Matrix(Matrix&& A)
-{
+Matrix::Matrix(Matrix&& A) {
     cols = A.cols;
     rows = A.rows;
     data = A.data;
@@ -116,11 +109,8 @@ Matrix::Matrix(Matrix&& A)
     A.data = nullptr;
 }
 
-
-void Matrix::fill(enum MatrixType mat_type)
-{
-    switch (mat_type)
-    {
+void Matrix::fill(enum MatrixType mat_type) {
+    switch (mat_type) {
     case (ZERO):
         memset(data, 0, cols * rows * sizeof(MatrixItem));
         break;
@@ -143,23 +133,22 @@ void Matrix::fill(enum MatrixType mat_type)
     }
 }
 
-//Оператор присваивания матрицы
-Matrix& Matrix::operator=(const Matrix& A)
-{
+//Оператор присваивания
+Matrix& Matrix::operator=(const Matrix& A) {
     if (this == &A) return *this;
-    if (cols != A.cols || A.rows != rows) {
+    if (cols != A.cols || rows != A.rows) {
         delete[] data;
         cols = A.cols;
         rows = A.rows;
-        data = A.data;
+        data = new MatrixItem[cols * rows];
     }
-    memcpy(data, A.data, cols * rows * sizeof(MatrixItem));
+    else {
+        memcpy(data, A.data, cols * rows * sizeof(MatrixItem));
+    }
     return *this;
 }
 
-//Оператор перемещения матрицы
-Matrix& Matrix::operator=(Matrix&& A)
-{
+Matrix& Matrix::operator=(Matrix&& A) {
     if (this == &A) return *this;
 
     cols = A.cols;
@@ -171,10 +160,7 @@ Matrix& Matrix::operator=(Matrix&& A)
 
     return *this;
 }
-
-
-Matrix& Matrix::operator+(const Matrix& A)
-{
+Matrix& Matrix::operator+(const Matrix& A) {
     if (A.cols != cols || A.rows != rows) throw SIZE_ERROR;
 
     Matrix result(*this);
@@ -185,9 +171,7 @@ Matrix& Matrix::operator+(const Matrix& A)
     return result;
 }
 
-
-Matrix& Matrix::operator+=(const Matrix& A)
-{
+Matrix& Matrix::operator+=(const Matrix& A) {
     if (A.cols != cols || A.rows != rows) throw SIZE_ERROR;
 
     for (size_t idx = 0; idx < cols * rows; ++idx)
@@ -196,9 +180,7 @@ Matrix& Matrix::operator+=(const Matrix& A)
     return *this;
 }
 
-
-Matrix& Matrix::operator-(const Matrix& A)
-{
+Matrix& Matrix::operator-(const Matrix& A) {
     if (A.cols != cols || A.rows != rows) throw SIZE_ERROR;
 
     Matrix result(*this);
@@ -209,9 +191,7 @@ Matrix& Matrix::operator-(const Matrix& A)
     return result;
 }
 
-
-Matrix& Matrix::operator-=(const Matrix& A)
-{
+Matrix& Matrix::operator-=(const Matrix& A) {
     if (A.cols != cols || A.rows != rows) throw SIZE_ERROR;
 
     for (size_t idx = 0; idx < cols * rows; ++idx)
@@ -220,9 +200,7 @@ Matrix& Matrix::operator-=(const Matrix& A)
     return *this;
 }
 
-
-Matrix& Matrix::operator*(const Matrix& B)
-{
+Matrix& Matrix::operator*(const Matrix& B) {
     if (cols != B.rows) throw SHAPE_ERROR;
 
     Matrix result(rows, B.cols);
@@ -237,17 +215,13 @@ Matrix& Matrix::operator*(const Matrix& B)
     return result;
 }
 
-
-Matrix& Matrix::operator*=(const Matrix& B)
-{
+Matrix& Matrix::operator*=(const Matrix& B) {
     *this = *this * B;
 
     return *this;
 }
 
-
-Matrix& Matrix::operator*(const double& coeff)
-{
+Matrix& Matrix::operator*(const double& coeff) {
     Matrix result(*this);
 
     for (size_t idx = 0; idx < cols * rows; ++idx)
@@ -256,45 +230,39 @@ Matrix& Matrix::operator*(const double& coeff)
     return result;
 }
 
-
-Matrix& Matrix::operator*=(const double& coeff)
-{
+Matrix& Matrix::operator*=(const double& coeff) {
     for (size_t idx = 0; idx < cols * rows; ++idx)
         data[idx] = data[idx] * coeff;
 
     return *this;
 }
 
-Matrix Matrix::transpose(const Matrix& A)
-{
-    Matrix result(A.rows, A.cols);
+Matrix Matrix::transpose(const Matrix& A) {
+    Matrix result(A.cols, A.rows);
 
     for (size_t row = 0; row < A.rows; ++row)
         for (size_t col = 0; col < A.cols; ++col)
-            result.data[row * A.cols + col] = A.data[row + col * A.cols];
+            result.data[col * A.rows + row] = A.data[row * A.cols + col];
 
     return result;
 }
 
-Matrix Matrix::exponent(const unsigned int level) const
-{
-    if (cols != rows) throw SQUARE_ERROR;
-    if (data == nullptr) throw NULL_MATRIX;
+Matrix Matrix::exponent(const unsigned int level, const Matrix& A) {
+    if (A.cols != A.rows) throw SQUARE_ERROR;
+    if (A.data == nullptr) throw NULL_MATRIX;
 
-    Matrix R(rows, cols);
+    Matrix R(A.rows, A.cols);
     R.fill(IDENTITY);
 
-    Matrix temp = *this;
+    Matrix temp = A;
     for (unsigned int idx = 1; idx <= level; idx++) {
-        temp *= *this;
+        temp *= A;
         R += (temp * (1.0 / idx));
     }
     return R;
 }
 
-
-double Matrix::determinant() const
-{
+double Matrix::determinant() const {
     if (cols != rows) throw SQUARE_ERROR;
 
     if (cols == 1) {
@@ -313,7 +281,6 @@ double Matrix::determinant() const
     }
     else throw OTHER_ERROR;
 }
-
 
 int main() {
     Matrix A(3, 3);
