@@ -3,11 +3,14 @@
 
 typedef long long int money;  // перевод всех денег в копейки
 
+// в феврале 26 года боб потерял работу и через 2 месяца устроился на работу с зп в 1.5 раз больше
+
 //---------------------------------------------------СТРУКТУРЫ---------------------------------------------------//
 struct Person
 {
     money capital;             // накопленный капитал
     money income;              // заработок
+    money income_counter;
     money life_spendings;      // траты на жизнь
     money payment_monthly;     // проживание в квартире или погашение ипотеки в течение месяца
 };                             
@@ -18,6 +21,9 @@ struct Person Bob;
 //---------------------------------------------------ПЕРЕМЕННЫЕ---------------------------------------------------//
 const int START_MONTH = 6;                      // начальный месяц
 const int START_YEAR = 2024;                    // начальный год
+const int FIRE_MONTH = 2;                      // месяц увольнения
+const int FIRE_YEAR = 2026;                    // год увольнения
+const int NEW_WORK_MONTH = 4;
 const int LAST_MONTH = 8;                       // конечный месяц
 const money PRICE = 20 * 1000 * 1000 * 100;     // стоимость квартиры 
 const money SALARY = 200 * 1000 * 100;          // зарплата Алисы и Боба
@@ -34,6 +40,7 @@ void alice_init()
     Alice.capital = START_CAPITAL;
     Alice.life_spendings = LIFE_SPENDINGS;
     Alice.payment_monthly = 40 * 1000 * 100;
+    Alice.income_counter = 0;
 }
 
 void bob_init()
@@ -42,6 +49,7 @@ void bob_init()
     Bob.capital = 0;
     Bob.life_spendings = LIFE_SPENDINGS;
     Bob.payment_monthly = (PRICE - START_CAPITAL) * (BANK_RATE / 12.0) / (1 - powf((1 + BANK_RATE / 12.0), (1.0 - YEARS * 12.0)));
+    Bob.income_counter = 0;
 }
 
 //-----------------------------------------------------ЗАРПЛАТА-----------------------------------------------------//
@@ -58,6 +66,15 @@ void alice_income(const int year, const int month)
 
 void bob_income(const int year, const int month)
 {
+    if (year == FIRE_YEAR) {
+        if (month == FIRE_MONTH) {
+            Bob.income_counter = Bob.income;
+            Bob.income = 0;
+        }
+        if (month == NEW_WORK_MONTH) {
+            Bob.income = Bob.income_counter*1.5;
+        }
+    }
     if (month == 12) {
         Bob.capital += (money)(Bob.income * 1.2);
     }
