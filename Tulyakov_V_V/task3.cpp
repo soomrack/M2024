@@ -152,8 +152,9 @@ Matrix& Matrix::operator=(const Matrix & A)
         cols = A.cols;
         rows = A.rows;
         data = A.data;
-    memcpy(data, A.data, cols * rows * sizeof(MatrixItem));
-
+        memcpy(data, A.data, cols * rows * sizeof(MatrixItem));
+    }
+        
     return *this;
 }
 
@@ -182,7 +183,7 @@ Matrix& Matrix::operator+(const Matrix& A)
     for (size_t idx = 0; idx < cols * rows; ++idx)
         result.data[idx] += A.data[idx];
 
-    return *result;
+    return result;
 }
 
 
@@ -206,7 +207,7 @@ Matrix& Matrix::operator-(const Matrix& A)
     for (size_t idx = 0; idx < cols * rows; ++idx)
         result->data[idx] -= A.data[idx];
 
-    return *result;
+    return result;
 }
 
 
@@ -234,7 +235,7 @@ Matrix& Matrix::operator*(const Matrix& B)
                 result->data[result->cols * rowA + colB] += data[colA + rowA * cols] * B.data[B.cols * colA + colB];
         };
 
-    return *result;
+    return result;
 }
 
 
@@ -267,7 +268,7 @@ Matrix& Matrix::operator*=(const double& coeff)
 
 Matrix Matrix::transpose(const Matrix& A)
 {
-    Matrix result = Matrix(A.rows,A.cols);
+    Matrix result(A.rows, A.cols);
 
     for (size_t row = 0; row < A.rows; ++row)
         for (size_t col = 0; col < A.cols; ++col)
