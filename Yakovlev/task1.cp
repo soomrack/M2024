@@ -240,7 +240,7 @@ void Alice_simulation()
         Alice_rand_spendings();
         Alice_appartment_repair(year);
         Alice_deposit();
-        Alice_inflation_march;
+        Alice_inflation_march();
 
         if (year == 2024 + LOAN_YEARS && month == 2)
             break;
@@ -267,7 +267,7 @@ void Bob_simulation()
         Bob_get_food();
         Bob_rand_spendings();
         Bob_deposit();
-        Bob_inflation_march;
+        Bob_inflation_march();
 
         if (year == 2024 + LOAN_YEARS && month == 2)
             break;
