@@ -91,9 +91,9 @@ void Alice_indexation()
 }
 
 
-void Alice_mortgage() 
+void Alice_mortgage()
 {
-    MORTGAGE_PAYMENT = (Alice.home_price - Alice.initial_payment) * (LOAN_MONTH + LOAN_MONTH / 
+    MORTGAGE_PAYMENT = (Alice.home_price - Alice.initial_payment) * (LOAN_MONTH + LOAN_MONTH /
         (pow((1 + LOAN_MONTH), LOAN_YEARS * 12) - 1));
 }
 
@@ -157,7 +157,7 @@ void Alice_savings()
 void Alice_inflation_march()
 {
     if (yaer == 2028 && month == 3){
-        INFLIATION*=2
+        INFLIATION*=2;
     }
 }
 
@@ -196,10 +196,6 @@ void Bob_rand_spendings()
     Bob.savings -= cost_random;
 }
 
-
-
-
-
 void Bob_deposit()
 {
     int Bob_deposit_profit;
@@ -220,7 +216,7 @@ void Bob_savings()
 void Bob_inflation_march()
 {
     if (yaer == 2028 && month == 3){
-        INFLIATION*=2
+        INFLIATION*=2;
         
     }
         
