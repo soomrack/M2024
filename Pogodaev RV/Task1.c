@@ -16,8 +16,8 @@ struct Person Alice;
 struct Person Bob;
 
 //---------------------------------------------------ПЕРЕМЕННЫЕ---------------------------------------------------//
-const int START_MONTH = 9;                      // начальный месяц
-const int START_YEAR = 2023;                    // начальный год
+const int START_MONTH = 6;                      // начальный месяц
+const int START_YEAR = 2024;                    // начальный год
 const int LAST_MONTH = 8;                       // конечный месяц
 const money PRICE = 20 * 1000 * 1000 * 100;     // стоимость квартиры 
 const money SALARY = 200 * 1000 * 100;          // зарплата Алисы и Боба
