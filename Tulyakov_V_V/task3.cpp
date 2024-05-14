@@ -152,8 +152,8 @@ Matrix& Matrix::operator=(const Matrix& A)
         cols = A.cols;
         rows = A.rows;
         data = A.data;
-        memcpy(data, A.data, cols * rows * sizeof(MatrixItem));
     }
+    memcpy(data, A.data, cols * rows * sizeof(MatrixItem));
     return *this;
 }
 
