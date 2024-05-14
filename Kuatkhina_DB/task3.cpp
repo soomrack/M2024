@@ -44,6 +44,8 @@ public:
     Matrix operator*(const MatrixItem& coefficient); 
     Matrix& operator*=(const MatrixItem& coefficient); 
 
+    Matrix operator+(const Matrix& A);
+    Matrix operator-(const Matrix& A);
 
     void set(size_t row, size_t col, MatrixItem value); 
     MatrixItem get(size_t row, size_t col) const; 
@@ -54,12 +56,8 @@ public:
     double determinant_classic() const;
     Matrix exponential(const int iterations = 100) const;
 
-
 };
 
-
-Matrix operator+(const Matrix& A, const Matrix& B);
-Matrix operator-(const Matrix& A, const Matrix& B);
 
 std::ostream& operator<<(std::ostream& os, const Matrix& A); 
 
@@ -233,10 +231,10 @@ Matrix& Matrix::operator+=(const Matrix& A)
 }
 
 
-Matrix operator+(const Matrix& A, const Matrix& B)
+Matrix Matrix::operator+(const Matrix& A)
 {
     Matrix sum = A;
-    sum += B;
+    sum += *this;
     return sum;
 }
 
@@ -254,10 +252,10 @@ Matrix& Matrix::operator-=(const Matrix& A)
 }
 
 
-Matrix operator-(const Matrix& A, const Matrix& B)
+Matrix Matrix::operator-(const Matrix& A)
 {
     Matrix sub = A;
-    sub -= B;
+    sub -= *this;
     return sub;
 }
 
