@@ -14,6 +14,9 @@ const Money RENT_COST = 25 * 1000 * 100; // стоимость аренды кв
 const double INFLATION = 0.12; // инфляция
 const Money SPENDINGS = 20 * 1000 * 100; // ежемесячные траты
 const Money FLAT_COST = 20 * 1000 * 1000 * 100; // стоимость квартиры
+const Money cat = 10*1000; //  стоимость кота
+const Money korm = 10*100; // стоимость корма коту
+const Money TRATA = 10*100; // траты на котика
 
 typedef struct {
     Money salary;
@@ -21,6 +24,7 @@ typedef struct {
     Money outlay;
     Money rent_payment;
     Money flat_payment;
+    Money kormit;
 } FinancialData;
 
 FinancialData alice;
@@ -42,6 +46,7 @@ void init_bob(FinancialData* bob) {
     bob->salary = SALARY;
     bob->outlay = SPENDINGS;
     bob->rent_payment = RENT_COST;
+    bob->kormit = TRATA;
 }
 
 void add_salary(FinancialData* person, int year, int month) {
@@ -56,6 +61,17 @@ void subtract_expenses(FinancialData* person, int year, int month) {
     person->savings -= (person->flat_payment + person->outlay);
 }
 
+void bob_cat (FinancialData* person, int year, int month) {
+
+    if (year == 2024 && month == 2)
+    bob.outlay -= cat;
+}
+
+void korm_cat (FinancialData* person, int year, int month) {
+    if (year == 2024 && month == 2)
+    bob.outlay -= korm;
+}
+
 void change_inflation(int year, int month) {
     if (month == 12) {
         alice.salary *= (1.0 + INFLATION);
@@ -63,6 +79,7 @@ void change_inflation(int year, int month) {
         bob.flat_payment *= (1.0 + INFLATION);
         alice.outlay *= (1.0 + INFLATION);
         bob.outlay *= (1.0 + INFLATION);
+        bob.kormit *= (1.0 + INFLATION);
     }
 }
 
@@ -76,6 +93,7 @@ void simulation() {
         update_savings(&bob, year, month);
         add_salary(&bob, year, month);
         subtract_expenses(&bob, year, month);
+        korm_cat(&bob, year, month);
         change_inflation(year, month);
 
         month++;
