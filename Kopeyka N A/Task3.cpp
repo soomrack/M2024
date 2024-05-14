@@ -1,12 +1,14 @@
+#include <iostream>
+#include <cstdlib>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <stdint.h>
-#include <stddef.h>
-#include <iostream>
-#include <math.h>
+#include <cstring>
 
 typedef double MatrixItem;
+using namespace std;
+enum MatrixType { ZERO, ONES, RANDOM, IDENTITY };
 
 class Matrix {
 private:
@@ -15,332 +17,275 @@ private:
     MatrixItem* data;
 public:
     Matrix() : rows(0), cols(0), data(nullptr) {};
-    Matrix(const size_t rows, const size_t cols);
-    Matrix(const size_t rows, const size_t cols, const MatrixItem* values);
-    Matrix(Matrix& A);
-    Matrix(Matrix&& A) noexcept;
-    ~Matrix();
-public:
-    void print();
-public:
+    Matrix(const size_t cols, const size_t rows);
+    Matrix(const Matrix& A);
+    Matrix(Matrix&& A);
+    ~Matrix() {
+        delete[] data;
+    }
+
     Matrix& operator=(const Matrix& A);
-    Matrix& operator=(Matrix&& A) noexcept;
+    Matrix& operator=(Matrix&& A);
     Matrix operator+(const Matrix& A);
     Matrix& operator+=(const Matrix& A);
     Matrix operator-(const Matrix& A);
-    Matrix operator*(const Matrix& A);
-    Matrix operator*(const MatrixItem A);
-    Matrix transposition();
-    MatrixItem determinant();
-    Matrix exponent(unsigned int m);
-    Matrix& set_zero();
-    Matrix& set_one();
+    Matrix& operator-=(const Matrix& A);
+    Matrix operator*(const Matrix& B);
+    Matrix& operator*=(const Matrix& B);
+    Matrix operator*(const double& coeff);
+    Matrix& operator*=(const double& coeff);
+
+    void fill(enum MatrixType mat_type);
+    void print() const;
+    static Matrix transpose(const Matrix& A);
+    static Matrix exponent(const unsigned int level, const Matrix& A);
+    double determinant() const;
+
 };
 
-
-class MatrixException : public std::exception {
-protected:
-    std::string msg;
+class MatrixException : public exception {
+private:
+    string message;
 public:
-    MatrixException(std::string message_of_error) : msg{ message_of_error } {};
+    MatrixException(string message) : message{ message } {}
+    string get_message() const { return message; }
 };
 
+MatrixException SQUARE_ERROR("\nОшибка: матрица должна быть квадратной!\n\n");
+MatrixException SIZE_ERROR("\nОшибка: матрицы должны иметь одинаковый размер\n\n");
+MatrixException SHAPE_ERROR("\nОшибка: количество столбцов первой матрицы не совпадает с количеством строк во второй матрице\n\n");
+MatrixException NULL_MATRIX("\nОшибка: матрица пуста\n\n");
+MatrixException OTHER_ERROR("\nОшибка: неизвестная ошибка\n\n");
 
-Matrix::Matrix(const size_t rows, const size_t cols)
-    : rows(rows), cols(cols)
-{
-    if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols)
-        throw MatrixException("too large object");
-    data = new MatrixItem[rows * cols];
+void Matrix::print() const {
+    if (data == nullptr) throw NULL_MATRIX;
+    cout << "\n";
+    for (size_t row = 0; row < rows; row++) {
+        cout << "[";
+        for (size_t column = 0; column < cols; column++) {
+            cout << data[column + row * cols];
+            if (column != cols - 1) cout << "\t";
+        }
+        cout << "]\n";
+    }
+    cout << "\n";
 }
 
+Matrix::Matrix(const size_t cols, const size_t rows)
+    : cols(cols), rows(rows), data(nullptr) {
+    if (cols == 0 || rows == 0) {
+        return;
+    };
 
-Matrix::Matrix(const size_t rows, const size_t cols, const MatrixItem* values)
-    : rows(rows), cols(cols)
-{
-    if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols)
-        throw MatrixException("too large object");
-    data = new MatrixItem[rows * cols];
-    memcpy(data, values, rows * cols * sizeof(MatrixItem));
+    if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols) {
+        return;
+    };
+
+    data = new MatrixItem[cols * rows];
 }
 
-
-Matrix::~Matrix()
-{
-    delete[] data;
-}
-
-
-Matrix::Matrix(Matrix& A)
-{
-    rows = A.rows;
+Matrix::Matrix(const Matrix& A) {
     cols = A.cols;
+    rows = A.rows;
     if (A.data == nullptr) {
         data = nullptr;
         return;
     }
     data = new MatrixItem[rows * cols];
-    memcpy(data, A.data, rows * cols * sizeof(MatrixItem));
+    memcpy(data, A.data, sizeof(MatrixItem) * A.rows * A.cols);
 }
 
-
-Matrix::Matrix(Matrix&& A) noexcept
-{
-    rows = A.rows;
+Matrix::Matrix(Matrix&& A) {
     cols = A.cols;
+    rows = A.rows;
     data = A.data;
-    A.rows = 0;
     A.cols = 0;
+    A.rows = 0;
     A.data = nullptr;
 }
 
+void Matrix::fill(enum MatrixType mat_type) {
+    switch (mat_type) {
+    case (ZERO):
+        memset(data, 0, cols * rows * sizeof(MatrixItem));
+        break;
 
-void Matrix::print()
-{
-    printf("\n");
-    for (size_t col = 0; col < rows; ++col) {
-        printf("[ ");
-        for (size_t row = 0; row < cols; ++row) {
-            printf(" %4.2f", data[row + col * cols]);
-        }
-        printf("]\n");
+    case (ONES):
+        for (size_t idx = 0; idx < cols * rows; idx++)
+            data[idx] = 1.0;
+        break;
+
+    case (RANDOM):
+        for (size_t idx = 0; idx < cols * rows; idx++)
+            data[idx] = (MatrixItem)(rand() % 10);
+        break;
+
+    case (IDENTITY):
+        this->fill(ZERO);
+        for (size_t row_col = 0; row_col < rows; row_col++)
+            data[row_col * cols + row_col] = 1;
+        break;
     }
 }
 
-
-Matrix& Matrix::operator=(const Matrix& A)
-{
-    if (&A == this) return *this;
-
-    if (A.data == nullptr) {
+//Оператор присваивания
+Matrix& Matrix::operator=(const Matrix& A) {
+    if (this == &A) return *this;
+    if (cols != A.cols || rows != A.rows) {
         delete[] data;
-        data = nullptr;
-        return *this;
-    }
-
-    if (A.cols * A.rows != cols * rows)
-    {
-        delete[] data;
-        data = new MatrixItem[A.rows * A.cols];
-    }
-    cols = A.cols;
-    rows = A.rows;
-    memcpy(this->data, A.data, rows * cols * sizeof(MatrixItem));
-    return *this;
-}
-
-
-Matrix& Matrix::operator=(Matrix&& A) noexcept
-{
-    if (this != &A) {
-        delete[] data;
-
         cols = A.cols;
         rows = A.rows;
-        data = A.data;
-
-        A.rows = 0;
-        A.cols = 0;
-        A.data = nullptr;
+        if (A.data == nullptr) {
+            data = nullptr;
+            return *this;
+        }
+        data = new MatrixItem[rows * cols];
+        memcpy(data, A.data, sizeof(MatrixItem) * A.rows * A.cols);
+    }
+    else {
+        memcpy(data, A.data, cols * rows * sizeof(MatrixItem));
     }
     return *this;
 }
 
+Matrix& Matrix::operator=(Matrix&& A) {
+    if (this == &A) return *this;
+    cols = A.cols;
+    rows = A.rows;
+    delete[] data;
+    data = A.data;
 
-// A += B
+    A.cols = 0;
+    A.rows = 0;
+    A.data = nullptr;
+
+    return *this;
+}
+Matrix Matrix::operator+(const Matrix& A) {
+    if (A.cols != cols || A.rows != rows) throw SIZE_ERROR;
+
+    Matrix result(*this);
+
+    for (size_t idx = 0; idx < cols * rows; ++idx)
+        result.data[idx] += A.data[idx];
+
+    return result;
+}
+
 Matrix& Matrix::operator+=(const Matrix& A) {
-    if (A.cols != cols || A.rows != rows)
-        throw MatrixException("Operator+=: Incorrect sizes");
+    if (A.cols != cols || A.rows != rows) throw SIZE_ERROR;
 
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
+    for (size_t idx = 0; idx < cols * rows; ++idx)
         data[idx] += A.data[idx];
 
     return *this;
 }
 
-
-// C = A + B
-Matrix Matrix::operator+(const Matrix& A)
-{
-    if (A.cols != this->cols || A.rows != this->rows)
-        throw MatrixException("Matrix A and B are not proportional");
-
-    Matrix C(this->rows, this->cols);
-
-    for (size_t idx = 0; idx < this->cols * this->rows; ++idx)
-        C.data[idx] = A.data[idx] + this->data[idx];
-    return C;
-}
-
-
-
-// C = A - B
 Matrix Matrix::operator-(const Matrix& A) {
-    if (A.cols != this->cols || A.rows != this->rows)
-        throw MatrixException("Matrix A and B are not proportional");
+    if (A.cols != cols || A.rows != rows) throw SIZE_ERROR;
 
-    Matrix C(this->rows, this->cols);
+    Matrix result(*this);
 
-    for (size_t idx = 0; idx < this->cols * this->rows; ++idx)
-        C.data[idx] = this->data[idx] - A.data[idx];
+    for (size_t idx = 0; idx < cols * rows; ++idx)
+        result.data[idx] -= A.data[idx];
 
-    return C;
+    return result;
 }
 
+Matrix& Matrix::operator-=(const Matrix& A) {
+    if (A.cols != cols || A.rows != rows) throw SIZE_ERROR;
 
-// C = A * B
-Matrix Matrix::operator*(const Matrix& A)
-{
-    if (A.cols != this->rows)
-        throw MatrixException("The rows of the matrix A are not equal to the columns of matrix B");
+    for (size_t idx = 0; idx < cols * rows; ++idx)
+        data[idx] -= A.data[idx];
 
-    Matrix C = Matrix(this->rows, A.cols);
-
-    for (size_t C_col = 0; C_col < this->rows; ++C_col) {
-        for (size_t C_row = 0; C_row < A.cols; ++C_row) {
-            C.data[C_row + C_col * A.cols] = 0;
-            for (size_t idx = 0; idx < this->cols; ++idx) {
-                C.data[C_row + C_col * A.cols] += this->data[idx + (C_col * this->cols)]
-                    * A.data[idx * A.cols + C_row];
-            };
-        };
-    };
-    return C;
-}
-
-
-Matrix Matrix::operator*(const MatrixItem A)
-{
-
-    Matrix C(this->rows, this->cols);
-
-    for (unsigned int idx = 0; idx < cols * rows; ++idx)
-        C.data[idx] = this->data[idx] / A;
-
-    return C;
-}
-
-
-// C = A^T
-Matrix Matrix::transposition()
-{
-    Matrix C(this->rows, this->cols);
-    for (size_t C_row = 0; C_row < cols; ++C_row) {
-        for (size_t C_col = 0; C_col < rows; ++C_col) {
-            C.data[C_col + C_row * rows] = data[C_col * cols + C_row];
-        };
-    };
-    return C;
-}
-
-
-// C = det (A)
-MatrixItem Matrix::determinant()
-{
-    if (cols != rows)
-        throw MatrixException("the numbers of columns and rows of the matrix do not match");
-    MatrixItem det;
-    switch (rows)
-    {
-    case 1:
-        det = data[0];
-        return det;
-        break;
-    case 2:
-        det = data[0] * data[3] - data[1] * data[2];
-        return det;
-        break;
-    case 3:
-        det =
-            +data[0] * data[4] * data[8]
-            + data[6] * data[1] * data[5]
-            + data[3] * data[7] * data[2]
-            - data[2] * data[4] * data[6]
-            - data[5] * data[7] * data[0]
-            - data[3] * data[1] * data[8];
-        return det;
-        break;
-    default:
-        throw MatrixException("valid matrix size 1x1, 2x2, 3x3");
-        break;
-    };
-}
-
-
-Matrix& Matrix::set_zero()
-{
-    if (data == nullptr) return *this;
-    memset(this->data, 0, sizeof(MatrixItem) * rows * cols);
     return *this;
 }
 
+Matrix Matrix::operator*(const Matrix& B) {
+    if (cols != B.rows) throw SHAPE_ERROR;
 
-Matrix& Matrix::set_one()
-{
-    set_zero();
-    for (size_t i = 0; i < rows * cols; i += cols + 1)
-        data[i] = 1.;
+    Matrix result(rows, B.cols);
+
+    for (size_t rowA = 0; rowA < rows; ++rowA)
+        for (size_t colB = 0; colB < B.cols; ++colB) {
+            result.data[result.cols * rowA + colB] = 0.0;
+            for (size_t colA = 0; colA < cols; ++colA)
+                result.data[result.cols * rowA + colB] += data[colA + rowA * cols] * B.data[B.cols * colA + colB];
+        };
+
+    return result;
+}
+
+Matrix& Matrix::operator*=(const Matrix& B) {
+    *this = *this * B;
+
     return *this;
 }
 
+Matrix Matrix::operator*(const double& coeff) {
+    Matrix result(*this);
 
-// C = e^A
-Matrix Matrix::exponent(unsigned int m)
-{
-    if ((rows == 0) || (cols == 0))
-    {
-        throw MatrixException("Can't find exponent matrix for zero matrix");
+    for (size_t idx = 0; idx < cols * rows; ++idx)
+        result.data[idx] = data[idx] * coeff;
+
+    return result;
+}
+
+Matrix& Matrix::operator*=(const double& coeff) {
+    for (size_t idx = 0; idx < cols * rows; ++idx)
+        data[idx] = data[idx] * coeff;
+
+    return *this;
+}
+
+Matrix Matrix::transpose(const Matrix& A) {
+    if (A.data == nullptr) throw NULL_MATRIX;
+    Matrix result(A.cols, A.rows);
+
+    for (size_t row = 0; row < A.rows; ++row)
+        for (size_t col = 0; col < A.cols; ++col)
+            result.data[col * A.rows + row] = A.data[row * A.cols + col];
+
+    return result;
+}
+
+Matrix Matrix::exponent(const unsigned int level, const Matrix& A) {
+    if (A.cols != A.rows) throw SQUARE_ERROR;
+    if (A.data == nullptr) throw NULL_MATRIX;
+
+    Matrix R(A.rows, A.cols);
+    R.fill(IDENTITY);
+
+    Matrix temp = A;
+    for (unsigned int idx = 1; idx <= level; idx++) {
+        temp *= A;
+        R += (temp * (1.0 / idx));
     }
-    if (cols != rows)
-        throw MatrixException("the numbers of columns and rows of the matrix do not match");
-
-    Matrix exp = Matrix(rows, cols);
-    exp.set_one();
-
-    Matrix step(rows, cols);
-    step.set_one();
-
-    for (unsigned int k = 1; k <= m; ++k) {
-
-        step = (step * *this) * (MatrixItem)(1. / k);
-        exp = exp + step;
-    };
-    return exp;
+    return R;
 }
 
+double Matrix::determinant() const {
+    if (cols != rows) throw SQUARE_ERROR;
+
+    if (cols == 1) {
+        return data[0];
+    }
+    else if (cols == 2) {
+        return (data[0] * data[3] - data[1] * data[2]);
+    }
+    else if (cols == 3) {
+        return (data[0] * data[4] * data[8]) + \
+            (data[1] * data[5] * data[6]) + \
+            (data[2] * data[3] * data[7]) - \
+            (data[2] * data[4] * data[6]) - \
+            (data[0] * data[5] * data[7]) - \
+            (data[1] * data[3] * data[8]);
+    }
+    else throw OTHER_ERROR;
+}
 
 int main() {
-    Matrix A, B, C, E;
-    double deter;
-
-    try
-    {
-        double array1[9]{ 3., 2., 1., 1., 6., 7., 2., 6., 8. };
-        double array2[9]{ 1., 0., 0., 1., 7., 2., 6., 6., 8. };
-        double array3[4]{ 3., 2., 1., 1. };
-
-        A = Matrix(3, 3, array1);
-        A.print();
-        B = Matrix(3, 3, array2);
-        C = Matrix(2, 2, array3);
-
-        A.print();
-        B.print();
-        C = A + B;
-        C.print();
-
-        C = C.transposition();
-        C.print();
-
-        deter = C.determinant();
-        printf("\n %f \n", deter);
-
-        A.print();
-        A = A.exponent(5);
-        A.print();
-    }
-    catch (MatrixException error)
-    {
-        std::cerr << error.what() << std::endl;
-    }
+    Matrix A(3, 3);
+    A.fill(RANDOM);
+    A.print();
 }
