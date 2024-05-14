@@ -6,7 +6,7 @@
 #include <time.h>
 
 typedef long long int money;  // êîïåéêè
-
+int boat_price = 30000;
 int TOTAL_YEARS = 30;
 double INFLATION = 12 * 0.01;
 
@@ -164,6 +164,9 @@ void BOB_has_house()
     }
 }
 
+void BOB_buy_boat() {
+	Bob.savings -= boat_price;
+}
 
 void BOB_print_results()
 {
@@ -319,6 +322,9 @@ void calculation()
         BOBs_percents_by_deposit(year, month);
         BOB_has_house();
 
+		if (year == 2026 && month == 1)
+			BOB_buy_boat();
+
         ALICEs_salary_getting(year, month);
         ALICE_buy_food(year, month);
         ALICE_pay_rent(year, month);
@@ -358,3 +364,4 @@ int main()
     BOB_print_results();
     ALICE_print_results();
 }
+
