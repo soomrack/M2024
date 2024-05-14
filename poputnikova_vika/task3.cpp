@@ -34,7 +34,7 @@ public:
     Matrix& operator*=(double scalar);
     Matrix transposition();
     MatrixItem determinant();
-    Matrix exponent(unsigned int m);
+    Matrix exponent(unsigned int N);
     Matrix& set_zero();
     Matrix& set_one();
 };
@@ -287,7 +287,7 @@ MatrixItem Matrix::determinant()
 
 
 // C = e^A
-Matrix Matrix::exponent(unsigned int m)
+Matrix Matrix::exponent(unsigned int N)
 {
     if ((rows == 0) || (cols == 0))
     {
@@ -302,7 +302,7 @@ Matrix Matrix::exponent(unsigned int m)
     Matrix step(rows, cols);
     step.set_one();
 
-    for (unsigned int idx = 1; idx <= m; idx++) {
+    for (unsigned int idx = 1; idx <= N; idx++) {
 
         step = (step * (*this))*(1. / idx);
         exp += step;
