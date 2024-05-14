@@ -43,8 +43,6 @@ struct Person
     Money initial_payment;
     Money appartment_repair;
     Money deposit;
-    Money TO;
-    Money resort;
 };
 
 
@@ -79,7 +77,6 @@ struct Person Bob
     Bob.initial_payment = 0,
     Bob.appartment_repair = 0,
     Bob.deposit = 0,
-    Bob.resort = 350000,
 };
 
 
@@ -208,12 +205,6 @@ void Bob_deposit()
 
 
 
-void Bob_resort(int year, int month)
-{
-    if (year >= 2028 && month == 8) {
-        Bob.savings -= Bob.resort;
-    }
-}
     
 
 void Bob_savings()
@@ -261,7 +252,6 @@ void Bob_simulation()
         Bob_get_food();
         Bob_rand_spendings();
         Bob_deposit();
-        Bob_resort(year, month);
 
         if (year == 2024 + LOAN_YEARS && month == 2)
             break;
