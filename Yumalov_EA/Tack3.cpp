@@ -54,6 +54,7 @@ public:
     Matrix transposed();
     Matrix minor(const size_t minor_row, const size_t minor_col);
     double determinant() const;
+    int sled();
     Matrix exponential(const size_t iterations = 100) const;
 
     
@@ -247,10 +248,10 @@ Matrix& Matrix::operator-=(const Matrix& A)
 }
 
 
-Matrix operator-(const Matrix& A, const Matrix& B)
+Matrix Matrix::operator-(const Matrix& A) 
 {
     Matrix sub = A;
-    sub -= B;
+    sub -= *this;
     return sub;
 }
 
@@ -262,7 +263,7 @@ Matrix Matrix::operator*(const Matrix& A) const
 
     Matrix mult(rows, A.cols);
         for (size_t num_row = 0; num_row < rows; num_row++) {
-        for (size_t num_col = 0; num_col < A.cols; num_col++) {
+         for (size_t num_col = 0; num_col < A.cols; num_col++) {
             MatrixItem sum = 0;
 
             for (size_t num_sum = 0; num_sum < A.rows; num_sum++) {
@@ -478,6 +479,20 @@ void init_matrix_as_random(Matrix* M) {
     }
 }
 
+int Matrix::sled () {
+    int sled = 0;
+        if (cols != rows)
+        throw BAD_REQUEST;
+    
+    for (size_t i = 0; i < rows; i++) {
+        for (size_t j = 0; j < cols; j++) {
+            if (i == j) 
+            sled += items[j];    
+         
+        }
+    }
+return sled ;
+}
 
 int main()
 {
@@ -499,8 +514,9 @@ int main()
 
         std::cout << "----------" << std::endl;
 
-     
-
+        int sled = A.sled();
+        std::cout << sled << std::endl;
+                 
     }
     catch (MatrixException& ex)
     {
