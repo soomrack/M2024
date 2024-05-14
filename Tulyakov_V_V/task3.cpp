@@ -140,9 +140,8 @@ Matrix& Matrix::operator=(const Matrix& A) {
         delete[] data;
         cols = A.cols;
         rows = A.rows;
-        data = new MatrixItem[cols * rows];
-    }
-    else {
+        data = A.data;
+    } else {
         memcpy(data, A.data, cols * rows * sizeof(MatrixItem));
     }
     return *this;
