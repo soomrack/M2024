@@ -6,7 +6,7 @@
 typedef double Matrixoject;
 
 class Matrix {
-   
+public:
     Matrix operator+(const Matrix& M) const;
     Matrix operator-(const Matrix& M) const;
     Matrix operator*(const Matrix& M) const;
@@ -341,53 +341,6 @@ Matrix operator ^ (const double base, const Matrix& matrix)
         exp += term;
     }
     return new_matrix;
-}
-
-
-Matrix operator+(const Matrix& M, const Matrix& K) {
-    Matrix rez = M;
-
-    memcpy(rez.data, K.data, sizeof(double) * rez.rows * rez.columns);
-
-    return rez;
-}
-
-
-Matrix operator-(const Matrix& M, const Matrix& K) {
-    Matrix rez = M;
-
-    memcpy(rez.data + rez.rows * rez.columns, K.data, sizeof(double) * rez.rows * rez.columns);
-
-    for (int i = 0; i < M.rows * M.columns; i++) {
-        rez.data[M.rows * M.columns + i] -= K.data[i];
-    }
-
-    return rez;
-}
-
-Matrix operator*(const double k, const Matrix& M) {
-    Matrix rez = M;
-
-    memcpy(rez.data, M.data, sizeof(double) * rez.rows * rez.columns);
-
-    for (int i = 0; i < M.rows * M.columns; i++) {
-        rez.data[i] *= k;
-    }
-
-    return rez;
-}
-
-
-Matrix operator*(const double k, const Matrix& M) {
-    Matrix rez = M;
-
-    memcpy(rez.data, M.data, sizeof(double) * M.rows * M.columns);
-
-    for (int i = 0; i < rez.rows * rez.columns; i++) {
-        rez.data[i] *= k;
-    }
-
-    return rez;
 }
 
 
