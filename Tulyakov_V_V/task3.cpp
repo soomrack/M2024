@@ -143,15 +143,16 @@ void Matrix::fill(enum MatrixType mat_type)
     }
 }
 
-Matrix& Matrix::operator=(const Matrix& A)
+Matrix& Matrix::operator=(Matrix && A)
 {
     if (this == &A) return *this;
-    delete[] data;
+    if (cols !=A.cols || A.rows != rows) {
+        delete[] data;
+        cols = A.cols;
+        rows = A.rows;
+        data = A.data;
+    memcpy(data, A.data, cols * rows * sizeof(MatrixItem));
 
-    cols = A.cols;
-    rows = A.rows;
-    data = A.data;
-    
     return *this;
 }
 
@@ -174,10 +175,10 @@ Matrix& Matrix::operator+(const Matrix& A)
 {
     if (A.cols != cols || A.rows != rows) throw SIZE_ERROR;
 
-    Matrix* result = new Matrix(*this);
+    Matrix result(*this);
 
     for (size_t idx = 0; idx < cols * rows; ++idx)
-        result->data[idx] += A.data[idx];
+        result.data[idx] += A.data[idx];
 
     return *result;
 }
@@ -198,7 +199,7 @@ Matrix& Matrix::operator-(const Matrix& A)
 {
     if (A.cols != cols || A.rows != rows) throw SIZE_ERROR;
 
-    Matrix* result = new Matrix(*this);
+    Matrix result(*this);
 
     for (size_t idx = 0; idx < cols * rows; ++idx)
         result->data[idx] -= A.data[idx];
@@ -222,7 +223,7 @@ Matrix& Matrix::operator*(const Matrix& B)
 {
     if (cols != B.rows) throw SHAPE_ERROR;
 
-    Matrix* result = new Matrix(*this);
+    Matrix result(rows, B.cols);
 
     for (size_t rowA = 0; rowA < rows; ++rowA)
         for (size_t colB = 0; colB < B.cols; ++colB) {
@@ -245,7 +246,7 @@ Matrix& Matrix::operator*=(const Matrix& B)
 
 Matrix& Matrix::operator*(const double& coeff)
 {
-    Matrix* result = new Matrix(*this);
+    Matrix result(*this);
 
     for (size_t idx = 0; idx < cols * rows; ++idx)
         result->data[idx] = data[idx] * coeff;
