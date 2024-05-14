@@ -13,7 +13,6 @@ private:
     size_t cols;
     MatrixItem* data;
 
-    Matrix& multiply(Matrix& trg, const Matrix& A) const;  //метод сложения
     void set_null();
      
 public: // конструкторы
@@ -54,8 +53,6 @@ public:
     Matrix minor(const size_t minor_row, const size_t minor_col);
     double determinant_classic() const;
     Matrix exponential(const int iterations = 100) const;
-
-    MatrixItem get_maximum();
 
 
 };
@@ -267,8 +264,13 @@ Matrix operator-(const Matrix& A, const Matrix& B)
 }
 
 
-Matrix& Matrix::multiply(Matrix& trg, const Matrix& A) const // матрица*матрица для использования далее
+
+Matrix Matrix::operator*(const Matrix& A) const
 {
+    if (cols != A.rows)
+        throw ERROR_MATRIX;
+
+    Matrix mult(rows, A.cols);
     for (size_t num_row = 0; num_row < rows; num_row++) {
         for (size_t num_col = 0; num_col < A.cols; num_col++) {
             MatrixItem sum = 0;
@@ -277,21 +279,9 @@ Matrix& Matrix::multiply(Matrix& trg, const Matrix& A) const // матрица*�
                 sum += data[num_row * cols + num_sum] * A.data[num_sum * A.cols + num_col];
             }
 
-            trg.data[num_row * trg.cols + num_col] = sum;
+            data[num_row * cols + num_col] = sum;
         }
     }
-
-    return trg;
-}
-
-
-Matrix Matrix::operator*(const Matrix& A) const
-{
-    if (cols != A.rows)
-        throw ERROR_MATRIX;
-
-    Matrix mult(rows, A.cols);
-    multiply(mult, A);
     return mult;
 }
 
@@ -415,20 +405,6 @@ Matrix Matrix::exponential(const int iterations) const
     }
 
     return sum;
-}
-
-
-MatrixItem Matrix::get_maximum() // максимальный элемент
-{
-    MatrixItem max = 0;
-    MatrixItem num = 0;
-
-    for (size_t idx = 0; idx < (rows * cols); idx++) {
-        num = std::fabs(data[idx]);
-        if (num > max) max = num;
-    }
-
-    return max;
 }
 
 
