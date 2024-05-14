@@ -13,10 +13,7 @@ private:
     size_t rows;
     size_t cols;
     MatrixItem* items;
-
-    Matrix& multiply(Matrix& trg, const Matrix& A) const;
-    void set_null();
-
+   
 public:
     Matrix();
     Matrix(const size_t a, const size_t b);
@@ -36,6 +33,9 @@ public:
     Matrix& operator=(const Matrix& A);
     Matrix& operator=(Matrix&& A);
 
+    Matrix operator+(const Matrix& A);
+    Matrix operator-(const Matrix& A); 
+
     Matrix& operator+=(const Matrix& A);
     Matrix& operator-=(const Matrix& A);
     bool operator==(const Matrix& A) const;
@@ -54,13 +54,10 @@ public:
     Matrix transposed();
     Matrix minor(const size_t minor_row, const size_t minor_col);
     double determinant() const;
-    Matrix exponential(const int iterations = 100) const;
+    Matrix exponential(const size_t iterations = 100) const;
 
     
 };
-
-Matrix operator+(const Matrix& A, const Matrix& B);
-Matrix operator-(const Matrix& A, const Matrix& B);
 
 std::ostream& operator<<(std::ostream& os, const Matrix& A);
 
@@ -76,7 +73,6 @@ public:
 MatrixException BAD_REQUEST("bad_request");
 MatrixException OUT_OF_RANGE("out_of_range");
 MatrixException NO_MEMORY_ALLOCATED("no_memory_allocated");
-MatrixException NULL_POINTER_REFERENCE("null_pointer_reference");
 
 
 Matrix::Matrix() : rows{ 0 }, cols{ 0 }, items{ nullptr } {}
@@ -114,15 +110,9 @@ Matrix::Matrix(const Matrix& A)
 
 Matrix::Matrix(Matrix&& A): rows{ A.rows }, cols{ A.cols }, items{ A.items } 
 {
-    A.set_null();
-}
-
-
-void Matrix::set_null()
-{
-    items = nullptr;
-    rows = 0;
-    cols = 0;
+    A.items = nullptr;
+    A.rows = 0;
+    A.cols = 0;
 }
 
 
@@ -184,7 +174,9 @@ Matrix& Matrix::operator=(Matrix&& A)
     cols = A.cols;
     items = A.items;
 
-    A.set_null();
+    A.items = nullptr;
+    A.rows = 0;
+    A.cols = 0;
 
     return *this; 
 }
@@ -215,13 +207,11 @@ size_t Matrix::get_cols() const { return cols; }
 
 MatrixItem& Matrix::operator[](const size_t idx)
 {
-    if (idx >= rows * cols) 
-        throw OUT_OF_RANGE;
+    if (rows * cols == 0) throw BAD_REQUEST;
+    if (idx >= rows * cols) throw OUT_OF_RANGE;
+    if (idx < 0) throw OUT_OF_RANGE;
 
-    if (idx < 0) 
-        throw OUT_OF_RANGE;
     return items[idx];
-    
 }
 
 
@@ -237,15 +227,15 @@ Matrix& Matrix::operator+=(const Matrix& A)
 }
 
 
-Matrix operator+(const Matrix& A, const Matrix& B) 
+Matrix Matrix::operator+(const Matrix& A) 
 {
     Matrix sum = A;
-    sum += B;
+    sum += *this;
     return sum;
 }
 
 
-Matrix& Matrix::operator-=(const Matrix& A)
+Matrix& Matrix::operator-=(const Matrix& A) 
 {
     if ((rows != A.rows) || (cols != A.cols))
         throw BAD_REQUEST;
@@ -265,9 +255,13 @@ Matrix operator-(const Matrix& A, const Matrix& B)
 }
 
 
-Matrix& Matrix::multiply(Matrix& trg, const Matrix& A) const 
+Matrix Matrix::operator*(const Matrix& A) const
 {
-    for (size_t num_row = 0; num_row < rows; num_row++) {
+    if (cols != A.rows)
+        throw BAD_REQUEST;
+
+    Matrix mult(rows, A.cols);
+        for (size_t num_row = 0; num_row < rows; num_row++) {
         for (size_t num_col = 0; num_col < A.cols; num_col++) {
             MatrixItem sum = 0;
 
@@ -275,21 +269,9 @@ Matrix& Matrix::multiply(Matrix& trg, const Matrix& A) const
                 sum += items[num_row * cols + num_sum] * A.items[num_sum * A.cols + num_col];
             }
 
-            trg.items[num_row * trg.cols + num_col] = sum;
+            items[num_row * cols + num_col] = sum;
         }
     }
-
-    return trg;
-}
-
-
-Matrix Matrix::operator*(const Matrix& A) const
-{
-    if (cols != A.rows)
-        throw BAD_REQUEST;
-
-    Matrix mult(rows, A.cols);
-    multiply(mult, A);
     return mult;
 }
 
@@ -398,7 +380,7 @@ double Matrix::determinant() const
 }
 
 
-Matrix Matrix::exponential(const int iterations) const
+Matrix Matrix::exponential(const size_t iterations) const 
 {
     if (cols != rows)
         throw BAD_REQUEST;
