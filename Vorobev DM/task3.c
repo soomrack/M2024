@@ -5,12 +5,12 @@
 
 typedef double Matrixoject;
 
-Matrix operator+(const Matrix& M, const Matrix& K);
-Matrix operator-(const Matrix& M, const Matrix& K);
-Matrix operator*(const Matrix& M, const Matrix& K);
-Matrix operator*(const double k, const Matrix& M);
-
 class Matrix {
+    Matrix operator+(const Matrix& M, const Matrix& K); 
+    Matrix operator-(const Matrix& M, const Matrix& K);
+    Matrix operator*(const Matrix& M, const Matrix& K);
+    Matrix operator*(const double k, const Matrix& M);
+
 private:
     size_t rows;
     size_t columns;
@@ -219,7 +219,7 @@ double Matrix::determinant(void)
 Matrix& Matrix::operator=(const Matrix& M) {
     if (this == &M) return *this;    
 
-    if (data!= nullptr) delete[] data; 
+    if (data!= nullptr && rows!=columns) delete[] data; 
 
     rows = M.rows;
     columns = M.columns;
