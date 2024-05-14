@@ -6,10 +6,7 @@
 typedef double Matrixoject;
 
 class Matrix {
-    Matrix operator+(const Matrix& M, const Matrix& K); 
-    Matrix operator-(const Matrix& M, const Matrix& K);
-    Matrix operator*(const Matrix& M, const Matrix& K);
-    Matrix operator*(const double k, const Matrix& M);
+    Matrix operator(const Matrix& M, const Matrix& K, char operation);
 
 private:
     size_t rows;
@@ -20,26 +17,26 @@ public:
     Matrix();
     Matrix(const size_t n);
     Matrix(const size_t row, const size_t col);
-    Matrix(const Matrix& M); 
+    Matrix(const Matrix& M);
     Matrix(Matrix&& M);
     ~Matrix();
 
 public:
     Matrix& operator= (const Matrix& M);
-	Matrix& operator= (Matrix&& M);
+    Matrix& operator= (Matrix&& M);
     Matrix& operator+= (const Matrix& M);
     Matrix& operator-= (const Matrix& M);
     Matrix& operator*= (const double k);
     Matrix& operator*= (const Matrix& M);
-	Matrix operator ^ (const double base, const Matrix& matrix);
+    Matrix operator ^ (const double base, const Matrix& matrix);
 
 public:
     void print();
     void transposition(const Matrix& M);
     double determinant(void);
     void random_fill();
-	void identity_fill();
-	void zeros_fill();
+    void identity_fill();
+    void zeros_fill();
 };
 
 class Matrix_Exception : public std::exception
@@ -47,7 +44,7 @@ class Matrix_Exception : public std::exception
 private:
     std::string message;
 public:
-    Matrix_Exception(std::string message) : message { message } {}
+    Matrix_Exception(std::string message) : message{ message } {}
     std::string get_message() const { return message; }
 };
 
@@ -65,14 +62,21 @@ Matrix::Matrix() {
 
 
 Matrix::Matrix(const size_t n) {
+    if (n > std::numeric_limits<size_t>::max()) {
+        throw std::invalid_argument("Matrix size is too large");
+    }
+
     rows = n;
     columns = n;
 
     data = new Matrixoject[n * n];
 }
 
-
 Matrix::Matrix(const size_t row, const size_t col) {
+    if (row > std::sqrt(std::numeric_limits<size_t>::max()) || col > std::sqrt(std::numeric_limits<size_t>::max())) {
+        throw std::invalid_argument("Matrix size is too large");
+    }
+
     rows = row;
     columns = col;
 
@@ -81,17 +85,17 @@ Matrix::Matrix(const size_t row, const size_t col) {
 
 
 Matrix::Matrix(const Matrix& M) {
-	
-	if rows * columns = M.rows * M.columns {
-		for (unsigned int idx = 0; idx < rows * columns; idx++) {
+
+    if (rows * columns != M.rows * M.columns) {
+        for (unsigned int idx = 0; idx < rows * columns; idx++) {
         data[idx] = M.data[idx];
-		return;
-		}
-	}
-	
+        return;
+        }
+    }
+
     rows = M.rows;
     columns = M.columns;
-	
+
 
     delete[] data;
     data = new Matrixoject[rows * columns];
@@ -120,7 +124,7 @@ Matrix::~Matrix() {
 }
 
 
-void Matrix::zeros_fill() 
+void Matrix::zeros_fill()
 {
     for (size_t index = 0; index < columns * rows; index++) {
         data[index] = 0.0;
@@ -128,7 +132,7 @@ void Matrix::zeros_fill()
 }
 
 
-void Matrix::random_fill() 
+void Matrix::random_fill()
 {
     for (size_t index = 0; index < columns * rows; index++) {
         data[index] = double(rand() % 1000000) / 10000;
@@ -136,7 +140,7 @@ void Matrix::random_fill()
 }
 
 
-void Matrix::identity_fill() 
+void Matrix::identity_fill()
 {
     zeros_fill();
     for (size_t index = 0; index < rows * columns; index += rows + 1) {
@@ -149,7 +153,7 @@ void Matrix::print()
 {
     if (data == nullptr) throw NULL_MATRIX;
 
-    std::cout <<  "\n";
+    std::cout << "\n";
     for (size_t r = 0; r < rows; r++) {
         std::cout << "[";
         for (size_t c = 0; c < columns; c++) {
@@ -217,36 +221,49 @@ double Matrix::determinant(void)
 }
 
 Matrix& Matrix::operator=(const Matrix& M) {
-    if (this == &M) return *this;    
+    if (this == &M) return *this;
 
-    if (data!= nullptr && rows!=columns) delete[] data; 
+    if (rows == 0 || columns == 0) {
+        rows = M.rows;
+        columns = M.columns;
+        data = new MatrixObject[rows * columns];
+    }
 
-    rows = M.rows;
-    columns = M.columns;
+    if (rows != M.rows || columns != M.columns) && (rows != 0 || columns != 0) {
+        delete[] data;
+        data = new MatrixObject[rows = M.rows][columns = M.columns];
+    }
 
-    data = new MatrixObject[rows * columns];
-    memcpy(data, M.data, columns * rows * sizeof(MatrixObject));
+    memcpy(data, M.data, rows * columns * sizeof(MatrixObject));
 
     return *this;
 }
 
 
 Matrix& Matrix::operator=(Matrix&& M) noexcept {
-    if (this != &M) { 
+    if (this != &M) {
         delete[] data;
+
         rows = M.rows;
         columns = M.columns;
         data = M.data;
+
         M.data = nullptr;
+        M.rows = 0;
+        M.columns = 0;
     }
+
     return *this;
 }
 
 
-Matrix& Matrix::operator+= (const Matrix& M) { 
-    if ((rows != M.rows) or (columns != M.columns)) 
-        throw INCORRECT_DIMENTION_OF_MATRIX;
-
+Matrix& Matrix::operator+=(const Matrix& M) {
+    if (rows != M.rows || columns != M.columns) {
+        throw std::invalid_argument("Matrix dimensions do not match");
+    }
+    if (rows == 0 || columns == 0) {
+        throw std::invalid_argument("Cannot add to a matrix with zero dimensions");
+    }
     for (size_t idx = 0; idx < rows * columns; idx++) {
         data[idx] += M.data[idx];
     }
@@ -254,10 +271,13 @@ Matrix& Matrix::operator+= (const Matrix& M) {
 }
 
 
-Matrix& Matrix::operator-= (const Matrix& M) {
-    if ((rows != M.rows) or (columns != M.columns))
-        throw INCORRECT_DIMENTION_OF_MATRIX;
-
+Matrix& Matrix::operator-=(const Matrix& M) {
+    if (rows != M.rows || columns != M.columns) {
+        throw std::invalid_argument("Matrix dimensions do not match");
+    }
+    if (rows == 0 || columns == 0) {
+        throw std::invalid_argument("Cannot subtract from a matrix with zero dimensions");
+    }
     for (size_t idx = 0; idx < rows * columns; idx++) {
         data[idx] -= M.data[idx];
     }
@@ -276,15 +296,15 @@ Matrix& Matrix::operator*= (const double k) {
 
 
 Matrix& Matrix::operator*= (const Matrix& M) {
-    if (columns != M.rows)
+    if (columns != M.rows && columns != 0 && M.rows != 0)
         throw INCORRECT_DIMENTION_OF_MATRIX;
 
     Matrix R(rows, M.columns);
     for (size_t row = 0; row < R.rows; row++)
         for (size_t col = 0; col < R.columns; col++)
             for (size_t idx = 0; idx < M.rows; idx++)
-                R.data[row * R.columns + col] += data[row * columns + idx] * M.data[idx * M.columns + col]; 
-    
+                R.data[row * R.columns + col] += data[row * columns + idx] * M.data[idx * M.columns + col];
+
     columns = R.columns;
     rows = R.rows;
     data = R.data;
@@ -313,8 +333,8 @@ Matrix operator ^ (const double base, const Matrix& matrix)
     submatrix.identity_fill();
 
     for (unsigned int index = 1; index < accuracy; index++) {
-		term = term * matrix * (1 / index);
-		exp += term;
+        term = term * matrix * (1 / index);
+        exp += term;
     }
     return new_matrix;
 }
@@ -322,34 +342,53 @@ Matrix operator ^ (const double base, const Matrix& matrix)
 
 Matrix operator+(const Matrix& M, const Matrix& K) {
     Matrix rez = M;
-    rez += K;
+
+    memcpy(rez.data, K.data, sizeof(double) * rez.rows * rez.columns);
+
     return rez;
 }
 
 
 Matrix operator-(const Matrix& M, const Matrix& K) {
     Matrix rez = M;
-    rez -= K;
+
+    memcpy(rez.data + rez.rows * rez.columns, K.data, sizeof(double) * rez.rows * rez.columns);
+
+    for (int i = 0; i < M.rows * M.columns; i++) {
+        rez.data[M.rows * M.columns + i] -= K.data[i];
+    }
+
     return rez;
 }
 
-
-Matrix operator*(const Matrix& M, const Matrix& K) {
+Matrix operator*(const double k, const Matrix& M) {
     Matrix rez = M;
-    rez *= K;
+
+    memcpy(rez.data, M.data, sizeof(double) * rez.rows * rez.columns);
+
+    for (int i = 0; i < M.rows * M.columns; i++) {
+        rez.data[i] *= k;
+    }
+
     return rez;
 }
 
 
 Matrix operator*(const double k, const Matrix& M) {
     Matrix rez = M;
-    rez *= k;
+
+    memcpy(rez.data, M.data, sizeof(double) * M.rows * M.columns);
+
+    for (int i = 0; i < rez.rows * rez.columns; i++) {
+        rez.data[i] *= k;
+    }
+
     return rez;
 }
 
 
 int main(void)
-{ 
+{
     Matrix A, B, C, N;
     try {
         A = Matrix(3, 3);
@@ -358,13 +397,13 @@ int main(void)
         B.random_fill();
         C = Matrix(2, 2);
         C.random_fill();
-        
+
         A.print();
-   
+
         B.print();
-        
+
         C.print();
-        
+
         C = A;
         C.print();
 
@@ -379,13 +418,13 @@ int main(void)
 
         C *= B;
         C.print();
-        
+
         C = A + B;
         C.print();
 
         C = A - B;
         C.print();
-                
+
         C = A * 2;
         C.print();
 
@@ -394,10 +433,10 @@ int main(void)
 
         C.transposition(A);
         C.print();
-    
+
         C.determinant();
         C.print();
-        
+
         return 0;
     }
     catch (const Matrix_Exception& exception)
