@@ -174,7 +174,6 @@ void multiplication(Matrix *frst, Matrix *scnd){
     Matrix result_mat = matrix_create(frst->rows, scnd->cols);
     if (result_mat.data == NULL) {
         handle_error(MEMORY_ALLOCATION_ERROR);
-        return MATRIX_NULL;
     }
     for (size_t rows = 0; rows < frst->rows; rows++) {
         for (size_t s_cols = 0; s_cols < scnd->cols; s_cols++) {
@@ -187,18 +186,9 @@ void multiplication(Matrix *frst, Matrix *scnd){
         }
     }
 
-    if (result_mat.data <= frst->data){
-        // Указатель на первый участок памяти, не содержащий актуальное значение рез. матрицы
-        for (size_t cell_to_free = (result_mat.rows * result_mat.cols); cell_to_free < (frst->rows * frst->cols); cell_to_free++) {
-            free(&frst->data[cell_to_free]);
-        }
-    }
-    if (result_mat.data != frst->data)
-        // Подгоняю размер первой под результирующую матрицу
-        realloc(frst->data, result_mat.rows * result_mat.cols * sizeof(double));
+    matrix_free(frst->data);
     frst->data = result_mat.data;
-    matrix_free(&result_mat);
-    // Что делать с освободившимися участками памяти?
+    result_mat.data = NULL;
 }
 
 // Функция для вычисления экспоненты матрицы
