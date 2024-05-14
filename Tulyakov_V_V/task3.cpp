@@ -146,13 +146,12 @@ void Matrix::fill(enum MatrixType mat_type)
 Matrix& Matrix::operator=(const Matrix& A)
 {
     if (this == &A) return *this;
-    if (data != nullptr) delete[] data;
+    delete[] data;
 
     cols = A.cols;
     rows = A.rows;
-
-    data = new MatrixItem[cols * rows];
-    memcpy(data, A.data, A.cols * A.rows * sizeof(MatrixItem));
+    data = A.data;
+    
     return *this;
 }
 
