@@ -143,7 +143,8 @@ void Matrix::fill(enum MatrixType mat_type)
     }
 }
 
-Matrix& Matrix::operator=(Matrix && A)
+//Оператор присваивания матрицы
+Matrix& Matrix::operator=(const Matrix & A)
 {
     if (this == &A) return *this;
     if (cols !=A.cols || A.rows != rows) {
@@ -156,6 +157,7 @@ Matrix& Matrix::operator=(Matrix && A)
     return *this;
 }
 
+//Оператор перемещения матрицы
 Matrix& Matrix::operator=(Matrix && A)
 {
     if (this == &A) return *this;
