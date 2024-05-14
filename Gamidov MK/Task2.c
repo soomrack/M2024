@@ -16,7 +16,6 @@ struct Matrix {
 const struct Matrix MATRIX_NULL = { .cols = 0, .rows = 0, .data = NULL };
 
 
-// Function returns MATRIX_NULL if fail
 struct Matrix matrix_allocate(const size_t rows, const size_t cols)
 {
     if (cols == 0 || rows == 0) {
@@ -190,10 +189,16 @@ struct Matrix matrix_E(const struct Matrix A)
 {
     struct Matrix E = matrix_allocate(A.cols, A.rows);
     if (E.data == NULL) return MATRIX_NULL;
-
-    for (size_t idx = 0; idx < A.rows * A.cols; idx++) E.data[idx] = 0;
-    for (size_t idx = 0; idx < A.rows; idx++) E.data[idx + idx * A.cols] = 1.;
-
+    
+    for (size_t idx = 0; size_t idx < A.rows; idx++) {
+        for (size_t idx2 = 0; size_t idx2 < A.cols; idx2++) {
+            if (idx == idx2) {
+                E.data[idx][idx2] = 1.0;
+            } else {
+                E.data[idx][idx2] = 0.0;
+            }
+        }
+    }    
     return E;
 }
 
