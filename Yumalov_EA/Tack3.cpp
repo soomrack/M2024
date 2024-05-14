@@ -483,13 +483,10 @@ int Matrix::sled () {
     int sled = 0;
         if (cols != rows)
         throw BAD_REQUEST;
-    
-    for (size_t i = 0; i < rows; i++) {
-        for (size_t j = 0; j < cols; j++) {
-            if (i == j) 
-            sled += items[j];    
-         
-        }
+        int size = rows * cols;
+        for (size_t i = 0; i < size; i+= cols+1) {
+        sled += items[i];    
+        
     }
 return sled ;
 }
