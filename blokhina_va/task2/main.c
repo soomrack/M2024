@@ -187,7 +187,7 @@ void multiplication(Matrix *frst, Matrix *scnd){
     }
 
     matrix_free(frst->data);
-    frst->data = result_mat.data;
+    frst = result_mat;
     result_mat.data = NULL;
 }
 
