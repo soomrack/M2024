@@ -154,7 +154,12 @@ void Alice_savings()
     Alice.savings += Alice.home_price;
     Alice.savings += Alice.deposit;
 }
-
+void Alice_inflation_march()
+{
+    if (yaer == 2028 && month == 3){
+        INFLIATION*=2
+    }
+}
 
 void Bob_indexation()
 {
@@ -212,6 +217,15 @@ void Bob_savings()
     Bob.savings += Bob.deposit;
 }
 
+void Bob_inflation_march()
+{
+    if (yaer == 2028 && month == 3){
+        INFLIATION*=2
+        
+    }
+        
+}
+
 
 void Alice_simulation()
 {
@@ -226,6 +240,7 @@ void Alice_simulation()
         Alice_rand_spendings();
         Alice_appartment_repair(year);
         Alice_deposit();
+        Alice_inflation_march;
 
         if (year == 2024 + LOAN_YEARS && month == 2)
             break;
@@ -252,6 +267,7 @@ void Bob_simulation()
         Bob_get_food();
         Bob_rand_spendings();
         Bob_deposit();
+        Bob_inflation_march;
 
         if (year == 2024 + LOAN_YEARS && month == 2)
             break;
@@ -273,4 +289,5 @@ int main()
     Alice_simulation();
     Bob_simulation();
     printf("Alice savings = %ld \nBob savings = %ld\n", Alice.savings, Bob.savings);
+    
 }
