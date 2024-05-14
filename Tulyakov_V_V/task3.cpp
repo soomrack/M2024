@@ -20,29 +20,27 @@ public:
     Matrix(const size_t cols, const size_t rows);
     Matrix(const Matrix& A);
     Matrix(Matrix&& A);
-public:
+    ~Matrix() {
+        delete[] data;
+    }
+
     Matrix& operator=(const Matrix& A);
     Matrix& operator=(Matrix&& A);
-    Matrix& operator+(const Matrix& A);
+    Matrix operator+(const Matrix& A);
     Matrix& operator+=(const Matrix& A);
-    Matrix& operator-(const Matrix& A);
+    Matrix operator-(const Matrix& A);
     Matrix& operator-=(const Matrix& A);
-    Matrix& operator*(const Matrix& B);
+    Matrix operator*(const Matrix& B);
     Matrix& operator*=(const Matrix& B);
-    Matrix& operator*(const double& coeff);
+    Matrix operator*(const double& coeff);
     Matrix& operator*=(const double& coeff);
-public:
+
     void fill(enum MatrixType mat_type);
-    void print();
+    void print() const;
     static Matrix transpose(const Matrix& A);
     static Matrix exponent(const unsigned int level, const Matrix& A);
     double determinant() const;
 
-    ~Matrix() {
-        cols = 0;
-        rows = 0;
-        delete[] data;
-    }
 };
 
 class MatrixException : public exception {
@@ -59,14 +57,14 @@ MatrixException SHAPE_ERROR("\nОшибка: количество столбцо
 MatrixException NULL_MATRIX("\nОшибка: матрица пуста\n\n");
 MatrixException OTHER_ERROR("\nОшибка: неизвестная ошибка\n\n");
 
-void Matrix::print() {
+void Matrix::print() const {
     if (data == nullptr) throw NULL_MATRIX;
     cout << "\n";
     for (size_t row = 0; row < rows; row++) {
         cout << "[";
         for (size_t column = 0; column < cols; column++) {
             cout << data[column + row * cols];
-            if (column != cols - 1) cout << "\t"; // исправлено условие
+            if (column != cols - 1) cout << "\t";
         }
         cout << "]\n";
     }
@@ -76,7 +74,6 @@ void Matrix::print() {
 Matrix::Matrix(const size_t cols, const size_t rows)
     : cols(cols), rows(rows), data(nullptr) {
     if (cols == 0 || rows == 0) {
-        data = nullptr;
         return;
     };
 
@@ -88,14 +85,12 @@ Matrix::Matrix(const size_t cols, const size_t rows)
 }
 
 Matrix::Matrix(const Matrix& A) {
-    if (A.data == nullptr) {
-        cols = A.cols;
-        rows = A.rows;
-        data = nullptr;
-        return;
-    };
     cols = A.cols;
     rows = A.rows;
+    if (A.data == nullptr) {
+        data = nullptr;
+        return;
+    }
     data = new MatrixItem[rows * cols];
     memcpy(data, A.data, sizeof(MatrixItem) * A.rows * A.cols);
 }
@@ -140,8 +135,14 @@ Matrix& Matrix::operator=(const Matrix& A) {
         delete[] data;
         cols = A.cols;
         rows = A.rows;
-        data = A.data;
-    } else {
+        if (A.data == nullptr) {
+            data = nullptr;
+            return *this;
+        }
+        data = new MatrixItem[rows * cols];
+        memcpy(data, A.data, sizeof(MatrixItem) * A.rows * A.cols);
+    }
+    else {
         memcpy(data, A.data, cols * rows * sizeof(MatrixItem));
     }
     return *this;
@@ -149,17 +150,18 @@ Matrix& Matrix::operator=(const Matrix& A) {
 
 Matrix& Matrix::operator=(Matrix&& A) {
     if (this == &A) return *this;
-
     cols = A.cols;
     rows = A.rows;
     delete[] data;
     data = A.data;
 
+    A.cols = 0;
+    A.rows = 0;
     A.data = nullptr;
 
     return *this;
 }
-Matrix& Matrix::operator+(const Matrix& A) {
+Matrix Matrix::operator+(const Matrix& A) {
     if (A.cols != cols || A.rows != rows) throw SIZE_ERROR;
 
     Matrix result(*this);
@@ -179,7 +181,7 @@ Matrix& Matrix::operator+=(const Matrix& A) {
     return *this;
 }
 
-Matrix& Matrix::operator-(const Matrix& A) {
+Matrix Matrix::operator-(const Matrix& A) {
     if (A.cols != cols || A.rows != rows) throw SIZE_ERROR;
 
     Matrix result(*this);
@@ -199,7 +201,7 @@ Matrix& Matrix::operator-=(const Matrix& A) {
     return *this;
 }
 
-Matrix& Matrix::operator*(const Matrix& B) {
+Matrix Matrix::operator*(const Matrix& B) {
     if (cols != B.rows) throw SHAPE_ERROR;
 
     Matrix result(rows, B.cols);
@@ -220,7 +222,7 @@ Matrix& Matrix::operator*=(const Matrix& B) {
     return *this;
 }
 
-Matrix& Matrix::operator*(const double& coeff) {
+Matrix Matrix::operator*(const double& coeff) {
     Matrix result(*this);
 
     for (size_t idx = 0; idx < cols * rows; ++idx)
@@ -237,6 +239,7 @@ Matrix& Matrix::operator*=(const double& coeff) {
 }
 
 Matrix Matrix::transpose(const Matrix& A) {
+    if (A.data == nullptr) throw NULL_MATRIX;
     Matrix result(A.cols, A.rows);
 
     for (size_t row = 0; row < A.rows; ++row)
