@@ -8,7 +8,7 @@ int years_reparation = 2;
 int years_lose_job = 4;
 int month_unemployment = 3;
 int year_to_buy_yacht = 2;
-long long int yacht_price = 60000000000; // long long int
+long long int yacht_price = 1000000000000; // long long int
 double indexation_perc = 12;
 double deposite_perc = 16;
 double flat_rate_perc = 18;
@@ -42,6 +42,7 @@ void Alice_finance()
     Alice.expen.flat_cost = 20 * 1000 * 1000 * 100;
     Alice.expen.reparation = 100 * 1000 * 100;
     Alice.expen.food = 15 * 1000 * 100;
+    Alice.expen.yacht = 0;
 };
 
 
@@ -51,7 +52,7 @@ void Bob_finance()
     Bob.earn.salary = 300 * 1000 * 100;
     Bob.expen.rent = 25 * 1000 * 100;
     Bob.expen.food = 15 * 1000 * 100;
-    Bob.expen.yacht = 10 * 1000 * 100;
+    Bob.expen.yacht = 0;
 }
 
 
@@ -173,10 +174,6 @@ void Bob_salary()
     Bob.balance += Bob.earn.salary;
 }
 
-void Bob_yacht()
-{
-    Bob.balance -= Bob.expen.yacht;
-}
 
 void Bob_inflation(int month)
 {
@@ -192,26 +189,31 @@ void Bob_buy_yacht(int month)
 {
     if (month == year_to_buy_yacht*12) {
         Bob.balance -= yacht_price;
+        Bob.expen.yacht = 10000000;
     }
+}
+
+void Bob_pay_for_yacht() {
+    Bob.balance -= Bob.expen.yacht;
 }
 
 void Bob_process ()
 {
     int month;
-    Bob_buy_yacht(month);
     for (month = 1; month <= years * 12; month++) {
        
         Bob_food();
         Bob_rent();
-        Bob_yacht();
 
         Bob_bank();
         Bob_salary();
+        
+        Bob_buy_yacht(month);
+        Bob_pay_for_yacht();
 
         Bob_inflation(month);
     };
 }
-
 int main()
 {
     Alice_finance();
