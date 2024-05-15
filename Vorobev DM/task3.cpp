@@ -233,12 +233,14 @@ Matrix& Matrix::operator=(const Matrix& M) {
         data = new MatrixObject[rows * columns];
     }
 
-    if (rows != M.rows || columns != M.columns) && (rows != 0 || columns != 0) {
+    if (rows != M.rows || columns != M.columns) {
         delete[] data;
-        data = new MatrixObject[rows = M.rows][columns = M.columns];
+        data = new MatrixObject[M.rows * M.columns];
+        rows = M.rows;
+        columns = M.columns;
     }
 
-    memcpy(data, M.data, rows * columns * sizeof(MatrixObject));
+    std::copy(M.data, M.data + M.rows * M.columns, data);
 
     return *this;
 }
@@ -346,7 +348,7 @@ Matrix operator ^ (const double base, const Matrix& matrix)
 Matrix Matrix::operator + (const Matrix& matrix)
 {
     if ((cols != matrix.cols) || (rows != matrix.rows)) {
-        throw std::runtime_error("Matrix sizes are incomparable");
+        throw std::runtime_error("ERROR: the matrix sizes are incomparable\n");
     }
 
     Matrix new_matrix(cols, rows);
@@ -358,7 +360,7 @@ Matrix Matrix::operator + (const Matrix& matrix)
 Matrix Matrix::operator - (const Matrix& matrix)
 {
     if ((cols != matrix.cols) || (rows != matrix.rows)) {
-        throw std::runtime_error("Matrix sizes are incomparable");
+        throw std::runtime_error("ERROR: the matrix sizes are incomparable\n");
     }
 
     Matrix new_matrix(cols, rows);
@@ -369,7 +371,7 @@ Matrix Matrix::operator - (const Matrix& matrix)
 
 Matrix Matrix::operator * (const Matrix& matrix) {
     if (rows != matrix.cols) {
-        throw std::runtime_error("Matrix sizes are incomparable");
+        throw std::runtime_error("Alarm: the matrix sizes are incomparable\n");
     }
 
     Matrix new_matrix(cols, matrix.rows);
@@ -396,6 +398,18 @@ Matrix Matrix::operator * (const double number)
     new_matrix *= number;
     return new_matrix;
 }
+
+double DiagonalSum(const Matrix& M) {
+    double summdiag = 0;
+    if (M.rows != M.cols) {
+        throw std::invalid_argument("Matrix is not square/n");
+    }
+    for (int i = 0; i < M.cols; ++i) {
+        summdiag += M.data[i * M.cols + i];
+    }
+    return summdiag;
+}
+
 
 int main(void)
 {
