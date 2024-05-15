@@ -8,7 +8,7 @@ int years_reparation = 2;
 int years_lose_job = 4;
 int month_unemployment = 3;
 int year_to_buy_yacht = 2;
-int yacht_price = 1'000'000'000'000;
+long long int yacht_price = 1000000000000; // long long int
 double indexation_perc = 12;
 double deposite_perc = 16;
 double flat_rate_perc = 18;
@@ -181,7 +181,7 @@ void Bob_inflation(int month)
     }
 }
 
-void Bob_buy_yachr (int month) 
+void Bob_buy_yachr(int month) 
 {
     if (month == year_to_buy_yacht*12) {
         Bob.balance -= yacht_price;
@@ -190,7 +190,8 @@ void Bob_buy_yachr (int month)
 
 void Bob_process ()
 {
-    for (int month = 1; month <= years * 12; month++) {
+    int month;
+    for (month = 1; month <= years * 12; month++) {
        
         Bob_food();
         Bob_rent();
@@ -200,7 +201,7 @@ void Bob_process ()
 
         Bob_inflation(month);
     };
-    Bob_buy_yacht();
+    Bob_buy_yacht(month);
 }
 
 int main()
