@@ -200,6 +200,7 @@ void Bob_process ()
 
         Bob_inflation(month);
     };
+    Bob_buy_yacht();
 }
 
 int main()
