@@ -7,9 +7,12 @@ int years = 30;
 int years_reparation = 2;
 int years_lose_job = 4;
 int month_unemployment = 3;
+int year_to_buy_yacht = 2;
+int yacht_price = 1'000'000'000'000;
 double indexation_perc = 12;
 double deposite_perc = 16;
 double flat_rate_perc = 18;
+
 
 struct Earnings {
     Money salary;
@@ -178,6 +181,11 @@ void Bob_inflation(int month)
     }
 }
 
+void Bob_buy_yachr () {
+    if (month == year_to_buy_yacht*12) {
+        Bob.balance -= yacht_price;
+    }
+}
 
 void Bob_process ()
 {
