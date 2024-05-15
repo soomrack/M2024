@@ -181,7 +181,7 @@ void Bob_inflation(int month)
     }
 }
 
-void Bob_buy_yachr (month) 
+void Bob_buy_yachr (int month) 
 {
     if (month == year_to_buy_yacht*12) {
         Bob.balance -= yacht_price;
