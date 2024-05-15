@@ -346,7 +346,7 @@ Matrix operator ^ (const double base, const Matrix& matrix)
 Matrix Matrix::operator + (const Matrix& matrix)
 {
     if ((cols != matrix.cols) || (rows != matrix.rows)) {
-        throw std::runtime_error("ERROR: the matrix sizes are incomparable\n");
+        throw std::runtime_error("Matrix sizes are incomparable");
     }
 
     Matrix new_matrix(cols, rows);
@@ -358,7 +358,7 @@ Matrix Matrix::operator + (const Matrix& matrix)
 Matrix Matrix::operator - (const Matrix& matrix)
 {
     if ((cols != matrix.cols) || (rows != matrix.rows)) {
-        throw std::runtime_error("ERROR: the matrix sizes are incomparable\n");
+        throw std::runtime_error("Matrix sizes are incomparable");
     }
 
     Matrix new_matrix(cols, rows);
@@ -369,7 +369,7 @@ Matrix Matrix::operator - (const Matrix& matrix)
 
 Matrix Matrix::operator * (const Matrix& matrix) {
     if (rows != matrix.cols) {
-        throw std::runtime_error("Alarm: the matrix sizes are incomparable\n");
+        throw std::runtime_error("Matrix sizes are incomparable");
     }
 
     Matrix new_matrix(cols, matrix.rows);
