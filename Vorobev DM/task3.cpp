@@ -343,60 +343,58 @@ Matrix operator ^ (const double base, const Matrix& matrix)
     return new_matrix;
 }
 
-Matrix Matrix::operator+(const Matrix& M) const {
-    if (rows != M.rows || cols != M.cols) {
-        throw std::invalid_argument("Matrices have different dimensions");
+Matrix Matrix::operator + (const Matrix& matrix)
+{
+    if ((cols != matrix.cols) || (rows != matrix.rows)) {
+        throw std::runtime_error("ERROR: the matrix sizes are incomparable\n");
     }
 
-    Matrix C(rows, cols);
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            C(i, j) = data[i][j] + M.data[i][j];
-        }
-    }
-    return C;
+    Matrix new_matrix(cols, rows);
+    new_matrix = *this;
+    new_matrix += matrix;
+    return new_matrix;
 }
 
-Matrix Matrix::operator-(const Matrix& M) const {
-    if (rows != M.rows || cols != M.cols) {
-        throw std::invalid_argument("Matrices have different dimensions");
+Matrix Matrix::operator - (const Matrix& matrix)
+{
+    if ((cols != matrix.cols) || (rows != matrix.rows)) {
+        throw std::runtime_error("ERROR: the matrix sizes are incomparable\n");
     }
 
-    Matrix C(rows, cols);
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            C(i, j) = data[i][j] - M.data[i][j];
-        }
-    }
-    return C;
+    Matrix new_matrix(cols, rows);
+    new_matrix = *this;
+    new_matrix -= matrix;
+    return new_matrix;
 }
 
-Matrix Matrix::operator*(const Matrix& M) const {
-    if (cols != M.rows) {
-        throw std::invalid_argument("Matrices have incompatible dimensions");
+Matrix Matrix::operator * (const Matrix& matrix) {
+    if (rows != matrix.cols) {
+        throw std::runtime_error("Alarm: the matrix sizes are incomparable\n");
     }
 
-    Matrix C(rows, M.cols);
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < M.cols; j++) {
-            double sum = 0;
-            for (int k = 0; k < cols; k++) {
-                sum += data[i][k] * M.data[k][j];
+    Matrix new_matrix(cols, matrix.rows);
+    new_matrix.zeros_fill();
+    for (size_t current_col = 0; current_col < new_matrix.cols; current_col++) {
+        for (size_t current_row = 0; current_row < new_matrix.rows; current_row++) {
+
+            for (size_t index = 0; index < rows; index++) {
+
+                new_matrix.data[new_matrix.rows * current_col + current_row] +=
+                    data[rows * current_col + index] *
+                    matrix.data[matrix.rows * index + current_row];
             }
-            C(i, j) = sum;
         }
     }
-    return C;
+    return new_matrix;
 }
 
-Matrix Matrix::operator*(double k) const {
-    Matrix C(rows, cols);
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            C(i, j) = data[i][j] * k;
-        }
-    }
-    return C;
+
+Matrix Matrix::operator * (const double number)
+{
+    Matrix new_matrix;
+    new_matrix = *this;
+    new_matrix *= number;
+    return new_matrix;
 }
 
 int main(void)
