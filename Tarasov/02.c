@@ -3,7 +3,6 @@
 #include <math.h>
 #include <locale.h>
 
-
 enum ErrorType { ERROR };
 
 void matrix_error(enum ErrorType type, const char* message)
@@ -45,7 +44,7 @@ void matrix_locate(Matrix* matrix, size_t rows, size_t cols) // выделени
     }
 }
 
-//освобождение памяти для хранения матрицы
+// освобождение памяти для хранения матрицы
 void matrix_free(Matrix* matrix)
 {
     free(matrix->data);
@@ -138,7 +137,7 @@ void matrix_mul_scalar(Matrix matrix, double scalar, Matrix* result)
     }
 }
 
-//единичная матрица
+// единичная матрица
 void matrix_identity(Matrix* matrix, size_t rows, size_t cols)
 {
     matrix_locate(matrix, rows, cols);
@@ -165,7 +164,7 @@ void matrix_identity(Matrix* matrix, size_t rows, size_t cols)
     }
 }
 
-//e^A
+// e^A
 void matrix_exp(Matrix matrix, const size_t iteration, Matrix* result)
 {
     if (matrix.data == NULL) {
@@ -193,7 +192,6 @@ void matrix_exp(Matrix matrix, const size_t iteration, Matrix* result)
         return;
     }
 
-
     for (size_t k = 1; k <= iteration; ++k) {
         Matrix B_shadow = B;
 
@@ -212,7 +210,6 @@ void matrix_exp(Matrix matrix, const size_t iteration, Matrix* result)
     matrix_free(&B);
 }
 
-
 double matrix_det(Matrix matrix)
 {
     if (matrix.data == NULL) {
@@ -230,25 +227,23 @@ double matrix_det(Matrix matrix)
         return NAN;
     }
 
-    if (matrix.cols == 1)
-    {
+    if (matrix.cols == 1) {
         return matrix.data[0];
     }
 
     double det = 0;
 
-    if (matrix.cols == 2)
-    {
+    if (matrix.cols == 2) {
         det = (matrix.data[0]) * (matrix.data[3]) - (matrix.data[1]) * (matrix.data[2]);
         return det;
     }
 
-    if (matrix.cols == 3)
-    {
+    if (matrix.cols == 3) {
         det = (matrix.data[0]) * (matrix.data[4]) * (matrix.data[8]) + (matrix.data[1]) * (matrix.data[5]) * (matrix.data[6]) + (matrix.data[3]) * (matrix.data[7]) * (matrix.data[2]);
         det -= ((matrix.data[2]) * (matrix.data[4]) * (matrix.data[6]) + (matrix.data[1]) * (matrix.data[3]) * (matrix.data[8]) + (matrix.data[0]) * (matrix.data[5]) * (matrix.data[7]));
         return det;
     }
+
     return NAN;
 }
 
@@ -270,10 +265,34 @@ void matrix_from_array(Matrix* matrix, double* array)
     }
 }
 
+void matrix_min_elem(Matrix matrix) {
+    if (matrix.data == NULL) {
+        matrix_error(ERROR, "Матрица не должна быть пустой");
+        return;
+    }
+
+    if (matrix.rows == 0 || matrix.cols == 0) {
+        matrix_error(ERROR, "Неверный размер матрицы");
+        return;
+    }
+
+    double min_elem = matrix.data[0]; // предположим, что первый элемент - минимальный
+
+    for (size_t i = 1; i < matrix.rows * matrix.cols; ++i) {
+        if (matrix.data[i] < min_elem) {
+            min_elem = matrix.data[i];
+        }
+    }
+
+    printf("MAtrix min elem: %f\n", min_elem);
+}
+
 int main()
 {
     Matrix A;
-    matrix_locate(&A, 3, 3);
+    matrix_locate(&A,
+
+        3, 3);
     matrix_from_array(&A, (double[]) { 1, 1, 1, 1, 1, 1, 1, 1, 1 });
 
     Matrix B;
@@ -303,7 +322,7 @@ int main()
     matrix_mul(A, B, &C);
     matrix_print(C);
 
-    printf("\nMatrix A muktiply by number 3:\n");
+    printf("\nMatrix A multiply by number 3:\n");
     matrix_mul_scalar(A, 3, &C);
     matrix_print(C);
 
@@ -313,6 +332,12 @@ int main()
 
     printf("\nMatrix det A: %f\n", det_A);
     printf("Matrix det B: %f\n", det_B);
+
+    printf("\nMatrix A min elem:\n");
+    matrix_min_elem(A);
+
+    printf("\nMatrix B min elem:\n");
+    matrix_min_elem(B);
 
     // Освобождение памяти
     matrix_free(&A);
