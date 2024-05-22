@@ -265,18 +265,18 @@ void matrix_from_array(Matrix* matrix, double* array)
     }
 }
 
-void matrix_min_elem(Matrix matrix) {
+double matrix_min_elem(Matrix matrix) {
     if (matrix.data == NULL) {
         matrix_error(ERROR, "Матрица не должна быть пустой");
-        return;
+        return NAN;
     }
 
     if (matrix.rows == 0 || matrix.cols == 0) {
         matrix_error(ERROR, "Неверный размер матрицы");
-        return;
+        return NAN; 
     }
 
-    double min_elem = matrix.data[0]; // предположим, что первый элемент - минимальный
+    double min_elem = matrix.data[0];
 
     for (size_t i = 1; i < matrix.rows * matrix.cols; ++i) {
         if (matrix.data[i] < min_elem) {
@@ -284,15 +284,13 @@ void matrix_min_elem(Matrix matrix) {
         }
     }
 
-    printf("MAtrix min elem: %f\n", min_elem);
+    return min_elem;
 }
 
 int main()
 {
     Matrix A;
-    matrix_locate(&A,
-
-        3, 3);
+    matrix_locate(&A, 3, 3);
     matrix_from_array(&A, (double[]) { 1, 1, 1, 1, 1, 1, 1, 1, 1 });
 
     Matrix B;
@@ -304,6 +302,8 @@ int main()
 
     double det_A = matrix_det(A);
     double det_B = matrix_det(B);
+    double min_A = matrix_min_elem(A);
+    double min_B = matrix_min_elem(B);
 
     printf("Matrix A:\n");
     matrix_print(A);
@@ -333,11 +333,8 @@ int main()
     printf("\nMatrix det A: %f\n", det_A);
     printf("Matrix det B: %f\n", det_B);
 
-    printf("\nMatrix A min elem:\n");
-    matrix_min_elem(A);
-
-    printf("\nMatrix B min elem:\n");
-    matrix_min_elem(B);
+    printf("\nMatrix A min elem: %f\n", min_A);
+    printf("Matrix B min elem: %f\n", min_B);
 
     // Освобождение памяти
     matrix_free(&A);
