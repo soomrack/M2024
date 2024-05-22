@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef long long int Money;  // копейки
+typedef long long int Money;  
 
 int years = 30;
 int years_reparation = 2;
-int years_lose_job = 4;
 int month_unemployment = 3;
 double indexation_perc = 12;
 double deposite_perc = 16;
@@ -103,14 +102,6 @@ void Alice_salary(int month)
     int salary = Alice.earn.salary;
 
     Alice.balance += salary;
-    
-    if (month > years_lose_job * 12 && month < years_lose_job * 12 + month_unemployment) {
-        salary = 0;
-    }
-
-    if (month == years_lose_job * 12 + month_unemployment) {
-        salary = Alice.earn.salary * 1.5;
-    }
 }
 
 
