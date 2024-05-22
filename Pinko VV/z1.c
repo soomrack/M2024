@@ -8,7 +8,7 @@
 typedef long long int Money;
 
 int TOTAL_YEARS = 30;
-double INFLATION = 12 * 0.01;
+double INFLATION = 9 * 0.01;
 
 
 struct Person {
@@ -60,15 +60,15 @@ void calculate_loan_payment(struct Person* person)
 void init_Bob()
 {
     Bob.if_has_apartment = 0;
-    Bob.apartment_price = 2 * 1000 * 1000;
-    Bob.savings = 600 * 1000;
+    Bob.apartment_price = 2 * 1000 * 1000 * 100;
+    Bob.savings = 800 * 1000 * 100;
     Bob.loan_period = 0;
-    Bob.salary = 200 * 1000;
-    Bob.food_spending = 20 * 1000;
+    Bob.salary = 200 * 1000 * 100;
+    Bob.food_spending = 20 * 1000 * 100;
     Bob.rent = 30 * 1000;
-    Bob.extra_spendings = 20 * 1000;
+    Bob.extra_spendings = 20 * 1000 * 100;
     Bob.loan_rate = 0;
-    Bob.deposit_rate = 12 * 0.01;
+    Bob.deposit_rate = 13 * 0.01;
 
     calculate_loan_payment(&Bob);
 }
@@ -77,15 +77,15 @@ void init_Bob()
 void init_Alice()
 {
     Alice.if_has_apartment = 0;
-    Alice.apartment_price = 2 * 1000 * 1000;
-    Alice.savings = 600 * 1000;
+    Alice.apartment_price = 2 * 1000 * 1000 * 100;
+    Alice.savings = 800 * 1000 * 100;
     Alice.loan_period = 30;
-    Alice.salary = 200 * 1000;
-    Alice.food_spending = 20 * 1000;
+    Alice.salary = 200 * 1000 * 100;
+    Alice.food_spending = 20 * 1000 * 100;
     Alice.rent = 0;
-    Alice.extra_spendings = 20 * 1000;
-    Alice.loan_rate = 9 * 0.01;
-    Alice.deposit_rate = 12 * 0.01;
+    Alice.extra_spendings = 20 * 1000 * 100;
+    Alice.loan_rate = 15 * 0.01;
+    Alice.deposit_rate = 13 * 0.01;
 
     calculate_loan_payment(&Alice);
 }
@@ -97,7 +97,7 @@ void Get_salary(const int month, const int year, struct Person* person)
     person->savings += person->salary;
 
     if (month == 12) {
-        person->salary += person->salary * (INFLATION);  // индексация
+        person->salary += person->salary * (INFLATION - 0.01);  // индексация
     }
 }
 
@@ -138,6 +138,16 @@ void Deposit_income(const int month, const int year, struct Person* person)
 }
 
 
+void Med_Bills(const int month, const int year, struct Person* person) 
+{
+    if (month == 3 && year == 2028) {
+        person->extra_spendings += 30 * 1000 * 100;
+    }
+    else if (month == 8 && year == 2028) {
+        person->extra_spendings -= 30 * 1000 * 100;
+    }
+}
+
 void Buy_apartment_if_has_not(struct Person* person)
 {
     if (!person->if_has_apartment) {
@@ -175,7 +185,7 @@ void if_Broke_AF()
 // Вывод результатов Боба
 void Bob_print_results()
 {
-    Money Bob_savings_roubles = Bob.savings;
+    Money Bob_savings_roubles = Bob.savings / 100;
     long long int count_digits = 1;
     while (count_digits < Bob_savings_roubles) {
         count_digits *= 1000;
@@ -204,7 +214,7 @@ void Bob_print_results()
 // Вывод результатов Алисы
 void Alice_print_results()
 {
-    Money Alice_savings_roubles = Alice.savings;
+    Money Alice_savings_roubles = Alice.savings / 100;
     long long int count_digits = 1;
     while (count_digits < Alice_savings_roubles) {
         count_digits *= 1000;
@@ -248,6 +258,7 @@ void calculate()
         Pay_extra(year, month, &Bob);
         Deposit_income(year, month, &Bob);
         Buy_apartment_if_has_not(&Bob);
+        Med_Bills(month, year, &Bob);
 
         Get_salary(year, month, &Alice);
         Buy_food(year, month, &Alice);
@@ -261,9 +272,6 @@ void calculate()
         inflate(year, month, &Alice);
 
         if_Broke_AF();
-
-        Bob_print_results();
-        Alice_print_results();
 
         if (month != 12) {
             month += 1;
