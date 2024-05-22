@@ -109,41 +109,28 @@ void Bob_maintence_yacht()
     Bob.balance -= yacht_maintenance;
 }
 
-void Bob_process ()
+void Bob_save(const int month)
 {
-    for (int month = 1; month <= years_before_yacht * 12; month++) 
+    Bob_food();
+    Bob_rent();
+
+    Bob_bank();
+    Bob_poluchka();
+
+    Bob_inflation(month);
+}
+
+void Bob_process()
+{
+    for (int month = 1; month <= years * 12; month++) 
     {
-       
-        Bob_food();
-        Bob_rent();
-
-        Bob_bank();
-        Bob_poluchka();
-
-        Bob_inflation(month);
-    };
-    Bob_buy_yacht();
-    for (int month = 1; month <= years_maintence_yacht * 12; month++) 
-    {
-        Bob_maintence_yacht();
-        Bob_food();
-        Bob_rent();
-
-        Bob_bank();
-        Bob_poluchka();
-
-        Bob_inflation(month);
-    };
-    for (int month = 1; month <= years_after_yacht * 12; month++) 
-    {
-       
-        Bob_food();
-        Bob_rent();
-
-        Bob_bank();
-        Bob_poluchka();
-
-        Bob_inflation(month);
+        if (month == years_before_yacht * 12 + 1) {
+            Bob_buy_yacht();
+        }
+        else if (month <= (years_before_yacht + years_maintence_yacht) * 12) {
+            Bob_maintence_yacht();
+        }
+        Bob_save(month);
     };
 }
 
