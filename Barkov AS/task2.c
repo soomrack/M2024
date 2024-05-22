@@ -113,6 +113,29 @@ struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B) {
     return C;
 }
 
+MatrixItem matrix_sumdiag(const struct Matrix A) {
+    if (A.cols != A.rows) {
+        printf("матрица должна быть квадратной\n");
+        return 0;
+    }
+
+    MatrixItem summary = 0;
+
+    for (size_t i = 0; i < A.rows; ++i) {
+        summary += A.data[i * A.cols + i];
+    }
+
+    return summary;
+}
+void matrix_free(struct Matrix* A) {
+    if (A != NULL) {
+        free(A->data);
+        A->data = NULL;
+        A->rows = 0;
+        A->cols = 0;
+    }
+}
+
 struct Matrix matrix_multiply(const struct Matrix A, const struct Matrix B) {
     if (A.cols != B.rows) return MATRIX_NULL;
     struct Matrix C = matrix_allocate(A.rows, B.cols);
