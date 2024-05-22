@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef long long int Shekel;  //рассчеты ведутся в копейках
+typedef long long int Shekel;  //расчеты ведутся в копейках
 
 int years = 30;
 int years_no_job = 4;
