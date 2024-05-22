@@ -170,24 +170,51 @@ double matrix_det(struct Matrix* A) {
 
 struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A) {
     struct Matrix E = matrix_make_ident(A.rows, A.cols);
+    struct Matrix result = matrix_allocate(A.rows, A.cols);
+
+    if (E.data == NULL || result.data == NULL) {
+        matrix_free(&E);
+        matrix_free(&result);
+        return MATRIX_NULL;
+    }
 
     if (deg_acc == 1) {
+        matrix_free(&result);
         return E;
     }
 
     if (deg_acc == 2) {
+        matrix_free(&E);
         return A;
     }
 
+
+    memcpy(result.data, E.data, E.rows * E.cols * sizeof(MatrixItem));
+    matrix_free(&E);
+
+    struct Matrix temp = result; 
+
     for (size_t id = 2; id < deg_acc; ++id) {
-        struct Matrix buf = E;
-        E = matrix_multiply(buf, A);
-        for (size_t idx = 0; idx < E.rows * E.cols; ++idx) {
-            E.data[idx] /= (id);
+        struct Matrix buf = matrix_multiply(temp, A);
+        if (buf.data == NULL) {
+            matrix_free(&result);
+            matrix_free(&temp);
+            return MATRIX_NULL;
         }
-        matrix_free(&buf);
+
+        for (size_t idx = 0; idx < buf.rows * buf.cols; ++idx) {
+            buf.data[idx] /= id;
+        }
+
+        if (id > 2) {
+            matrix_free(&temp);
+        }
+
+        temp = buf;
     }
-    return E;
+
+    matrix_free(&result);
+    return temp;
 }
 
 struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy) {
