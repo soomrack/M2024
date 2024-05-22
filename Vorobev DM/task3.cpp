@@ -16,6 +16,7 @@ private:
     size_t rows;
     size_t columns;
     Matrixoject* data;
+    int countzero;
 
 public:
     Matrix();
@@ -41,6 +42,8 @@ public:
     void random_fill();
     void identity_fill();
     void zeros_fill();
+    int zerocount();
+    int max_el();
 };
 
 class Matrix_Exception : public std::exception
@@ -224,27 +227,38 @@ double Matrix::determinant(void)
     return det;
 }
 
-Matrix& Matrix::operator=(const Matrix& M) {
-    if (this == &M) return *this;
-
-    if (rows == 0 || columns == 0) {
-        rows = M.rows;
-        columns = M.columns;
-        data = new MatrixObject[rows * columns];
+Matrix& Matrix::operator = (const Matrix& M) {
+    if (this == &M) {
+        return *this;
     }
 
-    if (rows != M.rows || columns != M.columns) {
-        delete[] data;
-        data = new MatrixObject[M.rows * M.columns];
-        rows = M.rows;
-        columns = M.columns;
+    if ((M.cols == 0) || (M.rows == 0)) {
+        cols = 0;
+        rows = 0;
+        data = nullptr;
+        throw std::runtime_error("Zero matrix");
+        return *this;
     }
 
-    std::copy(M.data, M.data + M.rows * M.columns, data);
-
+    if (cols * rows == M.cols * M.rows) {
+        cols = M.cols;
+        rows = M.rows;
+        for (size_t idx = 0; idx < cols * rows; idx++) {
+            data[idx] = M.data[idx];
+        }
+    }
+    else {
+        if (data != nullptr) {
+            delete[] data;
+        cols = M.cols;
+        rows = M.rows;
+        data = new double[cols * rows];
+        for (size_t idx = 0; idx < cols * rows; idx++) {
+            data[idx] = M.data[idx];
+        }
+    }
     return *this;
 }
-
 
 Matrix& Matrix::operator=(Matrix&& M) noexcept {
     if (this != &M) {
@@ -410,6 +424,25 @@ double DiagonalSum(const Matrix& M) {
     return summdiag;
 }
 
+int Matrix::zerocount() {
+    if (data == nullptr) throw NULL_MATRIX;
+    countzero = 0;
+    for (size_t i = 0, i <= rows * columns, i++) {
+        if (data[i] == 0)
+            countzero++;
+    }
+    return countzero;
+}
+
+
+ Matrixobject Matrix::max_el() {
+     Matrixobject max = data[0];
+    for (size_t i = 0, i <= rows * columns, i++) {
+        if (data[i] > max)
+            max = data[i];
+    }
+    return max;
+}
 
 int main(void)
 {
