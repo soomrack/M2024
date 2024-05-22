@@ -184,15 +184,15 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A) {
     }
 
     if (deg_acc == 2) {
+        memcpy(result.data, A.data, A.rows * A.cols * sizeof(MatrixItem));
         matrix_free(&E);
-        return A;
+        return result;
     }
-
 
     memcpy(result.data, E.data, E.rows * E.cols * sizeof(MatrixItem));
     matrix_free(&E);
 
-    struct Matrix temp = result; 
+    struct Matrix temp = result;
 
     for (size_t id = 2; id < deg_acc; ++id) {
         struct Matrix buf = matrix_multiply(temp, A);
@@ -216,6 +216,7 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A) {
     matrix_free(&result);
     return temp;
 }
+
 
 struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy) {
     if (A->cols != A->rows) {
