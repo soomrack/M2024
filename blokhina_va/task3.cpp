@@ -8,7 +8,6 @@
 typedef double MatrixItem;
 
 class Matrix{
-private:
     size_t rows;
     size_t cols;
     MatrixItem* items;
@@ -45,10 +44,8 @@ public:
     Matrix operator*(const MatrixItem& factor);
     Matrix& operator*=(const MatrixItem& factor);
 
-
     void set(size_t row, size_t col, MatrixItem value);
     MatrixItem get(size_t row, size_t col) const;
-
 
     Matrix transposed();
     double determinant() const;
@@ -415,8 +412,7 @@ void init_matrix_as_random(Matrix* M) {
     size_t rows = M->get_rows();
     size_t cols = M->get_cols();
 
-    for (size_t idx = 0; idx < rows * cols; idx++)
-    {
+    for (size_t idx = 0; idx < rows * cols; idx++)    {
         (*M)[idx] = get_rand_integer();
     }
 }
