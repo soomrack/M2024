@@ -2,7 +2,7 @@
 #include <math.h> 
 
 
-typedef long long int Money;  // êîïåéêè 
+typedef long long int Money;  // ÃªÃ®Ã¯Ã¥Ã©ÃªÃ¨ 
 
 
 struct Person
@@ -12,6 +12,7 @@ struct Person
     Money life_spendings;      // expenses for life
     Money monthly_payment;     // expenses for monthly payment
     Money overpayment;         // overpayment 
+    Money pet_spending;
 
 };
 
@@ -23,14 +24,15 @@ const Money PRICE = 20 * 1000 * 1000 * 100;     // apartment cost
 const Money SALARY = 200 * 1000 * 100;
 const Money START_CAPITAL = 1000 * 1000 * 100;  // START_CAPITAL
 const int YEARS = 30;
-const double INFLATION = 0.07;                  // ñîòàÿ ïðîöåíòà èíôëÿöèè â ãîä 
-double BANK_RATE = 0.09;                        // ñîòàÿ ãîäîâîé ñòàâêè â áàíêå
+const double INFLATION = 0.07;                  // Ã±Ã®Ã²Ã Ã¿ Ã¯Ã°Ã®Ã¶Ã¥Ã­Ã²Ã  Ã¨Ã­Ã´Ã«Ã¿Ã¶Ã¨Ã¨ Ã¢ Ã£Ã®Ã¤ 
+double BANK_RATE = 0.09;                        // Ã±Ã®Ã²Ã Ã¿ Ã£Ã®Ã¤Ã®Ã¢Ã®Ã© Ã±Ã²Ã Ã¢ÃªÃ¨ Ã¢ Ã¡Ã Ã­ÃªÃ¥
 const Money LIFE_SPENDINGS = 25 * 1000 * 100;
-const int START_MONTH = 9;                      // íà÷àëüíûå âðåìåííûå óñëîâèÿ
+const int START_MONTH = 9;                      // Ã­Ã Ã·Ã Ã«Ã¼Ã­Ã»Ã¥ Ã¢Ã°Ã¥Ã¬Ã¥Ã­Ã­Ã»Ã¥ Ã³Ã±Ã«Ã®Ã¢Ã¨Ã¿
 const int START_YEAR = 2023;
 const int LAST_MONTH = 8;
 const int LAST_YEAR = 2053;
-
+const Money CAT_PRICE = 30 * 1000 * 100;        // ÑÑ‚Ð¾Ð¸Ð¼Ð¾ÑÑ‚ÑŒ ÐºÐ¾Ñ‚Ð°
+const Money CAT_MONTHLY = 5 * 1000 * 100;  // ÐµÐ¶ÐµÐ¼ÐµÑÑÑ‡Ð½Ñ‹Ðµ Ñ€Ð°ÑÑ…Ð¾Ð´Ñ‹ Ð½Ð° ÐºÐ¾Ñ‚Ð°
 
 void alice_initialization()
 {
@@ -72,16 +74,20 @@ void alice_rent_payment(const int year, const int month)
     Alice.capital -= Alice.monthly_payment;
 }
 
-
 void bob_initialization()
 {
     Bob.income = SALARY;
-    Bob.capital = 0;
+    Bob.capital = -CAT_PRICE;
     Bob.life_spendings = LIFE_SPENDINGS;
     Bob.monthly_payment = (PRICE - START_CAPITAL) * (BANK_RATE / 12.0) / (1 - powf((1 + BANK_RATE / 12.0), (1.0 - YEARS * 12.0)));
     Bob.overpayment = Bob.monthly_payment * 12 * YEARS - PRICE;
+    Bob.pet_spending = CAT_MONTHLY;
 }
 
+void bob_pet_expense(const int year, const int month)
+{
+    Bob.capital -= Bob.pet_spending;
+}
 
 void bob_salary_income(const int year, const int month)
 {
@@ -117,6 +123,7 @@ void inflation(const int year, const int month)
     if (month % 3 == 0 && month > 2) {
         Alice.life_spendings += Alice.life_spendings * INFLATION / 4.0;
         Bob.life_spendings += Bob.life_spendings * INFLATION / 4.0;
+        Bob.pet_spending += Bob.pet_spending * INFLATION / 4.0;
     };
 }
 
@@ -140,6 +147,7 @@ void simulation()
         bob_salary_income(year, month);
         bob_life_spending(year, month);
         bob_mortgage_payment(year, month);
+        bob_pet_expense(year, month);
 
         inflation(year, month);
 
@@ -162,6 +170,7 @@ void print_persons()
     printf("B. Life spendings: %lld\t", Bob.life_spendings);
     printf("B. Monthly payment: %lld\t", Bob.monthly_payment);
     printf("B. Overpayment: %lld\n", Bob.overpayment);
+    printf("B. Pet spending: %lld\n", Bob.pet_spending);
 }
 
 
