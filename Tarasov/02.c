@@ -273,19 +273,50 @@ double matrix_min_elem(Matrix matrix) {
 
     if (matrix.rows == 0 || matrix.cols == 0) {
         matrix_error(ERROR, "Неверный размер матрицы");
-        return NAN; 
+        return NAN;
     }
 
-    double min_elem = matrix.data[0];
+    double min_elem = INFINITY;
+    double pre_min_elem = INFINITY;
 
-    for (size_t i = 1; i < matrix.rows * matrix.cols; ++i) {
+    for (size_t i = 0; i < matrix.rows * matrix.cols; ++i) {
         if (matrix.data[i] < min_elem) {
+            pre_min_elem = min_elem;
             min_elem = matrix.data[i];
+        }
+        else if (matrix.data[i] < pre_min_elem && matrix.data[i] != min_elem) {
+            pre_min_elem = matrix.data[i];
         }
     }
 
-    return min_elem;
+    if (pre_min_elem == INFINITY) {
+        matrix_error(ERROR, "Нет второго минимального элемента");
+        return NAN;
+    }
+
+    return pre_min_elem;
 }
+
+
+double matrix_d_sum(Matrix matrix) {
+    if (matrix.data == NULL) {
+        matrix_error(ERROR, "Матрица не должна быть пустой");
+        return NAN;
+    }
+
+    if (matrix.rows != matrix.cols) {
+        matrix_error(ERROR, "Матрица должна быть квадратной");
+        return NAN;
+    }
+
+    double sum = 0;
+    for (size_t i = 0; i < matrix.rows; ++i) {
+        sum += matrix.data[i * matrix.cols + i];
+    }
+
+    return sum;
+}
+
 
 int main()
 {
@@ -304,6 +335,8 @@ int main()
     double det_B = matrix_det(B);
     double min_A = matrix_min_elem(A);
     double min_B = matrix_min_elem(B);
+    double d_sum_A = matrix_d_sum(A);
+    double d_sum_B = matrix_d_sum(B);
 
     printf("Matrix A:\n");
     matrix_print(A);
@@ -335,6 +368,9 @@ int main()
 
     printf("\nMatrix A min elem: %f\n", min_A);
     printf("Matrix B min elem: %f\n", min_B);
+
+    printf("\nMatrix A diagonal sum: %f\n", d_sum_A);
+    printf("Matrix B diagonal sum: %f\n", d_sum_B);
 
     // Освобождение памяти
     matrix_free(&A);
