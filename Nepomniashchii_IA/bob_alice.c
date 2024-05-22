@@ -25,7 +25,7 @@ typedef struct {
 } CreditAccount;
 
 int is_credit_done(CreditAccount* credit) {
-    if (credit->debt_cents <= 0) 
+    if (credit->debt_cents <= 0)
     {
         return 1;
     }
@@ -58,8 +58,15 @@ void add_salary(Person* person) {
     person->available_funds_cents += person->salary;
 }
 
-void pay_spendings(Person* person) {
-    person->available_funds_cents -= (person->food_spendings + person->life_spendings + person->random_spendings + person->flat_rent);
+void pay_spendings(Person* person, int is_sick) {
+    if (is_sick)
+    {
+        person->available_funds_cents -= person->flat_rent;
+    }
+    else
+    {
+        person->available_funds_cents -= (person->food_spendings + person->life_spendings + person->random_spendings + person->flat_rent);
+    }
 }
 
 void pay_credit(Person* person) {
@@ -79,7 +86,7 @@ void pay_credit(Person* person) {
 
 void handle_savings(Person* person) {
     SavingsAccount* savings = person->savings;
-   
+
     savings->amount_cents *= 1 + (savings->rate / 12.0);
 
     savings->amount_cents += person->available_funds_cents;
@@ -98,50 +105,65 @@ void handle_inflation_for_year(Person* person) {
 
 int main(void) {
     CreditAccount credit = {
-        .debt_cents = flat_price - start_capital,
-        .rate = credit_percents
+            .debt_cents = flat_price - start_capital,
+            .rate = credit_percents
     };
     Person Alice = {
-        .available_funds_cents = 0,
-        .credit = &credit,
-        .flat_price = 0,
-        .flat_rent = 0,
-        .food_spendings = food_spendings,
-        .life_spendings = life_spendings,
-        .random_spendings = random_spendings,
-        .salary = salary
+            .available_funds_cents = 0,
+            .credit = &credit,
+            .flat_price = 0,
+            .flat_rent = 0,
+            .food_spendings = food_spendings,
+            .life_spendings = life_spendings,
+            .random_spendings = random_spendings,
+            .salary = salary
     };
 
     SavingsAccount savings = {
-        .amount_cents = start_capital,
-        .rate = savings_percents
+            .amount_cents = start_capital,
+            .rate = savings_percents
     };
     Person Bob = {
-        .available_funds_cents = 0,
-        .savings = &savings,
-        .flat_price = flat_price,
-        .flat_rent = flat_rent,
-        .food_spendings = food_spendings,
-        .life_spendings = life_spendings,
-        .random_spendings = random_spendings,
-        .salary = salary
+            .available_funds_cents = 0,
+            .savings = &savings,
+            .flat_price = flat_price,
+            .flat_rent = flat_rent,
+            .food_spendings = food_spendings,
+            .life_spendings = life_spendings,
+            .random_spendings = random_spendings,
+            .salary = salary
     };
 
-
+    int current_year = 2024;
+    int current_month = 1;
     for (int i = 0; i < simulation_time_years; i++) {
         for (int k = 0; k < 12; k++) {
-            add_salary(&Bob);
+            if (current_year == 2027 && current_month <= 3)
+            {
+                pay_spendings(&Bob, 1);
+            }
+            else if (current_year == 2027 && current_month == 4)
+            {
+                Bob.salary /= 1.5;
+            }
+            else
+            {
+                add_salary(&Bob);
+                pay_spendings(&Bob, 0);
+            }
+
             add_salary(&Alice);
-
-            pay_spendings(&Bob);
-            pay_spendings(&Alice);
-
+            pay_spendings(&Alice, 0);
             pay_credit(&Alice);
 
-            handle_savings(&Bob);
+
+                handle_savings(&Bob);
+            current_month++;
         }
         handle_inflation_for_year(&Bob);
         handle_inflation_for_year(&Alice);
+        current_month = 1;
+        current_year++;
     }
 
     Bob.savings->amount_cents -= Bob.flat_price;
