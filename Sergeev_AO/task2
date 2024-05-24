@@ -196,17 +196,21 @@ struct Matrix matrix_identity(size_t rows, size_t cols)
 struct Matrix matrix_power(struct Matrix A, const size_t pow)
 {
     struct Matrix C = matrix_init(A.rows, A.cols);
-
-    memcpy(C.data, A.data, A.rows * A.cols * sizeof(double));
-
+    
     if (C.data == NULL) {
         return MATRIX_NULL();
     }
+    if (A.rows != A.rows)
+        return MATRIX_NULL();
+
+    memcpy(C.data, A.data, A.rows * A.cols * sizeof(double));
+
     if (pow == 0) {
         return matrix_identity(A.rows, A.cols);
     }
     if (pow == 1) {
         return C;
+        matrix_free(&C);
     }
     for (size_t idx = 1; idx < pow; ++idx) {
         struct Matrix temp = C;
