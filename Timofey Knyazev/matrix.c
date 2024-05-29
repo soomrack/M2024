@@ -322,7 +322,6 @@ struct Matrix matrix_exp(const struct Matrix A, const int order)
         n *= (double)counter;
 
         buf = matrix_multiplication(A, assist);
-        buf2 = matrix_multiplication(A, assist);
             
         if (buf.data == NULL) {
             matrix_error(EMPTY_MATRIX); 
@@ -333,7 +332,8 @@ struct Matrix matrix_exp(const struct Matrix A, const int order)
         }
 
         assist = buf;
-
+        
+        matrix_free(&assist);
         matrix_scalar_multiplication(assist, 1 / n);
         matrix_add(A_exp, assist);
         matrix_free(&buf);
@@ -341,7 +341,6 @@ struct Matrix matrix_exp(const struct Matrix A, const int order)
      
     }
 
-    matrix_free(&assist);
     matrix_free(&buf);
 
     return(A_exp);
