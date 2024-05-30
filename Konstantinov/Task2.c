@@ -1,51 +1,57 @@
 #include<stdio.h>
+#include<stddef.h>
 #include<stdlib.h>
 #include<string.h>
-#include <math.h>
+#include<math.h>
 
 
 typedef double MatrixItem;
 
-struct Matrix {
+struct Matrix{
     size_t cols;
     size_t rows;
     MatrixItem* data;
 };
 
-const struct Matrix MATRIX_NULL = { .cols = 0, .rows = 0, .data = NULL };
+const struct Matrix MATRIX_NULL = { 0, 0, NULL };
 
 
-void matrix_error_message()
-{
-    printf("Error! Check your actions!\n");
+void error_message(const char str[]){
+    printf("%s\n", str);
 }
 
 
-struct Matrix matrix_init(const size_t rows, const size_t cols)
-{
+struct Matrix matrix_init(const size_t rows, const size_t cols){
+    struct Matrix Serf = { .cols = cols, .rows = rows, .data = NULL };
+
+    Serf.data = (MatrixItem*)malloc(Serf.cols * Serf.rows * sizeof(double));
+
+    if (Serf.data == NULL) {
+        return MATRIX_NULL;
+        error_message("Matrix memory allocation error.");
+    }
+
     if (rows == 0 || cols == 0) {
         return MATRIX_NULL;
+        error_message("Zero number of rows or columns.");
     }
 
-    if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols) return MATRIX_NULL;
-
-    struct Matrix A = { .cols = cols, .rows = rows, .data = NULL };
-    A.data = (double*)malloc(A.cols * A.rows * sizeof(double));
-
-    if (A.data == NULL) {
+    if (cols * rows >= SIZE_MAX / sizeof(MatrixItem)){
         return MATRIX_NULL;
-        matrix_error_message();
+        error_message("Мatrix is ​​too large.");
     }
-    return A;
+
+    return Serf;
 }
 
 
-struct Matrix matrix_make_ident(size_t rows, size_t cols)
-{
+struct Matrix matrix_make_ident(size_t rows, size_t cols){
     struct Matrix I = matrix_init(rows, cols);
+
     if (I.data == NULL) {
         return MATRIX_NULL;
     }
+
     for (size_t idx = 0; idx < rows * cols; idx++) {
         if (idx % (rows + 1) == 0) {
             I.data[idx] = 1.;
@@ -54,6 +60,7 @@ struct Matrix matrix_make_ident(size_t rows, size_t cols)
             I.data[idx] = 0;
         }
     }
+
     return I;
 }
 
@@ -94,8 +101,20 @@ void matrix_print(const struct Matrix A)
         printf("\n");
     }
     else {
-        matrix_error_message();
+        error_message("Error!");
     }
+}
+
+
+// A += B
+int matrix_add(const struct Matrix A, const struct Matrix B)
+{
+    if (A.cols != B.cols || A.rows != B.rows) return 1;
+
+    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
+        A.data[idx] += B.data[idx];
+    }
+    return 0;
 }
 
 
@@ -145,9 +164,26 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
 }
 
 
+struct Matrix matrix_transp(struct Matrix* A)
+{
+    struct Matrix C = matrix_init(A->rows, A->cols);
+
+    if (C.data == NULL) {
+        return MATRIX_NULL;
+    }
+
+    for (size_t rowA = 0; rowA < A->rows; ++rowA) {
+        for (size_t colsA = 0; colsA < A->cols; ++colsA) {
+            C.data[(A->rows) * colsA + rowA] = A->data[colsA + rowA * A->cols];
+        }
+    }
+    return C;
+}
+
+
 double matrix_det(struct Matrix* A) {
     if (A->cols != A->rows) {
-        matrix_error_message();
+        error_message("Error!");
         return NAN;
     }
 
@@ -165,7 +201,7 @@ double matrix_det(struct Matrix* A) {
         matr_det -= ((A->data[2]) * (A->data[4]) * (A->data[6]) + (A->data[1]) * (A->data[3]) * (A->data[8]) + (A->data[0]) * (A->data[5]) * (A->data[7]));
         return matr_det;
     }
-    matrix_error_message();
+    error_message("Error!");
     return NAN;
 }
 
@@ -201,11 +237,10 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
     return E;
 }
 
-
 struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy)
 {
     if (A->cols != A->rows) {
-        matrix_error_message();
+        error_message("Error!");
         return MATRIX_NULL;
     }
 
@@ -224,6 +259,8 @@ struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy)
         matrix_free(&matrix_transfer);
     }
 
+
+
     return E;
 }
 
@@ -234,6 +271,8 @@ int main()
 
     double deter;
 
+    //error_message("Error!");
+
     A = matrix_create(3, 3, (double[]) { 3., 2., 1., 1., 6., 7., 2., 6., 8. });
     B = matrix_create(3, 3, (double[]) { 1., 0., 0., 1., 7., 2., 6., 6., 8. });
     E = matrix_create(2, 2, (double[]) { 3., 2., 1., 1. });
@@ -243,15 +282,24 @@ int main()
     matrix_add(B, A);
     matrix_print(B);
 
+    // C = matrix_sum(A, B);
     C = matrix_mult(A, B);
     matrix_print(C);
 
+    C = matrix_transp(&C);
+    matrix_print(C);
+
+    deter = matrix_det(&C);
+    printf("%f \n", deter);
+
+    //N = matrix_init(3,3);
     N = matrix_make_ident(3, 3);
     matrix_print(N);
 
     matrix_print(A);
     A = matrix_exp(&A, 3);
     matrix_print(A);
+
 
     matrix_free(&E);
     matrix_free(&A);
