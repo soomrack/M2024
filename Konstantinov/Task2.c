@@ -204,6 +204,8 @@ double matrix_det(struct Matrix* A) {
     return NAN;
 }
 
+strict Matrix matrix_copy(
+
 
 struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A){
     struct Matrix E = matrix_init(A.rows, A.cols);
@@ -217,7 +219,7 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A){
         return E;
     }
     
-    Matrix E
+    E = matrix_copy(A);
 
     if (deg_acc == 2) {
         return E;
