@@ -204,8 +204,13 @@ double matrix_det(struct Matrix* A) {
     return NAN;
 }
 
-strict Matrix matrix_copy(
-
+striuct Matrix matrix_copy(const struct Matrix A) {
+    struct Matrix C = matrix_init(A.cols, A. rows);
+    if (C.data = NULL) {
+    return MATRIX_NULL;
+    }
+    memcpy(C.data, A. data, A.cols * A.rows * sizeof(MtrixItem);
+    return C;
 
 struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A){
     struct Matrix E = matrix_init(A.rows, A.cols);
