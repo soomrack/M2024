@@ -10,7 +10,7 @@ struct Matrix {
     size_t cols;
     size_t rows;
     MatrixItem* data;
-};
+} Matrix;
 
 const struct Matrix MATRIX_NULL = { .cols = 0, .rows = 0, .data = NULL };
 
@@ -53,7 +53,7 @@ void print_matrix(const struct Matrix A) {
     printf("\n");
 }
 
-// Копированик данных из одной матрицы в другую 
+// Функция копирования данных из одной матрицы в другую
 void matrix_copy(struct Matrix dest, const struct Matrix src) {
     if (dest.data == NULL || src.data == NULL || dest.cols != src.cols || dest.rows != src.rows)
         return;
@@ -62,17 +62,17 @@ void matrix_copy(struct Matrix dest, const struct Matrix src) {
     memcpy(dest.data, src.data, size);
 }
 
-// Умножение матрицы на скаляр
+// Функция умножения матрицы на скаляр
 void matrix_mult_by_coeff(struct Matrix A, const double coefficient)
 {
     if (A.data == NULL)
         return;
 
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
-        A.data[idx] *= coefficient; 
+        A.data[idx] *= coefficient; // Умножаем значение на коэффициент
 }
 
-// Обнуление матрицы
+// Функция обнуления матрицы
 void matrix_zero(struct Matrix A)
 {
     if (A.data == NULL)
@@ -81,7 +81,7 @@ void matrix_zero(struct Matrix A)
     memset(A.data, 0, A.cols * A.rows * sizeof(MatrixItem));
 }
 
-// Сложение двух матриц
+// Функция сложения двух матриц
 struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows)
@@ -97,7 +97,7 @@ struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
     return C;
 }
 
-// Добавление одной матрицы к другой
+// Функция добавления одной матрицы к другой
 void matrix_add(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows || A.data == NULL || B.data == NULL)
@@ -107,7 +107,7 @@ void matrix_add(const struct Matrix A, const struct Matrix B)
         A.data[idx] += B.data[idx];
 }
 
-// Вычитание одной матрицы из другой
+// Функция вычитания одной матрицы из другой
 struct Matrix matrix_substr(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows)
@@ -123,7 +123,7 @@ struct Matrix matrix_substr(const struct Matrix A, const struct Matrix B)
     return C;
 }
 
-// Перемножение матриц 
+// Функция умножения двух матриц
 struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
 {
     if (A.cols != B.rows)
@@ -143,7 +143,7 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
     return C;
 }
 
-// Вычисление экспоненты матрицы
+// Функция вычисления экспоненты матрицы
 struct Matrix matrix_exponent(const struct Matrix A, const int iterations) {
     if (A.cols != A.rows)
         return MATRIX_NULL;
@@ -154,17 +154,9 @@ struct Matrix matrix_exponent(const struct Matrix A, const int iterations) {
     matrix_zero(C);
 
     struct Matrix B = matrix_init(A.cols, A.rows);
-    if (B.data == NULL) {
-        matrix_free(&C);
-        return B;
-    }
     matrix_copy(B, A);
 
     struct Matrix term = matrix_init(A.cols, A.rows);
-     if (term.data == NULL) {
-        matrix_free(&B);
-        return term;
-    }
     matrix_copy(term, B);
 
     matrix_zero(C);
@@ -181,7 +173,7 @@ struct Matrix matrix_exponent(const struct Matrix A, const int iterations) {
     return C;
 }
 
-// Проверка равенства определителя нулю
+// Функция проверки, равен ли определитель нулю
 int matrix_det_if_zero(const struct Matrix A)
 {
     size_t count;
@@ -213,7 +205,7 @@ int matrix_det_if_zero(const struct Matrix A)
     return 1;
 }
 
-// Приведение к верхнетреугольному виду
+// Функция приведения к верхнетреугольному виду
 void matrix_det_prep(const struct Matrix A, size_t diag, double* coeff)
 {
     size_t buff_one = diag;
@@ -237,7 +229,7 @@ void matrix_det_prep(const struct Matrix A, size_t diag, double* coeff)
     }
 }
 
-// Вычисление определителя матрицы
+// Функция вычисления определителя матрицы
 double matrix_det(const struct Matrix A)
 {
     if (A.cols != A.rows)
@@ -297,8 +289,6 @@ int main() {
 
     for (int k = 0; k <= A.cols * A.rows - 1; ++k)
         A.data[k] = k + 1;
-    A.data[3] = 20.0;
-    A.data[0] = 0.0;
     print_matrix(A);
 
     for (int k = 0; k <= B.cols * B.rows - 1; ++k)
@@ -307,6 +297,11 @@ int main() {
 
     double a = matrix_det(A);
     printf("det A = %lf \n", a);
+
+    struct Matrix expA = matrix_exponent(A, 10);
+    printf("Exponential of matrix A:\n");
+    print_matrix(expA);
+
 
     matrix_free(&A);
     matrix_free(&B);
