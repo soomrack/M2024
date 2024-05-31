@@ -219,6 +219,7 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A){
     }
 
     E = A;
+    matrix_free(&A);
 
     if (deg_acc == 2) {
         return E;
