@@ -166,6 +166,7 @@ struct Matrix matrix_transp(struct Matrix* A){
     struct Matrix C = matrix_init(A->rows, A->cols);
 
     if (C.data == NULL) {
+        matrix_free(&C);
         return MATRIX_NULL;
     }
 
@@ -208,6 +209,7 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A){
     struct Matrix E = matrix_init(A.rows, A.cols);
 
     if (E.data == NULL) {
+        matrix_free (&E);
         return MATRIX_NULL;
     }
 
@@ -237,13 +239,14 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A){
 
 struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy){
     if (A->cols != A->rows) {
-        return MATRIX_NULL;
         error_message("Exponential function only make sense for square matrices.");
+        return MATRIX_NULLNULL;
     }
 
     struct Matrix E = matrix_init(A->rows, A->cols);
 
     if (E.data == NULL) {
+        matrix_free (&E);
         return MATRIX_NULL;
     }
 
