@@ -38,7 +38,7 @@ struct Matrix matrix_init(const size_t rows, const size_t cols){
 
     if (cols * rows >= SIZE_MAX / sizeof(MatrixItem)){
         return MATRIX_NULL;
-        error_message("Мatrix is ​​too large.");
+        error_message("Matrix is too large.");
     }
 
     return Serf;
@@ -56,6 +56,7 @@ struct Matrix matrix_make_ident(size_t rows, size_t cols){
         if (idx % (rows + 1) == 0) {
             I.data[idx] = 1.;
         }
+
         else {
             I.data[idx] = 0;
         }
@@ -65,31 +66,28 @@ struct Matrix matrix_make_ident(size_t rows, size_t cols){
 }
 
 
-struct Matrix matrix_create(const size_t rows, const size_t cols, const double* values)
-{
+struct Matrix matrix_create(const size_t rows, const size_t cols, const double* values){
     struct Matrix A = matrix_init(rows, cols);
-    if (A.data == NULL) return MATRIX_NULL;
+
     memcpy(A.data, values, rows * cols * sizeof(double));
+
+    if (A.data == NULL) return MATRIX_NULL;
+
     return A;
 }
 
 
-void matrix_free(struct Matrix* A)
-{
+void matrix_free(struct Matrix* A){
     if (A->data != NULL || A->cols != 0 || A->rows != 0) {
-
         A->cols = 0;
         A->rows = 0;
         free(A->data);
         A->data = NULL;
-
     }
-
 }
 
 
-void matrix_print(const struct Matrix A)
-{
+void matrix_print(const struct Matrix A){
     if (A.data != NULL || A.cols != 0 || A.rows != 0) {
         for (size_t row = 0; row < A.rows; ++row) {
             printf("[ ");
@@ -100,56 +98,56 @@ void matrix_print(const struct Matrix A)
         }
         printf("\n");
     }
+
     else {
-        error_message("Error!");
+        error_message("Matrix structure error.");
     }
 }
 
 
-// A += B
-int matrix_add(const struct Matrix A, const struct Matrix B)
-{
+int matrix_add(const struct Matrix A, const struct Matrix B){        // A = А + B
     if (A.cols != B.cols || A.rows != B.rows) return 1;
 
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
         A.data[idx] += B.data[idx];
     }
+
     return 0;
 }
 
 
-struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
-{
+struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B){
+    struct Matrix C = matrix_init(A.cols, A.rows);
+
     if (A.cols != B.cols || A.rows != B.rows) return MATRIX_NULL;
 
-    struct Matrix C = matrix_init(A.cols, A.rows);
     for (size_t idx = 0; idx < C.cols * C.rows; ++idx) {
         C.data[idx] = A.data[idx] + B.data[idx];
     }
+
     return C;
 }
 
 
-struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B)
-{
+struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B){
+    struct Matrix C = matrix_init(A.cols, A.rows);
+    
     if (A.cols != B.cols || A.rows != B.rows) return MATRIX_NULL;
 
-    struct Matrix C = matrix_init(A.cols, A.rows);
     for (size_t idx = 0; idx < C.cols * C.rows; ++idx) {
         C.data[idx] = A.data[idx] - B.data[idx];
     }
+
     return C;
 }
 
 
-struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
-{
+struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B){
     if (A.cols != B.rows) return MATRIX_NULL;
+
     struct Matrix C = matrix_init(A.cols, B.rows);
 
-    if (C.data == NULL) {
-        return MATRIX_NULL;
-    }
+    if (C.data == NULL) return MATRIX_NULL;
 
     for (size_t rowA = 0; rowA < A.rows; ++rowA) {
         for (size_t colsB = 0; colsB < B.cols; ++colsB) {
@@ -164,8 +162,7 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
 }
 
 
-struct Matrix matrix_transp(struct Matrix* A)
-{
+struct Matrix matrix_transp(struct Matrix* A){
     struct Matrix C = matrix_init(A->rows, A->cols);
 
     if (C.data == NULL) {
@@ -177,13 +174,14 @@ struct Matrix matrix_transp(struct Matrix* A)
             C.data[(A->rows) * colsA + rowA] = A->data[colsA + rowA * A->cols];
         }
     }
+
     return C;
 }
 
 
 double matrix_det(struct Matrix* A) {
     if (A->cols != A->rows) {
-        error_message("Error!");
+        error_message("Determinant only makes sense for square matrices.");
         return NAN;
     }
 
@@ -201,13 +199,12 @@ double matrix_det(struct Matrix* A) {
         matr_det -= ((A->data[2]) * (A->data[4]) * (A->data[6]) + (A->data[1]) * (A->data[3]) * (A->data[8]) + (A->data[0]) * (A->data[5]) * (A->data[7]));
         return matr_det;
     }
-    error_message("Error!");
+
     return NAN;
 }
 
 
-struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
-{
+struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A){
     struct Matrix E = matrix_init(A.rows, A.cols);
 
     if (E.data == NULL) {
@@ -237,11 +234,11 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
     return E;
 }
 
-struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy)
-{
+
+struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy){
     if (A->cols != A->rows) {
-        error_message("Error!");
         return MATRIX_NULL;
+        error_message("Exponential function only make sense for square matrices.");
     }
 
     struct Matrix E = matrix_init(A->rows, A->cols);
@@ -249,6 +246,7 @@ struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy)
     if (E.data == NULL) {
         return MATRIX_NULL;
     }
+
     struct Matrix matrix_transfer;
 
     for (size_t deg_acc = 1; deg_acc <= accuracy; ++deg_acc) {
@@ -259,19 +257,14 @@ struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy)
         matrix_free(&matrix_transfer);
     }
 
-
-
     return E;
 }
 
 
-int main()
-{
+int main(){
     struct Matrix A, B, C, E, N;
 
     double deter;
-
-    //error_message("Error!");
 
     A = matrix_create(3, 3, (double[]) { 3., 2., 1., 1., 6., 7., 2., 6., 8. });
     B = matrix_create(3, 3, (double[]) { 1., 0., 0., 1., 7., 2., 6., 6., 8. });
@@ -282,7 +275,6 @@ int main()
     matrix_add(B, A);
     matrix_print(B);
 
-    // C = matrix_sum(A, B);
     C = matrix_mult(A, B);
     matrix_print(C);
 
@@ -292,7 +284,6 @@ int main()
     deter = matrix_det(&C);
     printf("%f \n", deter);
 
-    //N = matrix_init(3,3);
     N = matrix_make_ident(3, 3);
     matrix_print(N);
 
