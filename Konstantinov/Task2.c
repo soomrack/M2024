@@ -209,7 +209,6 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A){
     struct Matrix E = matrix_init(A.rows, A.cols);
 
     if (E.data == NULL) {
-        matrix_free (&E);
         return MATRIX_NULL;
     }
 
