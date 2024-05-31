@@ -69,7 +69,7 @@ void matrix_mult_by_coeff(struct Matrix A, const double coefficient)
         return;
 
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
-        A.data[idx] *= coefficient; // Óìíîæàåì çíà÷åíèå íà êîýô.
+        A.data[idx] *= coefficient; 
 }
 
 // Обнуление матрицы
