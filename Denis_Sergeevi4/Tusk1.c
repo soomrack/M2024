@@ -150,6 +150,12 @@ void inflation(int year, int month)
     } 
 } 
 
+void buy_cat(size_t month){
+    if(month % 12 == 8 && START_YEAR * 12 + month == 2026 * 12){
+        Alice.capital -= 30*1000;
+    }
+    return;
+}
 
 void simulation() 
 { 
