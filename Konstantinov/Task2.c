@@ -218,14 +218,13 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A){
         return E;
     }
 
-    E = A;
-    matrix_free(&A);
-
     if (deg_acc == 2) {
-        return E;
+        matrix_free(&E);
+        return A;
     }
 
     if (deg_acc > 2) {
+        E = A;
         for (size_t id = 2; id < deg_acc; ++id) {
             struct Matrix buf = E;
             E = matrix_mult(buf, A);
