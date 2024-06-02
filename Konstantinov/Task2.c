@@ -13,7 +13,7 @@ struct Matrix {
 
 const struct Matrix MATRIX_NULL = { .cols = 0, .rows = 0, .data = NULL };
 
-void error_message(const char str[]){
+void error_message(const char str[]) {
     printf("%s\n", str);
 }
 
@@ -179,7 +179,7 @@ double matrix_det(const struct Matrix* A)
     }
 
     if (A->cols == 1) {
-         return A->data[0];
+        return A->data[0];
     }
 
     if (A->cols == 2) {
@@ -197,10 +197,10 @@ double matrix_det(const struct Matrix* A)
 
 struct Matrix matrix_copy(const struct Matrix A) {
     struct Matrix C = matrix_init(A.cols, A.rows);
-    if (C.data = NULL) {
-        return MATRIX_NULL;
+    if (C.data == NULL || C.data == 0) {
+        return C;
     }
-    memcpy(C.data, A.data, A.cols * A.rows * sizeof(MtrixItem);
+    memcpy(C.data, A.data, A.cols * A.rows * sizeof(MatrixItem));
     return C;
 }
 
@@ -209,6 +209,7 @@ struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
     struct Matrix E = matrix_init(A.rows, A.cols);
 
     if (E.data == NULL) {
+        matrix_free(&E);
         return MATRIX_NULL;
     }
 
