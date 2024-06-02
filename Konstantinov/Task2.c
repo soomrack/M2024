@@ -20,20 +20,22 @@ void error_message(const char str[]){
 struct Matrix matrix_init(const size_t rows, const size_t cols)
 {
     struct Matrix Serf = { .cols = cols, .rows = rows, .data = NULL };
+
     Serf.data = (double*)malloc(Serf.cols * Serf.rows * sizeof(double));
+
     if (Serf.data == NULL) {
-        return MATRIX_NULL;
         error_message("Matrix memory allocation error.");
+        return MATRIX_NULL;
     }
 
     if (rows == 0 || cols == 0) {
-        return MATRIX_NULL;
         error_message("Zero number of rows or columns.");
+        return MATRIX_NULL;
     }
 
     if (cols * rows >= SIZE_MAX / sizeof(MatrixItem)) {
-        return MATRIX_NULL;
         error_message("Matrix is too large.");
+        return MATRIX_NULL;
     }
 
     return Serf;
@@ -59,8 +61,11 @@ struct Matrix matrix_make_ident(size_t rows, size_t cols)
 struct Matrix matrix_create(const size_t rows, const size_t cols, const double* values)
 {
     struct Matrix A = matrix_init(rows, cols);
+
     if (A.data == NULL) return MATRIX_NULL;
+
     memcpy(A.data, values, rows * cols * sizeof(double));
+
     return A;
 }
 
@@ -106,6 +111,7 @@ struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
     if (A.cols != B.cols || A.rows != B.rows) return MATRIX_NULL;
 
     struct Matrix C = matrix_init(A.rows, A.cols);
+
     if (C.data == NULL) return MATRIX_NULL;
 
     for (size_t idx = 0; idx < C.cols * C.rows; ++idx) {
@@ -119,6 +125,7 @@ struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B)
     if (A.cols != B.cols || A.rows != B.rows) return MATRIX_NULL;
 
     struct Matrix C = matrix_init(A.rows, A.cols);
+
     if (C.data == NULL) return MATRIX_NULL;
 
     for (size_t idx = 0; idx < C.cols * C.rows; ++idx) {
@@ -132,6 +139,7 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
     if (A.cols != B.rows) return MATRIX_NULL;
 
     struct Matrix C = matrix_init(A.rows, B.cols);
+
     if (C.data == NULL) {
         return MATRIX_NULL;
     }
@@ -150,13 +158,14 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B)
 struct Matrix matrix_transp(const struct Matrix* A)
 {
     struct Matrix C = matrix_init(A->cols, A->rows);
+
     if (C.data == NULL) {
         return MATRIX_NULL;
     }
 
     for (size_t rowA = 0; rowA < A->rows; ++rowA) {
-        for (size_t colA = 0; colA < A->cols; ++colA) {
-            C.data[colA * A->rows + rowA] = A->data[rowA * A->cols + colA];
+        for (size_t colsA = 0; colsA < A->cols; ++colsA) {
+            C.data[colsA * A->rows + rowA] = A->data[rowA * A->cols + colsA];
         }
     }
     return C;
@@ -186,35 +195,53 @@ double matrix_det(const struct Matrix* A)
     return NAN;
 }
 
+struct Matrix matrix_copy(const struct Matrix src) {
+    struct Matrix dest = matrix_init(src.rows, src.cols);
+    if (dest.data != NULL) {
+        memcpy(dest.data, src.data, src.rows * src.cols * sizeof(double));
+    }
+    return dest;
+}
+
 struct Matrix sum_for_e(const size_t deg_acc, const struct Matrix A)
 {
     struct Matrix E = matrix_init(A.rows, A.cols);
+
     if (E.data == NULL) {
         return MATRIX_NULL;
     }
 
     if (deg_acc == 1) {
-        matrix_free(&E);
-        return matrix_make_ident(A.rows, A.cols);
+        matrix_free(&E);  // Освобождаем память, выделенную для E
+        struct Matrix ident = matrix_make_ident(A.cols, A.rows);
+        return ident;
     }
 
     if (deg_acc == 2) {
-        memcpy(E.data, A.data, A.rows * A.cols * sizeof(double));
-        return E;
+        matrix_free(&E);  // Освобождаем память, выделенную для E
+        return A;
     }
 
     if (deg_acc > 2) {
-        struct Matrix temp = matrix_mult(A, A);
-        if (temp.data == NULL) {
-            matrix_free(&E);
+        matrix_free(&E);  // Освобождаем память, выделенную для E, так как она будет перезаписана
+        E = matrix_copy(A);  // Используем функцию matrix_copy для копирования матрицы
+        if (E.data == NULL) {
             return MATRIX_NULL;
         }
 
-        memcpy(E.data, A.data, A.rows * A.cols * sizeof(double));
-        for (size_t idx = 0; idx < E.rows * E.cols; ++idx) {
-            E.data[idx] += temp.data[idx] / 2.0;
+        for (size_t id = 2; id < deg_acc; ++id) {
+            struct Matrix buf = E;
+            E = matrix_mult(buf, A);
+            matrix_free(&buf);  // Освобождаем buf после того, как он больше не нужен
+
+            if (E.data == NULL) {
+                return MATRIX_NULL;
+            }
+
+            for (size_t idx = 0; idx < E.rows * E.cols; ++idx) {
+                E.data[idx] /= id;
+            }
         }
-        matrix_free(&temp);
     }
     return E;
 }
@@ -226,18 +253,13 @@ struct Matrix matrix_exp(struct Matrix* A, const size_t accuracy)
         return MATRIX_NULL;
     }
 
-    struct Matrix E = matrix_make_ident(A->rows, A->cols);
+    struct Matrix E = matrix_init(A->rows, A->cols);
     if (E.data == NULL) {
         return MATRIX_NULL;
     }
 
     for (size_t deg_acc = 1; deg_acc <= accuracy; ++deg_acc) {
         struct Matrix matrix_transfer = sum_for_e(deg_acc, *A);
-        if (matrix_transfer.data == NULL) {
-            matrix_free(&E);
-            return MATRIX_NULL;
-        }
-
         struct Matrix buf1 = E;
         E = matrix_sum(buf1, matrix_transfer);
         matrix_free(&buf1);
