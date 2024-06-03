@@ -159,12 +159,12 @@ struct Matrix matrix_exponent(const struct Matrix A, const int iterations) {
     struct Matrix term = matrix_init(A.cols, A.rows);
     matrix_copy(term, B);
 
-    matrix_zero(C);
-
-    for (int trm = 0; trm < iterations; ++trm) {
+     for (int trm = 1; trm <= iterations; ++trm) {
         matrix_add(C, term);
         matrix_mult_by_coeff(term, 1.0 / (trm + 1));
-        matrix_mult(term, B);
+        struct Matrix temp = matrix_mult(term, B);
+        matrix_free(&term);
+        term = temp;
     }
 
     matrix_free(&B);
@@ -204,6 +204,20 @@ int matrix_det_if_zero(const struct Matrix A)
 
     return 1;
 }
+
+// Сумма элементов главной диагонали
+void matrix_sum_diag(const struct Matrix A) {
+    if (A.cols != A.rows || A.data == NULL)
+        return NAN;
+
+    double sum = 0.0;
+    for (size_t i = 0; i < A.rows; ++i) {
+        sum += A.data[i * A.cols + i];
+    }
+
+    return sum;
+}
+
 
 // Функция приведения к верхнетреугольному виду
 void matrix_det_prep(const struct Matrix A, size_t diag, double* coeff)
